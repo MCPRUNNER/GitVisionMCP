@@ -1,5 +1,5 @@
 {
-  "dotnet.defaultSolution": "selfDocumentMCP.sln",
+  "dotnet.defaultSolution": "GitVisionMCP.sln",
   "files.exclude": {
     "**/bin": true,
     "**/obj": true

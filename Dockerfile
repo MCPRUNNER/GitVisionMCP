@@ -9,7 +9,10 @@ RUN dotnet publish "GitVisionMCP.csproj" -c Release -o /app/publish --no-restore
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+# Install tini for proper signal handling and git
+RUN apt-get update && apt-get install -y tini git && rm -rf /var/lib/apt/lists/*
+
 COPY --from=build /app/publish .
 # Copy configuration files
 COPY appsettings*.json ./
@@ -21,6 +24,10 @@ RUN mkdir -p /app/repo
 
 ENV DOTNET_ENVIRONMENT=Production
 ENV GIT_REPO_DIRECTORY=/app/repo
+# Configure tini to act as a child subreaper to avoid warnings
+ENV TINI_SUBREAPER=1
 
 WORKDIR /app/repo
-ENTRYPOINT ["dotnet", "../GitVisionMCP.dll"]
+
+# Use tini with -s flag for child subreaper functionality
+ENTRYPOINT ["/usr/bin/tini", "-s", "--", "dotnet", "../GitVisionMCP.dll"]

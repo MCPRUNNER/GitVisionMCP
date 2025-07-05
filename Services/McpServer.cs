@@ -66,6 +66,10 @@ public class McpServer : IMcpServer
             _logger.LogError(ex, "Error in MCP Server main loop");
             throw;
         }
+        finally
+        {
+            _logger.LogInformation("MCP Server stopped");
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken = default)
@@ -79,9 +83,16 @@ public class McpServer : IMcpServer
     {
         try
         {
+            // Check cancellation before reading
+            cancellationToken.ThrowIfCancellationRequested();
+
             var input = await Console.In.ReadLineAsync(cancellationToken);
             if (string.IsNullOrEmpty(input))
             {
+                // If we get null/empty input, it might mean the input stream is closed
+                // This is a normal termination condition for stdio transport
+                _logger.LogDebug("Received null/empty input, stopping server");
+                _isRunning = false;
                 return;
             }
 

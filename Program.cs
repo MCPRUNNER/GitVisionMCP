@@ -39,10 +39,10 @@ var host = Host.CreateDefaultBuilder(args)
             builder.ClearProviders();
 
             // Determine log path - use absolute path for Docker, relative for local
-            var logDirectory = Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT") == "Production"
-                ? "/app/logs"  // Absolute path for Docker
-                : Path.Combine(Directory.GetCurrentDirectory(), "logs");  // Relative path for local
-
+            var logDirectory = Environment.GetEnvironmentVariable("GIT_APP_LOG_DIRECTORY") ??
+                Path.Combine(Directory.GetCurrentDirectory(), "logs");  // Relative path for local
+            System.Console.WriteLine($"GIT_APP_LOG_DIRECTORY: {Environment.GetEnvironmentVariable("GIT_APP_LOG_DIRECTORY")}");
+            System.Console.WriteLine($"Log directory: {logDirectory}");
             Directory.CreateDirectory(logDirectory);
 
             // Create timestamped log file pattern

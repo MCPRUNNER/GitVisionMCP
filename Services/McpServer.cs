@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using GitVisionMCP.Models;
 using GitVisionMCP.Services;
+using GitVisionMCP.Prompts;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -142,6 +143,7 @@ public class McpServer : IMcpServer
                 "initialized" => null, // Notification, no response needed
                 "tools/list" => await HandleToolsListAsync(request),
                 "tools/call" => await HandleToolCallAsync(request),
+                "prompts/get" => await HandlePromptGetAsync(request),
                 _ => CreateErrorResponse(request.Id, -32601, "Method not found")
             };
         }
@@ -163,7 +165,38 @@ public class McpServer : IMcpServer
             {
                 Tools = new { },
                 Resources = null,
-                Prompts = null,
+                Prompts = new
+                {
+                    release_document = new
+                    {
+                        description = "Creates a comprehensive release document from git history",
+                        parameters = new
+                        {
+                        }
+                    },
+                    release_document_with_version = new
+                    {
+                        description = "Creates a release document with specific version information",
+                        parameters = new
+                        {
+                            type = "object",
+                            properties = new
+                            {
+                                version = new
+                                {
+                                    type = "string",
+                                    description = "The version number of the release (e.g., 1.0.0)"
+                                },
+                                releaseDate = new
+                                {
+                                    type = "string",
+                                    description = "The release date (e.g., 2025-07-06)"
+                                }
+                            },
+                            required = new[] { "version", "releaseDate" }
+                        }
+                    }
+                },
                 Logging = new { }
             },
             ServerInfo = new ServerInfo
@@ -1229,5 +1262,73 @@ public class McpServer : IMcpServer
 
         result += "}";
         return result;
+    }
+
+    private Task<JsonRpcResponse> HandlePromptGetAsync(JsonRpcRequest request)
+    {
+        _logger.LogDebug("Handling prompts/get request");
+
+        try
+        {
+            if (request.Params == null)
+            {
+                return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Invalid params"));
+            }
+
+            var paramsJson = JsonSerializer.Serialize(request.Params);
+            var requestParams = JsonSerializer.Deserialize<Dictionary<string, object>>(paramsJson);
+
+            if (requestParams == null || !requestParams.TryGetValue("name", out var nameObj) || nameObj == null)
+            {
+                return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Missing required parameter: name"));
+            }
+
+            var promptName = nameObj.ToString() ?? string.Empty;
+
+            string promptContent;
+
+            switch (promptName)
+            {
+                case "release_document":
+                    promptContent = ReleaseDocumentPrompts.ReleaseDocumentPrompt();
+                    break;
+
+                case "release_document_with_version":
+                    if (!requestParams.TryGetValue("parameters", out var parametersObj) || parametersObj == null)
+                    {
+                        return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Missing required parameters for release_document_with_version"));
+                    }
+
+                    var parametersJson = JsonSerializer.Serialize(parametersObj);
+                    var promptParams = JsonSerializer.Deserialize<Dictionary<string, string>>(parametersJson);
+
+                    if (promptParams == null ||
+                        !promptParams.TryGetValue("version", out var version) ||
+                        !promptParams.TryGetValue("releaseDate", out var releaseDate))
+                    {
+                        return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Missing required parameters: version and releaseDate"));
+                    }
+
+                    promptContent = ReleaseDocumentPrompts.ReleaseDocumentWithVersionPrompt(version, releaseDate);
+                    break;
+
+                default:
+                    return Task.FromResult(CreateErrorResponse(request.Id, -32602, $"Unknown prompt: {promptName}"));
+            }
+
+            return Task.FromResult(new JsonRpcResponse
+            {
+                Id = request.Id,
+                Result = new
+                {
+                    prompt = promptContent
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling prompt request");
+            return Task.FromResult(CreateErrorResponse(request.Id, -32603, "Internal error", ex.Message));
+        }
     }
 }

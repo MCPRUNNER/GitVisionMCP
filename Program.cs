@@ -1,203 +1,188 @@
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using ModelContextProtocol.AspNetCore;
 using GitVisionMCP.Services;
+using GitVisionMCP.Prompts;
+using GitVisionMCP.Tools;
+using Serilog;
+using Serilog.Events;
+using Serilog.Extensions.Logging;
 using System.Text;
 using System.Runtime.InteropServices;
-using Serilog;
-using Serilog.Extensions.Logging;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 
 // Ensure UTF-8 encoding for stdout
 Console.OutputEncoding = Encoding.UTF8;
 
-// Determine transport type (similar to mssqlMCP pattern)
+var builder = WebApplication.CreateBuilder(args);
+
+// Configure Serilog
+var logDirectory = Environment.GetEnvironmentVariable("GIT_APP_LOG_DIRECTORY") ??
+    Path.Combine(Directory.GetCurrentDirectory(), "logs");
+Directory.CreateDirectory(logDirectory);
+var logFilePattern = Path.Combine(logDirectory, "gitvisionmcp-.log");
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .Enrich.FromLogContext()
+    .WriteTo.File(logFilePattern,
+        shared: true,
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30,
+        rollOnFileSizeLimit: true,
+        fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
+// Add Serilog to logging providers
+builder.Logging.AddSerilog(Log.Logger);
+
+// Determine transport type from environment variable
 var transportType = Environment.GetEnvironmentVariable("GITVISION_MCP_TRANSPORT") ?? "Stdio";
 
-// Add simple console logging for transport selection
-if (transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
+// Add MCP services based on transport type
+if (transportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
 {
-    Console.Error.WriteLine("Using Stdio transport for GitVision MCP server.");
+    Log.Information("Using HTTP transport for GitVision MCP server.");
+    builder.Services.AddMcpServer().WithHttpTransport()
+        .WithTools<GitServiceTools>()
+        .WithPrompts<ReleaseDocumentPrompts>();
+}
+else if (transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
+{
+    Log.Information("Using Stdio transport for GitVision MCP server.");
+    builder.Services.AddMcpServer().WithStdioServerTransport()
+        .WithTools<GitServiceTools>()
+        .WithPrompts<ReleaseDocumentPrompts>();
 }
 else
 {
-    Console.Error.WriteLine("Using HTTP transport for GitVision MCP server.");
+    Log.Error($"Invalid GITVISION_MCP_TRANSPORT: {transportType}. Defaulting to Stdio transport.");
+    builder.Services.AddMcpServer().WithStdioServerTransport()
+        .WithTools<GitServiceTools>()
+        .WithPrompts<ReleaseDocumentPrompts>();
 }
 
-var host = Host.CreateDefaultBuilder(args)
-    .ConfigureAppConfiguration((context, config) =>
-    {
-        config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-              .AddJsonFile($"appsettings.{context.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-              .AddEnvironmentVariables();
-    })
-    .ConfigureServices((context, services) =>
-    {
-        services.AddLogging(builder =>
+// Add our GitVision MCP services
+builder.Services.AddSingleton<IGitService, GitService>();
+//builder.Services.AddTransient<GitServiceTools>();
+
+// Configure JSON options
+if (transportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
         {
-            builder.ClearProviders();
-
-            // Determine log path - use absolute path for Docker, relative for local
-            var logDirectory = Environment.GetEnvironmentVariable("GIT_APP_LOG_DIRECTORY") ??
-                Path.Combine(Directory.GetCurrentDirectory(), "logs");  // Relative path for local
-            System.Console.WriteLine($"GIT_APP_LOG_DIRECTORY: {Environment.GetEnvironmentVariable("GIT_APP_LOG_DIRECTORY")}");
-            System.Console.WriteLine($"Log directory: {logDirectory}");
-            Directory.CreateDirectory(logDirectory);
-
-            // Create timestamped log file pattern
-            var logFilePattern = Path.Combine(logDirectory, "gitvisionmcp-.log");
-
-            // Configure Serilog with timestamped file names and log rotation
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
-                .WriteTo.File(logFilePattern,
-                    shared: true,
-                    rollingInterval: RollingInterval.Day,
-                    retainedFileCountLimit: 30,
-                    rollOnFileSizeLimit: true,
-                    fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB
-                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-                .CreateLogger();
-
-            builder.AddSerilog(Log.Logger);
+            options.JsonSerializerOptions.PropertyNamingPolicy = null;
+            options.JsonSerializerOptions.WriteIndented = true;
         });
 
-        services.AddSingleton<IGitService, GitService>();
-
-        // Register MCP server components following mssqlMCP pattern
-        services.AddSingleton<IMcpServer, McpServer>();
-    })
-    .UseConsoleLifetime(options =>
+    // Configure HTTP server options
+    builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
     {
-        options.SuppressStatusMessages = true;
-    })
-    .Build();
+        options.AllowSynchronousIO = true;
+        options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10 MB
+        options.Limits.MaxConcurrentConnections = 100;
+        options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
+    });
+}
+var app = builder.Build();
 
-// Run the application based on transport type
+// Configure HTTP middleware if using HTTP transport
+if (!transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
+{
+    app.UseRouting();
+
+    // Add endpoint for testing
+    app.MapGet("/api/test", () => "GitVision MCP Server is running!");
+
+    // Configure exception handling
+    app.UseExceptionHandler(appError =>
+    {
+        appError.Run(async context =>
+        {
+            context.Response.StatusCode = 500;
+            context.Response.ContentType = "application/json";
+
+            var exceptionHandlerFeature = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>();
+            var error = exceptionHandlerFeature?.Error;
+
+            if (error is OperationCanceledException)
+            {
+                Log.Debug("Client disconnected - operation canceled");
+                context.Response.StatusCode = 499; // Client Closed Request
+                await context.Response.WriteAsync("{\"error\": \"Client disconnected\"}");
+                return;
+            }
+
+            // Generic error handler
+            Log.Error(error, "Unhandled exception");
+            await context.Response.WriteAsync("{\"error\": \"An unexpected error occurred. Please try again later.\"}");
+        });
+    });
+}
+
+// Run the application
+app.Lifetime.ApplicationStarted.Register(() => Log.Information("GitVision MCP Server started"));
+
 if (transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
 {
-    // In stdio mode, use the MCP server directly for JSON-RPC over stdio
+    // In stdio mode, we only want to use the MCP server transport
     try
     {
-        var mcpServer = host.Services.GetRequiredService<IMcpServer>();
+        var mcpServer = app.Services.GetRequiredService<ModelContextProtocol.Server.IMcpServer>();
 
-        // Create master cancellation token source for all shutdown scenarios
+        // Register shutdown handlers
         var cancellationTokenSource = new CancellationTokenSource();
-        var lifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
 
-        // Combine all cancellation tokens
-        var combinedToken = CancellationTokenSource.CreateLinkedTokenSource(
-            cancellationTokenSource.Token,
-            lifetime.ApplicationStopping);
-
-        // Handle Ctrl+C (SIGINT)
         Console.CancelKeyPress += (_, e) =>
         {
             e.Cancel = true;
-            Console.Error.WriteLine("Ctrl+C (SIGINT) received, stopping MCP server...");
+            Log.Information("Ctrl+C received, stopping server...");
             cancellationTokenSource.Cancel();
         };
 
-        // Handle SIGTERM (Docker container termination)
         AppDomain.CurrentDomain.ProcessExit += (_, _) =>
         {
-            Console.Error.WriteLine("SIGTERM received, stopping MCP server...");
+            Log.Information("Process exit event received, stopping server...");
             cancellationTokenSource.Cancel();
         };
 
-        // Handle application shutdown events from the host
-        lifetime.ApplicationStopping.Register(() =>
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+            RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            Console.Error.WriteLine("Application stopping event received...");
-            cancellationTokenSource.Cancel();
-        });
-
-        // For Unix systems, handle SIGTERM explicitly
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            // Register for SIGTERM
-            PosixSignalRegistration.Create(PosixSignal.SIGTERM, context =>
+            PosixSignalRegistration.Create(PosixSignal.SIGTERM, _ =>
             {
-                Console.Error.WriteLine("SIGTERM signal received, stopping MCP server...");
+                Log.Information("SIGTERM received, stopping server...");
                 cancellationTokenSource.Cancel();
             });
         }
 
-        // Start the MCP server and wait for cancellation
-        await mcpServer.StartAsync(combinedToken.Token);
-
-        // If we reach here, the server stopped gracefully
-        Console.Error.WriteLine("MCP server stopped gracefully.");
-        Log.CloseAndFlush(); // Ensure logs are flushed before shutdown
-        return 0;
-    }
-    catch (OperationCanceledException)
-    {
-        // Expected when cancellation is requested
-        Console.Error.WriteLine("MCP server cancelled successfully.");
-        Log.CloseAndFlush(); // Ensure logs are flushed before shutdown
-        return 0;
+        await mcpServer.RunAsync(cancellationTokenSource.Token);
     }
     catch (Exception ex)
     {
-        // Log to stderr
-        await Console.Error.WriteLineAsync($"Error: {ex.Message}");
-        Log.CloseAndFlush(); // Ensure logs are flushed before shutdown
-        return 1;
+        Log.Fatal(ex, "MCP Server terminated unexpectedly");
+    }
+    finally
+    {
+        Log.Information("MCP Server shutting down");
+        Log.CloseAndFlush();
     }
 }
 else
 {
-    // For HTTP mode (future extension), run the host
-    try
-    {
-        // Create cancellation token that responds to signals
-        var cancellationTokenSource = new CancellationTokenSource();
-
-        // Handle Ctrl+C (SIGINT)
-        Console.CancelKeyPress += (_, e) =>
-        {
-            e.Cancel = true;
-            Console.Error.WriteLine("Ctrl+C (SIGINT) received, stopping HTTP server...");
-            cancellationTokenSource.Cancel();
-        };
-
-        // Handle SIGTERM (Docker container termination)
-        AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-        {
-            Console.Error.WriteLine("SIGTERM received, stopping HTTP server...");
-            cancellationTokenSource.Cancel();
-        };
-
-        // For Unix systems, handle SIGTERM explicitly
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-        {
-            // Register for SIGTERM
-            PosixSignalRegistration.Create(PosixSignal.SIGTERM, context =>
-            {
-                Console.Error.WriteLine("SIGTERM signal received, stopping HTTP server...");
-                cancellationTokenSource.Cancel();
-            });
-        }
-
-        await host.RunAsync(cancellationTokenSource.Token);
-        Console.Error.WriteLine("HTTP server stopped gracefully.");
-        Log.CloseAndFlush(); // Ensure logs are flushed before shutdown
-        return 0;
-    }
-    catch (OperationCanceledException)
-    {
-        // Expected when cancellation is requested
-        Console.Error.WriteLine("HTTP server cancelled successfully.");
-        Log.CloseAndFlush(); // Ensure logs are flushed before shutdown
-        return 0;
-    }
-    catch (Exception ex)
-    {
-        // Log to stderr
-        await Console.Error.WriteLineAsync($"Error: {ex.Message}");
-        Log.CloseAndFlush(); // Ensure logs are flushed before shutdown
-        return 1;
-    }
+    // For HTTP mode, start the web server
+    app.MapMcp("/mcp");
+    // JSON-RPC mapping will be handled by the MCP server when app.MapMcp is called
+    Log.Information("Starting GitVision MCP server with HTTP transport");
+    app.Run();
 }
+
+

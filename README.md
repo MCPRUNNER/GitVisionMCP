@@ -2,6 +2,12 @@
 
 A comprehensive Model Context Protocol (MCP) Server that provides advanced git analysis and documentation tools, including powerful commit search capabilities. Designed to be used as a Copilot Agent in VS Code for comprehensive repository analysis and documentation generation.
 
+## MCP Prompts
+
+GitVisionMCP provides specialized MCP prompts for creating release documentation. These prompts help guide the AI in generating comprehensive and well-structured release notes based on git history.
+
+### Available MCP Prompts and Documentation Generation
+
 ## 🔥 Key Capabilities
 
 - **📝 Documentation Generation**: Create comprehensive documentation from git logs
@@ -256,7 +262,89 @@ Once configured, you can use natural language commands with Copilot:
 - "Get line-by-line diff for Services/GitService.cs between two commits"
 - "Show me recent commits with detailed change information"
 
-## 🚀 Quick Start
+## � System Prompts
+
+GitVisionMCP provides specialized system prompts for creating release documentation. These prompts help guide the AI in generating comprehensive and well-structured release notes based on git history.
+
+### Available System Prompts
+
+#### release_document
+
+A prompt that guides the AI in creating a comprehensive release document based on git history.
+
+```json
+{
+  "prompts": {
+    "release_document": true
+  }
+}
+```
+
+Example usage with Copilot:
+
+```
+@copilot Using the release_document prompt, create release notes for our project.
+```
+
+#### release_document_with_version
+
+A more specific prompt that creates release documentation with explicit version and release date information.
+
+```json
+{
+  "prompts": {
+    "release_document_with_version": {
+      "parameters": {
+        "version": "1.0.0",
+        "releaseDate": "2025-07-06"
+      }
+    }
+  }
+}
+```
+
+Example usage with Copilot:
+
+```
+@copilot Using the release_document_with_version prompt with version 2.0.0 and release date 2025-07-10, create release notes.
+```
+
+### Configuring MCP Prompts in mcp.json
+
+To enable MCP prompts in your VS Code environment, add the prompts section to your mcp.json:
+
+```json
+{
+  "servers": {
+    "GitVisionMCP": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "c:\\path\\to\\GitVisionMCP.csproj",
+        "--no-build",
+        "--verbosity",
+        "quiet"
+      ],
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production"
+      },
+      "prompts": {
+        "release_document": true,
+        "release_document_with_version": {
+          "parameters": {
+            "version": "1.0.0",
+            "releaseDate": "2025-07-06"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## �🚀 Quick Start
 
 ### Test the Search Feature
 

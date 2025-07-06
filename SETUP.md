@@ -135,7 +135,7 @@ echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"generate_g
 ## Common Issues
 
 ❌ **If you see build messages**: Use `--no-build` and build first
-❌ **If you see log messages**: Use `DOTNET_ENVIRONMENT=Production`
+❌ **If you see log messages**: Use `GIT_APP_LOG_DIRECTORY=/path/to/logs` to set log directory
 ❌ **If VS Code can't connect**: Check the project path in the configuration
 ❌ **If git operations fail**: Ensure you're in a git repository
 

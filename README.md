@@ -1,10 +1,12 @@
 # GitVisionMCP
 
-A comprehensive Model Context Protocol (MCP) Server that provides advanced git analysis and documentation tools, including powerful commit search capabilities. Designed to be used as a Copilot Agent in VS Code for comprehensive repository a## � MCP Prompts
+A comprehensive Model Context Protocol (MCP) Server that provides advanced git analysis and documentation tools, including powerful commit search capabilities. Designed to be used as a Copilot Agent in VS Code for comprehensive repository analysis and documentation generation.
+
+## MCP Prompts
 
 GitVisionMCP provides specialized MCP prompts for creating release documentation. These prompts help guide the AI in generating comprehensive and well-structured release notes based on git history.
 
-### Available MCP Promptsis and documentation generation.
+### Available MCP Prompts and Documentation Generation
 
 ## 🔥 Key Capabilities
 

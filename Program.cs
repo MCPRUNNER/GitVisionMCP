@@ -51,7 +51,8 @@ if (transportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
 {
     Log.Information("Using HTTP transport for GitVision MCP server.");
     builder.Services.AddMcpServer().WithHttpTransport()
-        .WithTools<GitServiceTools>();
+        .WithTools<GitServiceTools>()
+        .WithPrompts<ReleaseDocumentPrompts>();
 }
 else if (transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
 {
@@ -70,25 +71,27 @@ else
 
 // Add our GitVision MCP services
 builder.Services.AddSingleton<IGitService, GitService>();
-builder.Services.AddTransient<GitServiceTools>();
+//builder.Services.AddTransient<GitServiceTools>();
 
 // Configure JSON options
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.PropertyNamingPolicy = null;
-        options.JsonSerializerOptions.WriteIndented = true;
-    });
-
-// Configure HTTP server options
-builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
+if (transportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
 {
-    options.AllowSynchronousIO = true;
-    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10 MB
-    options.Limits.MaxConcurrentConnections = 100;
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
-});
+    builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.PropertyNamingPolicy = null;
+            options.JsonSerializerOptions.WriteIndented = true;
+        });
 
+    // Configure HTTP server options
+    builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
+    {
+        options.AllowSynchronousIO = true;
+        options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10 MB
+        options.Limits.MaxConcurrentConnections = 100;
+        options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
+    });
+}
 var app = builder.Build();
 
 // Configure HTTP middleware if using HTTP transport
@@ -177,7 +180,8 @@ else
 {
     // For HTTP mode, start the web server
     app.MapMcp("/mcp");
-    // JSON-RPC mapping will be handled by the MCP server
+    // JSON-RPC mapping will be handled by the MCP server when app.MapMcp is called
+    Log.Information("Starting GitVision MCP server with HTTP transport");
     app.Run();
 }
 

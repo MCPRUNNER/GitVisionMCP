@@ -129,12 +129,7 @@ public class GitServiceTools
         try
         {
             // Ensure directory exists
-            var directory = Path.GetDirectoryName(filePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            {
-                _logger.LogInformation("Creating directory {Directory}", directory);
-                Directory.CreateDirectory(directory);
-            }
+            EnsureDirectoryExists(filePath);
 
             // Use the helper method for output format validation
             outputFormat = ValidateOutputFormat(outputFormat);

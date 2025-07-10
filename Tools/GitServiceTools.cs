@@ -524,6 +524,22 @@ public class GitServiceTools
     }
 
     [McpServerToolAttribute]
+    [Description("Get the current active branch in the repository")]
+    public async Task<string> GetCurrentBranchAsync()
+    {
+        try
+        {
+            var repoPath = _locationService.GetWorkspaceRoot();
+            return await _gitService.GetCurrentBranchAsync(repoPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting current branch");
+            throw;
+        }
+    }
+
+    [McpServerToolAttribute]
     [Description("Get list of files changed between two commits")]
     public async Task<List<string>> GetChangedFilesBetweenCommits(
         [Description("First commit hash")] string commit1,

@@ -23,6 +23,7 @@ public interface IGitService
     Task<List<string>> GetLocalBranchesAsync(string repositoryPath);
     Task<List<string>> GetRemoteBranchesAsync(string repositoryPath);
     Task<List<string>> GetAllBranchesAsync(string repositoryPath);
+    Task<string> GetCurrentBranchAsync(string repositoryPath);
     Task<bool> FetchFromRemoteAsync(string repositoryPath, string remoteName = "origin");
     Task<List<GitCommitInfo>> GetGitLogsBetweenBranchesWithRemoteAsync(string repositoryPath, string branch1, string branch2, bool fetchRemote = true);
 
@@ -766,6 +767,30 @@ public class GitService : IGitService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all branches from repository: {RepositoryPath}", repositoryPath);
+            throw;
+        }
+    }
+
+    public async Task<string> GetCurrentBranchAsync(string repositoryPath)
+    {
+        try
+        {
+            _logger.LogInformation("Getting current branch from repository: {RepositoryPath}", repositoryPath);
+
+            if (!Repository.IsValid(repositoryPath))
+            {
+                throw new InvalidOperationException($"Path is not a valid git repository: {repositoryPath}");
+            }
+
+            using var repo = new Repository(repositoryPath);
+            var currentBranch = repo.Head.FriendlyName;
+
+            _logger.LogInformation("Current branch: {CurrentBranch}", currentBranch);
+            return await Task.FromResult(currentBranch);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting current branch from repository: {RepositoryPath}", repositoryPath);
             throw;
         }
     }

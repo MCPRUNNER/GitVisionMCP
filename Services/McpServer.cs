@@ -392,6 +392,16 @@ public class McpServer : IMcpServer
             },
             new Tool
             {
+                Name = "get_current_branch",
+                Description = "Get the current active branch in the repository",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new { }
+                }
+            },
+            new Tool
+            {
                 Name = "fetch_from_remote",
                 Description = "Fetch latest changes from remote repository",
                 InputSchema = new
@@ -478,6 +488,7 @@ public class McpServer : IMcpServer
             "get_local_branches" => await HandleGetLocalBranchesAsync(toolRequest),
             "get_remote_branches" => await HandleGetRemoteBranchesAsync(toolRequest),
             "get_all_branches" => await HandleGetAllBranchesAsync(toolRequest),
+            "get_current_branch" => await HandleGetCurrentBranchAsync(toolRequest),
             "fetch_from_remote" => await HandleFetchFromRemoteAsync(toolRequest),
             "compare_branches_with_remote" => await HandleCompareBranchesWithRemoteAsync(toolRequest),
             "search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
@@ -895,6 +906,29 @@ public class McpServer : IMcpServer
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting all branches");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error: {ex.Message}" } }
+            };
+        }
+    }
+
+    private async Task<CallToolResponse> HandleGetCurrentBranchAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var currentBranch = await _gitService.GetCurrentBranchAsync(workspaceRoot);
+
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = $"Current branch: {currentBranch}" } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting current branch");
             return new CallToolResponse
             {
                 IsError = true,

@@ -57,7 +57,7 @@ public class GitServiceTools
                 commitCount = 50;
             }
 
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             _logger.LogInformation("Generating git documentation for last {CommitCount} commits in {Format} format",
                 commitCount, outputFormat);
 
@@ -137,7 +137,7 @@ public class GitServiceTools
             outputFormat = ValidateOutputFormat(outputFormat);
             var commitCount = maxCommits ?? 50;
 
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             _logger.LogInformation("Generating git documentation to file {FilePath} for last {CommitCount} commits",
                 filePath, commitCount);
 
@@ -214,7 +214,7 @@ public class GitServiceTools
             // Ensure directory exists
             EnsureDirectoryExists(filePath);
 
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             _logger.LogInformation("Comparing branches {Branch1} and {Branch2}, writing to {FilePath}",
                 branch1, branch2, filePath);
 
@@ -304,7 +304,7 @@ public class GitServiceTools
             // Ensure directory exists
             EnsureDirectoryExists(filePath);
 
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             _logger.LogInformation("Comparing branches {Branch1} and {Branch2} with remote support, writing to {FilePath}",
                 branch1, branch2, filePath);
 
@@ -399,7 +399,7 @@ public class GitServiceTools
             // Ensure directory exists
             EnsureDirectoryExists(filePath);
 
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             _logger.LogInformation("Comparing commits {Commit1} and {Commit2}, writing to {FilePath}",
                 commit1, commit2, filePath);
 
@@ -465,7 +465,7 @@ public class GitServiceTools
     {
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             return await _gitService.GetRecentCommitsAsync(repoPath, count ?? 10);
         }
         catch (Exception ex)
@@ -481,7 +481,7 @@ public class GitServiceTools
     {
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             return await _gitService.GetLocalBranchesAsync(repoPath);
         }
         catch (Exception ex)
@@ -497,7 +497,7 @@ public class GitServiceTools
     {
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             return await _gitService.GetRemoteBranchesAsync(repoPath);
         }
         catch (Exception ex)
@@ -513,7 +513,7 @@ public class GitServiceTools
     {
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             return await _gitService.GetAllBranchesAsync(repoPath);
         }
         catch (Exception ex)
@@ -544,7 +544,7 @@ public class GitServiceTools
 
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             _logger.LogInformation("Getting changed files between commits {Commit1} and {Commit2}",
                 commit1, commit2);
 
@@ -596,7 +596,7 @@ public class GitServiceTools
 
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             _logger.LogInformation("Getting diff info between commits {Commit1} and {Commit2}",
                 commit1, commit2);
 
@@ -658,7 +658,7 @@ public class GitServiceTools
 
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
 
             if (specificFiles != null && specificFiles.Count > 0)
             {
@@ -735,7 +735,7 @@ public class GitServiceTools
             _logger.LogInformation("Searching for '{SearchString}' in last {CommitCount} commits",
                 searchString, commitCount);
 
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
 
             // Check if repository exists
             if (!Directory.Exists(Path.Combine(repoPath, ".git")))
@@ -800,7 +800,7 @@ public class GitServiceTools
 
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             _logger.LogInformation("Getting line-by-line diff for file {FilePath} between commits {Commit1} and {Commit2}",
                 filePath, commit1, commit2);
 

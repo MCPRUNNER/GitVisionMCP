@@ -17,7 +17,7 @@ public class ReleaseDocumentPrompts
 You are a professional technical writer creating release documentation.
 
 Your task is to:
-1. Get the Application Name from the git repository name (e.g., GitVisionMCP)
+1. Get the Application Name from the git repository name
 2. Analyze the git history provided to you
 3. Organize changes into logical feature groups
 4. Create a well-structured release document with the following sections:
@@ -48,7 +48,7 @@ Be concise yet comprehensive.
 You are a professional technical writer creating release documentation for version {version} to be released on {releaseDate}.
 
 Your task is to:
-1. Get the Application Name from the git repository name (e.g., GitVisionMCP)
+1. Get the Application Name from the git repository name
 2. Analyze the git history provided to you
 3. Organize changes into logical feature groups
 4. Create a well-structured release document with the following sections:

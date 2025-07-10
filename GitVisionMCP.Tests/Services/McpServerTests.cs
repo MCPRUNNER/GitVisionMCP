@@ -254,7 +254,7 @@ public class McpServerTests : IDisposable
 
         // Act - We would call the method if it was public
         // For now, we verify the mocks are set up correctly
-        var result = await _mockGitService.Object.GetGitLogsAsync(Directory.GetCurrentDirectory(), 10);
+        var result = await _mockGitService.Object.GetGitLogsAsync(_testWorkingDirectory, 10);
 
         // Assert
         Assert.NotNull(result);

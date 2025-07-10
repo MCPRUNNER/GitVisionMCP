@@ -203,7 +203,8 @@ Create or update your MCP configuration to include this server. Here are example
       "command": "dotnet",
       "args": ["run", "--project", "c:\\path\\to\\GitVisionMCP.csproj"],
       "env": {
-        "DOTNET_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Production",
+        "GIT_REPOSITORY_DIRECTORY": "c:\\Users\\my\\source\\repos\\gitrepo_directory"
       }
     }
   }
@@ -214,16 +215,44 @@ Create or update your MCP configuration to include this server. Here are example
 
 ```json
 {
-  "mcpServers": {
+  "servers": {
     "GitVisionMCP": {
+      "type": "stdio",
       "command": "dotnet",
       "args": [
         "run",
         "--project",
-        "c:\\path\\to\\GitVisionMCP.csproj",
+        "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP\\GitVisionMCP.csproj",
         "--no-build",
         "--verbosity",
         "quiet"
+      ],
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production",
+        "GIT_REPOSITORY_DIRECTORY": "c:\\Users\\my\\source\\repos\\gitrepo_directory"
+      }
+    },
+    "GitVisionMCP-Docker": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--init",
+        "--stop-timeout",
+        "10",
+        "-e",
+        "GITVISION_MCP_TRANSPORT=Stdio",
+        "-e",
+        "GIT_APP_LOG_DIRECTORY=/app/logs",
+        "-e",
+        "GIT_REPOSITORY_DIRECTORY=c:\\Users\\my\\source\\repos\\gitrepo_directory",
+        "-v",
+        "c:\\Users\\my\\source\\repos\\MCP\\GitVisionMCP:/app/repo:ro",
+        "-v",
+        "c:\\Users\\my\\source\\repos\\MCP\\GitVisionMCP\\logs:/app/logs",
+        "mcprunner/gitvisionmcp:latest"
       ],
       "env": {
         "DOTNET_ENVIRONMENT": "Production"

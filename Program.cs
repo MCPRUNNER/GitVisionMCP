@@ -70,6 +70,7 @@ else
 }
 
 // Add our GitVision MCP services
+builder.Services.AddSingleton<ILocationService, LocationService>();
 builder.Services.AddSingleton<IGitService, GitService>();
 //builder.Services.AddTransient<GitServiceTools>();
 

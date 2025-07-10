@@ -20,15 +20,17 @@ public class McpServer : IMcpServer
     private readonly ILogger<McpServer> _logger;
     private readonly IConfiguration _configuration;
     private readonly IGitService _gitService;
+    private readonly ILocationService _locationService;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly JsonSerializerOptions _outputJsonOptions;
     private bool _isRunning;
 
-    public McpServer(ILogger<McpServer> logger, IConfiguration configuration, IGitService gitService)
+    public McpServer(ILogger<McpServer> logger, IConfiguration configuration, IGitService gitService, ILocationService locationService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
+        _locationService = locationService ?? throw new ArgumentNullException(nameof(locationService));
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -497,7 +499,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var maxCommits = GetArgumentValue<int>(toolRequest.Arguments, "maxCommits", 50);
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
@@ -534,7 +536,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var maxCommits = GetArgumentValue<int>(toolRequest.Arguments, "maxCommits", 50);
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
@@ -585,7 +587,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
             // Make path relative to workspace if not absolute
@@ -635,7 +637,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
             // Make path relative to workspace if not absolute
@@ -672,7 +674,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var count = GetArgumentValue<int>(toolRequest.Arguments, "count", 10);
 
             var commits = await _gitService.GetRecentCommitsAsync(workspaceRoot, count);
@@ -711,7 +713,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var changedFiles = await _gitService.GetChangedFilesBetweenCommitsAsync(workspaceRoot, commit1, commit2);
             var filesList = string.Join("\n", changedFiles.Select(f => $"• {f}"));
 
@@ -747,7 +749,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var specificFilesArg = GetArgumentValue<object?>(toolRequest.Arguments, "specificFiles", null);
             List<string>? specificFiles = null;
 
@@ -790,7 +792,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var diffInfo = await _gitService.GetCommitDiffInfoAsync(workspaceRoot, commit1, commit2);
 
             var summary = $"Commit Diff Summary ({commit1[..8]} → {commit2[..8]}):\n\n" +
@@ -833,7 +835,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var localBranches = await _gitService.GetLocalBranchesAsync(workspaceRoot);
             var branchList = string.Join("\n", localBranches.Select(b => $"• {b}"));
 
@@ -857,7 +859,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var remoteBranches = await _gitService.GetRemoteBranchesAsync(workspaceRoot);
             var branchList = string.Join("\n", remoteBranches.Select(b => $"• {b}"));
 
@@ -881,7 +883,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var allBranches = await _gitService.GetAllBranchesAsync(workspaceRoot);
             var branchList = string.Join("\n", allBranches.Select(b => $"• {b}"));
 
@@ -905,7 +907,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var remoteName = GetArgumentValue<string>(toolRequest.Arguments, "remoteName", "origin");
             var success = await _gitService.FetchFromRemoteAsync(workspaceRoot, remoteName);
 
@@ -946,7 +948,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
             var fetchRemote = GetArgumentValue<bool>(toolRequest.Arguments, "fetchRemote", true);
 
@@ -995,7 +997,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var maxCommits = GetArgumentValue<int>(toolRequest.Arguments, "maxCommits", 100);
 
             var searchResults = await _gitService.SearchCommitsForStringAsync(workspaceRoot, searchString, maxCommits);
@@ -1082,7 +1084,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var workspaceRoot = Environment.CurrentDirectory;
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
             var commit1 = GetArgumentValue<string>(toolRequest.Arguments, "commit1", string.Empty);
             var commit2 = GetArgumentValue<string>(toolRequest.Arguments, "commit2", string.Empty);
             var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", string.Empty);

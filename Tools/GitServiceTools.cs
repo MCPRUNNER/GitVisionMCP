@@ -13,11 +13,13 @@ namespace GitVisionMCP.Tools;
 public class GitServiceTools
 {
     private readonly IGitService _gitService;
+    private readonly ILocationService _locationService;
     private readonly ILogger<GitServiceTools> _logger;
 
-    public GitServiceTools(IGitService gitService, ILogger<GitServiceTools> logger)
+    public GitServiceTools(IGitService gitService, ILocationService locationService, ILogger<GitServiceTools> logger)
     {
         _gitService = gitService;
+        _locationService = locationService;
         _logger = logger;
     }
 
@@ -28,7 +30,7 @@ public class GitServiceTools
     {
         try
         {
-            var repoPath = Directory.GetCurrentDirectory();
+            var repoPath = _locationService.GetWorkspaceRoot();
             return await _gitService.FetchFromRemoteAsync(repoPath, remoteName ?? "origin");
         }
         catch (Exception ex)
@@ -48,7 +50,7 @@ public class GitServiceTools
         {
             // Validate inputs
             outputFormat = ValidateOutputFormat(outputFormat);
-            int commitCount = maxCommits ?? 50;
+            var commitCount = maxCommits ?? 50;
             if (commitCount <= 0)
             {
                 _logger.LogWarning("Invalid commit count {CommitCount}, defaulting to 50", commitCount);

@@ -18,6 +18,7 @@ public class McpServerTests : IDisposable
     private readonly Mock<ILogger<McpServer>> _mockLogger;
     private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly Mock<IGitService> _mockGitService;
+    private readonly Mock<ILocationService> _mockLocationService;
     private readonly McpServer _mcpServer;
     private readonly string _testWorkingDirectory;
 
@@ -26,13 +27,17 @@ public class McpServerTests : IDisposable
         _mockLogger = new Mock<ILogger<McpServer>>();
         _mockConfiguration = new Mock<IConfiguration>();
         _mockGitService = new Mock<IGitService>();
+        _mockLocationService = new Mock<ILocationService>();
 
         // Set up a test working directory
         _testWorkingDirectory = Path.Combine(Path.GetTempPath(), "mcp-test-" + Guid.NewGuid().ToString());
         Directory.CreateDirectory(_testWorkingDirectory);
         Directory.SetCurrentDirectory(_testWorkingDirectory);
 
-        _mcpServer = new McpServer(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object);
+        // Set up the mock to return the test directory
+        _mockLocationService.Setup(x => x.GetWorkspaceRoot()).Returns(_testWorkingDirectory);
+
+        _mcpServer = new McpServer(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object);
     }
 
     public void Dispose()
@@ -54,7 +59,7 @@ public class McpServerTests : IDisposable
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Arrange & Act
-        var server = new McpServer(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object);
+        var server = new McpServer(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object);
 
         // Assert
         Assert.NotNull(server);
@@ -65,7 +70,7 @@ public class McpServerTests : IDisposable
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new McpServer(null!, _mockConfiguration.Object, _mockGitService.Object));
+            new McpServer(null!, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object));
     }
 
     [Fact]
@@ -73,7 +78,7 @@ public class McpServerTests : IDisposable
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new McpServer(_mockLogger.Object, null!, _mockGitService.Object));
+            new McpServer(_mockLogger.Object, null!, _mockGitService.Object, _mockLocationService.Object));
     }
 
     [Fact]
@@ -81,7 +86,15 @@ public class McpServerTests : IDisposable
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new McpServer(_mockLogger.Object, _mockConfiguration.Object, null!));
+            new McpServer(_mockLogger.Object, _mockConfiguration.Object, null!, _mockLocationService.Object));
+    }
+
+    [Fact]
+    public void Constructor_WithNullLocationService_ThrowsArgumentNullException()
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() =>
+            new McpServer(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, null!));
     }
 
     [Fact]

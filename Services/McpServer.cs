@@ -445,6 +445,23 @@ public class McpServer : IMcpServer
                     },
                     required = new[] { "searchString" }
                 }
+            },
+            new Tool
+            {
+                Name = "list_workspace_files",
+                Description = "List all files in the workspace with optional filtering",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        fileType = new { type = "string", description = "Filter by file type (extension without dot, e.g., 'cs', 'json')" },
+                        relativePath = new { type = "string", description = "Filter by relative path (contains search)" },
+                        fullPath = new { type = "string", description = "Filter by full path (contains search)" },
+                        lastModifiedAfter = new { type = "string", description = "Filter by last modified date (ISO format: yyyy-MM-dd)" },
+                        lastModifiedBefore = new { type = "string", description = "Filter by last modified date (ISO format: yyyy-MM-dd)" }
+                    }
+                }
             }
         };
 
@@ -492,6 +509,7 @@ public class McpServer : IMcpServer
             "fetch_from_remote" => await HandleFetchFromRemoteAsync(toolRequest),
             "compare_branches_with_remote" => await HandleCompareBranchesWithRemoteAsync(toolRequest),
             "search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
+            "list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
             _ => new CallToolResponse
             {
                 IsError = true,
@@ -1114,100 +1132,232 @@ public class McpServer : IMcpServer
         return sb.ToString();
     }
 
+    private async Task<CallToolResponse> HandleListWorkspaceFilesAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var fileType = GetArgumentValue<string?>(toolRequest.Arguments, "fileType", null);
+            var relativePath = GetArgumentValue<string?>(toolRequest.Arguments, "relativePath", null);
+            var fullPath = GetArgumentValue<string?>(toolRequest.Arguments, "fullPath", null);
+            var lastModifiedAfter = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedAfter", null);
+            var lastModifiedBefore = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedBefore", null);
+
+            var allFiles = _locationService.GetAllFiles();
+            var filteredFiles = allFiles.AsEnumerable();
+
+            // Apply file type filter
+            if (!string.IsNullOrWhiteSpace(fileType))
+            {
+                filteredFiles = filteredFiles.Where(f =>
+                    f.FileType.Equals(fileType, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply relative path filter
+            if (!string.IsNullOrWhiteSpace(relativePath))
+            {
+                filteredFiles = filteredFiles.Where(f =>
+                    f.RelativePath.Contains(relativePath, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply full path filter
+            if (!string.IsNullOrWhiteSpace(fullPath))
+            {
+                filteredFiles = filteredFiles.Where(f =>
+                    f.FullPath.Contains(fullPath, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply last modified after filter
+            if (!string.IsNullOrWhiteSpace(lastModifiedAfter) && DateTime.TryParse(lastModifiedAfter, out var afterDate))
+            {
+                filteredFiles = filteredFiles.Where(f => f.LastModified >= afterDate);
+            }
+
+            // Apply last modified before filter
+            if (!string.IsNullOrWhiteSpace(lastModifiedBefore) && DateTime.TryParse(lastModifiedBefore, out var beforeDate))
+            {
+                filteredFiles = filteredFiles.Where(f => f.LastModified <= beforeDate.AddDays(1).AddTicks(-1));
+            }
+
+            var result = filteredFiles.ToList();
+            _logger.LogInformation("Listed {FilteredCount} files out of {TotalCount} total files", result.Count, allFiles.Count);
+
+            var response = new CallToolResponse
+            {
+                Content = new[]
+                {
+                    new ToolContent
+                    {
+                        Type = "text",
+                        Text = JsonSerializer.Serialize(result, _jsonOptions)
+                    }
+                }
+            };
+
+            return await Task.FromResult(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error listing workspace files");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error listing workspace files: {ex.Message}" } }
+            };
+        }
+    }
+
+    private T GetArgumentValue<T>(object? arguments, string key, T defaultValue)
+    {
+        if (arguments is JsonElement element && element.ValueKind == JsonValueKind.Object)
+        {
+            if (element.TryGetProperty(key, out var property))
+            {
+                try
+                {
+                    if (typeof(T) == typeof(string))
+                    {
+                        return (T)(object)(property.GetString() ?? string.Empty);
+                    }
+                    else if (typeof(T) == typeof(int))
+                    {
+                        return (T)(object)property.GetInt32();
+                    }
+                    else if (typeof(T) == typeof(bool))
+                    {
+                        return (T)(object)property.GetBoolean();
+                    }
+                    else if (typeof(T) == typeof(object))
+                    {
+                        return (T)(object)property;
+                    }
+                    else if (typeof(T).IsGenericType && typeof(T).GetGenericTypeDefinition() == typeof(Nullable<>))
+                    {
+                        var underlyingType = Nullable.GetUnderlyingType(typeof(T));
+                        if (underlyingType == typeof(string))
+                        {
+                            return property.ValueKind == JsonValueKind.Null ? defaultValue : (T)(object?)property.GetString();
+                        }
+                    }
+                    // Handle nullable reference types
+                    else if (!typeof(T).IsValueType)
+                    {
+                        if (property.ValueKind == JsonValueKind.Null)
+                        {
+                            return defaultValue;
+                        }
+                        if (typeof(T).Name.Contains("String"))
+                        {
+                            return (T)(object?)property.GetString();
+                        }
+                        return (T)(object)property;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Error converting argument {Key} to type {Type}", key, typeof(T));
+                }
+            }
+        }
+
+        return defaultValue;
+    }
+
+    private JsonRpcResponse CreateErrorResponse(object? id, int code, string message, string? data = null)
+    {
+        return new JsonRpcResponse
+        {
+            Id = id,
+            Error = new GitVisionMCP.Models.JsonRpcError
+            {
+                Code = code,
+                Message = message,
+                Data = data
+            }
+        };
+    }
+
+    private async Task SendErrorResponseAsync(object? id, int code, string message)
+    {
+        var errorResponse = CreateErrorResponse(id, code, message);
+        var compactJson = CreateCompactJsonResponse(errorResponse);
+
+        var jsonBytes = Encoding.UTF8.GetBytes(compactJson);
+        await Console.OpenStandardOutput().WriteAsync(jsonBytes, 0, jsonBytes.Length);
+        await Console.OpenStandardOutput().WriteAsync(Encoding.UTF8.GetBytes("\n"), 0, 1);
+        await Console.OpenStandardOutput().FlushAsync();
+    }
+
+    private string CreateCompactJsonResponse(JsonRpcResponse response)
+    {
+        return JsonSerializer.Serialize(response, _outputJsonOptions);
+    }
+
+    private async Task<JsonRpcResponse> HandlePromptGetAsync(JsonRpcRequest request)
+    {
+        try
+        {
+            if (request.Params == null)
+            {
+                return CreateErrorResponse(request.Id, -32602, "Invalid params");
+            }
+
+            var promptRequest = JsonSerializer.Deserialize<PromptGetRequest>(
+                JsonSerializer.Serialize(request.Params), _jsonOptions);
+
+            if (promptRequest == null || string.IsNullOrEmpty(promptRequest.Name))
+            {
+                return CreateErrorResponse(request.Id, -32602, "Invalid prompt request");
+            }
+
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var commits = await _gitService.GetGitLogsAsync(workspaceRoot, 50);
+
+            var promptContent = promptRequest.Name switch
+            {
+                "release_document" => "Release document prompt not implemented",
+                "release_document_with_version" => "Release document with version prompt not implemented",
+                _ => "Unknown prompt"
+            };
+
+            return await Task.FromResult(new JsonRpcResponse
+            {
+                Id = request.Id,
+                Result = new
+                {
+                    prompt = promptContent
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling prompt request");
+            return CreateErrorResponse(request.Id, -32603, "Internal error", ex.Message);
+        }
+    }
+
     private async Task<CallToolResponse> HandleGetFileLineDiffBetweenCommitsAsync(CallToolRequest toolRequest)
     {
         try
         {
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var commit1 = GetArgumentValue<string>(toolRequest.Arguments, "commit1", string.Empty);
-            var commit2 = GetArgumentValue<string>(toolRequest.Arguments, "commit2", string.Empty);
-            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", string.Empty);
+            var commit1 = GetArgumentValue<string>(toolRequest.Arguments, "commit1", "");
+            var commit2 = GetArgumentValue<string>(toolRequest.Arguments, "commit2", "");
+            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
 
             if (string.IsNullOrEmpty(commit1) || string.IsNullOrEmpty(commit2) || string.IsNullOrEmpty(filePath))
             {
                 return new CallToolResponse
                 {
                     IsError = true,
-                    Content = new[] { new ToolContent { Type = "text", Text = "Missing required arguments: commit1, commit2, and filePath are required" } }
+                    Content = new[] { new ToolContent { Type = "text", Text = "commit1, commit2, and filePath arguments are required" } }
                 };
             }
 
-            var diffInfo = await _gitService.GetFileLineDiffBetweenCommitsAsync(workspaceRoot, commit1, commit2, filePath);
-
-            if (!string.IsNullOrEmpty(diffInfo.ErrorMessage))
-            {
-                return new CallToolResponse
-                {
-                    IsError = true,
-                    Content = new[] { new ToolContent { Type = "text", Text = diffInfo.ErrorMessage } }
-                };
-            }
-
-            // Build a formatted result with syntax highlighting
-            var sb = new StringBuilder();
-            sb.AppendLine($"# Line-by-Line File Diff");
-            sb.AppendLine();
-            sb.AppendLine($"**File:** `{diffInfo.FilePath}`");
-            sb.AppendLine($"**From Commit:** {diffInfo.Commit1}");
-            sb.AppendLine($"**To Commit:** {diffInfo.Commit2}");
-            sb.AppendLine();
-            sb.AppendLine($"**Summary:**");
-            sb.AppendLine($"- Added Lines: {diffInfo.AddedLines}");
-            sb.AppendLine($"- Deleted Lines: {diffInfo.DeletedLines}");
-            sb.AppendLine($"- Modified Lines: {diffInfo.ModifiedLines}");
-            sb.AppendLine($"- Total Changes: {diffInfo.AddedLines + diffInfo.DeletedLines + diffInfo.ModifiedLines}");
-            sb.AppendLine();
-
-            if (!diffInfo.FileExistsInBothCommits)
-            {
-                if (diffInfo.AddedLines > 0)
-                {
-                    sb.AppendLine("*File was added in the second commit*");
-                }
-                else if (diffInfo.DeletedLines > 0)
-                {
-                    sb.AppendLine("*File was deleted in the second commit*");
-                }
-            }
-
-            sb.AppendLine("```diff");
-            // Group lines by chunks to improve readability
-            var currentChunk = new List<LineDiff>();
-            var lastType = "";
-
-            foreach (var line in diffInfo.Lines)
-            {
-                if (line.Type == "Header" && currentChunk.Any())
-                {
-                    // Print the current chunk with line numbers
-                    foreach (var chunkLine in currentChunk)
-                    {
-                        var oldNum = chunkLine.OldLineNumber.PadLeft(4);
-                        var newNum = chunkLine.NewLineNumber.PadLeft(4);
-                        sb.AppendLine($"{oldNum}:{newNum} {chunkLine.Content}");
-                    }
-                    currentChunk.Clear();
-                }
-
-                currentChunk.Add(line);
-                lastType = line.Type;
-            }
-
-            // Print the last chunk
-            if (currentChunk.Any())
-            {
-                foreach (var chunkLine in currentChunk)
-                {
-                    var oldNum = chunkLine.OldLineNumber.PadLeft(4);
-                    var newNum = chunkLine.NewLineNumber.PadLeft(4);
-                    sb.AppendLine($"{oldNum}:{newNum} {chunkLine.Content}");
-                }
-            }
-            sb.AppendLine("```");
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var lineDiff = await _gitService.GetFileLineDiffBetweenCommitsAsync(workspaceRoot, commit1, commit2, filePath);
 
             return new CallToolResponse
             {
-                Content = new[] { new ToolContent { Type = "text", Text = sb.ToString() } }
+                Content = new[] { new ToolContent { Type = "text", Text = JsonSerializer.Serialize(lineDiff, _jsonOptions) } }
             };
         }
         catch (Exception ex)
@@ -1220,151 +1370,14 @@ public class McpServer : IMcpServer
             };
         }
     }
+}
 
-    private T GetArgumentValue<T>(Dictionary<string, object>? arguments, string key, T defaultValue)
+// Helper classes for JSON-RPC
+public class PromptGetRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public Dictionary<string, string>? Arguments
     {
-        if (arguments == null || !arguments.ContainsKey(key))
-            return defaultValue;
-
-        try
-        {
-            var value = arguments[key];
-            if (value is JsonElement jsonElement)
-            {
-                return jsonElement.Deserialize<T>(_jsonOptions) ?? defaultValue;
-            }
-            return (T)Convert.ChangeType(value, typeof(T)) ?? defaultValue;
-        }
-        catch
-        {
-            return defaultValue;
-        }
-    }
-
-    private JsonRpcResponse CreateErrorResponse(object? id, int code, string message, object? data = null)
-    {
-        return new JsonRpcResponse
-        {
-            Id = id,
-            Error = new JsonRpcError
-            {
-                Code = code,
-                Message = message,
-                Data = data
-            }
-        };
-    }
-
-    private async Task SendErrorResponseAsync(object? id, int code, string message)
-    {
-        var response = CreateErrorResponse(id, code, message);
-        var compactJson = CreateCompactJsonResponse(response);
-
-        // Write directly to stdout as UTF-8 bytes
-        var jsonBytes = Encoding.UTF8.GetBytes(compactJson);
-        await Console.OpenStandardOutput().WriteAsync(jsonBytes, 0, jsonBytes.Length);
-        await Console.OpenStandardOutput().WriteAsync(Encoding.UTF8.GetBytes("\n"), 0, 1);
-        await Console.OpenStandardOutput().FlushAsync();
-
-        await Task.CompletedTask;
-    }
-
-    private string CreateCompactJsonResponse(JsonRpcResponse response)
-    {
-        // Manually build compact JSON to bypass any system formatting
-        var result = "{";
-        result += $"\"jsonrpc\":\"{response.JsonRpc}\",";
-        result += $"\"id\":{(response.Id?.ToString() ?? "null")},";
-
-        if (response.Result != null)
-        {
-            result += "\"result\":";
-            result += JsonSerializer.Serialize(response.Result, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }).Replace(" ", "").Replace("\r", "").Replace("\n", "").Replace("\t", "");
-        }
-
-        if (response.Error != null)
-        {
-            result += "\"error\":";
-            result += JsonSerializer.Serialize(response.Error, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-            }).Replace(" ", "").Replace("\r", "").Replace("\n", "").Replace("\t", "");
-        }
-
-        result += "}";
-        return result;
-    }
-
-    private Task<JsonRpcResponse> HandlePromptGetAsync(JsonRpcRequest request)
-    {
-        _logger.LogDebug("Handling prompts/get request");
-
-        try
-        {
-            if (request.Params == null)
-            {
-                return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Invalid params"));
-            }
-
-            var paramsJson = JsonSerializer.Serialize(request.Params);
-            var requestParams = JsonSerializer.Deserialize<Dictionary<string, object>>(paramsJson);
-
-            if (requestParams == null || !requestParams.TryGetValue("name", out var nameObj) || nameObj == null)
-            {
-                return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Missing required parameter: name"));
-            }
-
-            var promptName = nameObj.ToString() ?? string.Empty;
-
-            string promptContent;
-
-            switch (promptName)
-            {
-                case "release_document":
-                    promptContent = ReleaseDocumentPrompts.ReleaseDocumentPrompt();
-                    break;
-
-                case "release_document_with_version":
-                    if (!requestParams.TryGetValue("parameters", out var parametersObj) || parametersObj == null)
-                    {
-                        return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Missing required parameters for release_document_with_version"));
-                    }
-
-                    var parametersJson = JsonSerializer.Serialize(parametersObj);
-                    var promptParams = JsonSerializer.Deserialize<Dictionary<string, string>>(parametersJson);
-
-                    if (promptParams == null ||
-                        !promptParams.TryGetValue("version", out var version) ||
-                        !promptParams.TryGetValue("releaseDate", out var releaseDate))
-                    {
-                        return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Missing required parameters: version and releaseDate"));
-                    }
-
-                    promptContent = ReleaseDocumentPrompts.ReleaseDocumentWithVersionPrompt(version, releaseDate);
-                    break;
-
-                default:
-                    return Task.FromResult(CreateErrorResponse(request.Id, -32602, $"Unknown prompt: {promptName}"));
-            }
-
-            return Task.FromResult(new JsonRpcResponse
-            {
-                Id = request.Id,
-                Result = new
-                {
-                    prompt = promptContent
-                }
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error handling prompt request");
-            return Task.FromResult(CreateErrorResponse(request.Id, -32603, "Internal error", ex.Message));
-        }
+        get; set;
     }
 }

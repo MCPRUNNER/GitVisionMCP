@@ -1144,16 +1144,21 @@ public class McpServer : IMcpServer
             var lastModifiedAfter = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedAfter", null);
             var lastModifiedBefore = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedBefore", null);
 
-            // Use GitServiceTools to handle the filtering logic
-            var result = await _gitServiceTools.ListWorkspaceFilesAsync(
+            // Get all files once and pass them to GitServiceTools to avoid redundant calls
+            var allFiles = _locationService.GetAllFiles();
+
+            // Capture the total count before filtering
+            var totalCount = allFiles.Count;
+
+            // Modify GitServiceTools implementation to accept the pre-fetched file list
+            var result = await _gitServiceTools.ListWorkspaceFilesWithCachedDataAsync(
+                allFiles,
                 fileType,
                 relativePath,
                 fullPath,
                 lastModifiedAfter,
                 lastModifiedBefore);
 
-            // Get total count for logging purposes
-            var totalCount = _locationService.GetAllFiles().Count;
             _logger.LogInformation("Listed {FilteredCount} files out of {TotalCount} total files", result.Count, totalCount);
 
             var response = new CallToolResponse

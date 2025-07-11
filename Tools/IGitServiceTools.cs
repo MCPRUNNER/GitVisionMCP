@@ -96,6 +96,24 @@ public interface IGitServiceTools
     Task<List<Services.WorkspaceFileInfo>> ListWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null);
 
     /// <summary>
+    /// List workspace files with optional filtering using pre-fetched file data to improve performance
+    /// </summary>
+    /// <param name="cachedFiles">Pre-fetched list of workspace files</param>
+    /// <param name="fileType">Filter by file type (extension without dot, e.g., 'cs', 'json')</param>
+    /// <param name="relativePath">Filter by relative path (contains search)</param>
+    /// <param name="fullPath">Filter by full path (contains search)</param>
+    /// <param name="lastModifiedAfter">Filter by last modified date (ISO format: yyyy-MM-dd)</param>
+    /// <param name="lastModifiedBefore">Filter by last modified date (ISO format: yyyy-MM-dd)</param>
+    /// <returns>A filtered list of workspace files</returns>
+    Task<List<Services.WorkspaceFileInfo>> ListWorkspaceFilesWithCachedDataAsync(
+        List<Services.WorkspaceFileInfo> cachedFiles,
+        string? fileType = null,
+        string? relativePath = null,
+        string? fullPath = null,
+        string? lastModifiedAfter = null,
+        string? lastModifiedBefore = null);
+
+    /// <summary>
     /// Read contents of all files from filtered workspace results
     /// </summary>
     Task<List<Models.FileContentInfo>> ReadFilteredWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null, int? maxFiles = 50, long? maxFileSize = 1048576);

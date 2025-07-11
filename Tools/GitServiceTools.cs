@@ -919,8 +919,68 @@ public class GitServiceTools : IGitServiceTools
     }
 
     [McpServerToolAttribute]
+    [Description("List workspace files with optional filtering using pre-fetched file data to improve performance")]
+    public async Task<List<WorkspaceFileInfo>> ListWorkspaceFilesWithCachedDataAsync(
+        List<WorkspaceFileInfo> cachedFiles,
+        [Description("Filter by file type (extension without dot, e.g., 'cs', 'json')")] string? fileType = null,
+        [Description("Filter by relative path (contains search)")] string? relativePath = null,
+        [Description("Filter by full path (contains search)")] string? fullPath = null,
+        [Description("Filter by last modified date (ISO format: yyyy-MM-dd)")] string? lastModifiedAfter = null,
+        [Description("Filter by last modified date (ISO format: yyyy-MM-dd)")] string? lastModifiedBefore = null)
+    {
+        try
+        {
+            var filteredFiles = cachedFiles.AsEnumerable();
+
+            // Apply file type filter
+            if (!string.IsNullOrWhiteSpace(fileType))
+            {
+                filteredFiles = filteredFiles.Where(f =>
+                    f.FileType.Equals(fileType, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply relative path filter
+            if (!string.IsNullOrWhiteSpace(relativePath))
+            {
+                filteredFiles = filteredFiles.Where(f =>
+                    f.RelativePath.Contains(relativePath, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply full path filter
+            if (!string.IsNullOrWhiteSpace(fullPath))
+            {
+                filteredFiles = filteredFiles.Where(f =>
+                    f.FullPath.Contains(fullPath, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // Apply last modified after filter
+            if (!string.IsNullOrWhiteSpace(lastModifiedAfter) && DateTime.TryParse(lastModifiedAfter, out var afterDate))
+            {
+                filteredFiles = filteredFiles.Where(f => f.LastModified >= afterDate);
+            }
+
+            // Apply last modified before filter
+            if (!string.IsNullOrWhiteSpace(lastModifiedBefore) && DateTime.TryParse(lastModifiedBefore, out var beforeDate))
+            {
+                filteredFiles = filteredFiles.Where(f => f.LastModified <= beforeDate.AddDays(1).AddTicks(-1));
+            }
+
+            var result = filteredFiles.ToList();
+            _logger.LogInformation("Listed {FilteredCount} files using cached data with total {TotalCount} files",
+                result.Count, cachedFiles.Count);
+
+            return await Task.FromResult(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error listing workspace files with cached data");
+            throw new InvalidOperationException("Failed to list workspace files with cached data. See inner exception for details.", ex);
+        }
+    }
+
+    [McpServerToolAttribute]
     [Description("Read contents of all files from filtered workspace results")]
-    public async Task<List<FileContentInfo>> ReadFilteredWorkspaceFilesAsync(
+    public async Task<List<Models.FileContentInfo>> ReadFilteredWorkspaceFilesAsync(
         [Description("Filter by file type (extension without dot, e.g., 'cs', 'json')")] string? fileType = null,
         [Description("Filter by relative path (contains search)")] string? relativePath = null,
         [Description("Filter by full path (contains search)")] string? fullPath = null,
@@ -938,177 +998,91 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Reading filtered workspace files with limits: {FileLimit} files, {SizeLimit} bytes per file",
                 fileLimit, sizeLimit);
 
-            // First get the filtered files
             var filteredFiles = await ListWorkspaceFilesAsync(fileType, relativePath, fullPath, lastModifiedAfter, lastModifiedBefore);
 
-            // Apply file count limit
-            var filesToRead = filteredFiles.Take(fileLimit).ToList();
+            // Limit number of files
+            filteredFiles = filteredFiles.Take(fileLimit).ToList();
 
-            var fileContents = new List<FileContentInfo>();
-            var totalBytesRead = 0L;
-            var maxTotalBytes = 50 * 1024 * 1024; // 50MB total limit
+            var result = new List<Models.FileContentInfo>();
 
-            foreach (var file in filesToRead)
+            foreach (var file in filteredFiles)
             {
                 try
                 {
-                    // Check if file size exceeds limit
+                    var fileInfo = new FileInfo(file.FullPath);
+
+                    // Create FileContentInfo with basic properties
+                    var fileContentInfo = new Models.FileContentInfo
+                    {
+                        RelativePath = file.RelativePath,
+                        FileType = file.FileType,
+                        FullPath = file.FullPath,
+                        Size = file.Size,
+                        LastModified = file.LastModified
+                    };
+
+                    // Skip files that are too large - check size from file info we have
+                    // Note: In test scenarios, the file might not exist but we still need to check its size
                     if (file.Size > sizeLimit)
                     {
-                        _logger.LogWarning("Skipping file {FilePath} - size {Size} exceeds limit {Limit}",
-                            file.RelativePath, file.Size, sizeLimit);
-
-                        fileContents.Add(new FileContentInfo
-                        {
-                            RelativePath = file.RelativePath,
-                            FullPath = file.FullPath,
-                            FileType = file.FileType,
-                            Size = file.Size,
-                            LastModified = file.LastModified,
-                            Content = null,
-                            ErrorMessage = $"File size ({file.Size} bytes) exceeds maximum allowed size ({sizeLimit} bytes)",
-                            IsError = true
-                        });
+                        fileContentInfo.IsError = true;
+                        fileContentInfo.ErrorMessage = $"File exceeds maximum allowed size of {sizeLimit} bytes";
+                        result.Add(fileContentInfo);
                         continue;
                     }
 
-                    // Check total memory usage
-                    if (totalBytesRead + file.Size > maxTotalBytes)
+                    // Check if file exists
+                    if (!File.Exists(file.FullPath))
                     {
-                        _logger.LogWarning("Stopping file reading - total size would exceed {MaxTotalBytes} bytes", maxTotalBytes);
-                        break;
+                        fileContentInfo.IsError = true;
+                        fileContentInfo.ErrorMessage = "File not found";
+                        result.Add(fileContentInfo);
+                        continue;
                     }
 
-                    // Read file content
-                    string content;
+                    // Skip binary files
+                    if (IsBinaryFile(file.FullPath))
+                    {
+                        fileContentInfo.IsError = true;
+                        fileContentInfo.ErrorMessage = "Binary file not supported";
+                        result.Add(fileContentInfo);
+                        continue;
+                    }
+
+                    // Read content if file exists and meets criteria
                     try
                     {
-                        // Use the workspace root to construct the full path
-                        var workspaceRoot = _locationService.GetWorkspaceRoot();
-                        var fullFilePath = Path.Combine(workspaceRoot, file.RelativePath);
-
-                        if (!File.Exists(fullFilePath))
-                        {
-                            _logger.LogWarning("File not found: {FilePath}", fullFilePath);
-                            fileContents.Add(new FileContentInfo
-                            {
-                                RelativePath = file.RelativePath,
-                                FullPath = file.FullPath,
-                                FileType = file.FileType,
-                                Size = file.Size,
-                                LastModified = file.LastModified,
-                                Content = null,
-                                ErrorMessage = "File not found",
-                                IsError = true
-                            });
-                            continue;
-                        }
-
-                        // Check if file is binary (simple heuristic)
-                        if (IsBinaryFile(file.FileType))
-                        {
-                            content = $"[Binary file - {file.FileType} format, {file.Size} bytes]";
-                        }
-                        else
-                        {
-                            // Read as text with encoding detection
-                            var bytes = await File.ReadAllBytesAsync(fullFilePath);
-
-                            // Simple binary detection
-                            if (ContainsBinaryData(bytes))
-                            {
-                                content = $"[Binary content detected - {file.Size} bytes]";
-                            }
-                            else
-                            {
-                                // Try UTF-8 first, then fallback to other encodings
-                                try
-                                {
-                                    content = System.Text.Encoding.UTF8.GetString(bytes);
-                                }
-                                catch
-                                {
-                                    try
-                                    {
-                                        content = System.Text.Encoding.Default.GetString(bytes);
-                                    }
-                                    catch
-                                    {
-                                        content = $"[Unable to decode text content - {file.Size} bytes]";
-                                    }
-                                }
-                            }
-                        }
-
-                        totalBytesRead += file.Size;
-
-                        fileContents.Add(new FileContentInfo
-                        {
-                            RelativePath = file.RelativePath,
-                            FullPath = file.FullPath,
-                            FileType = file.FileType,
-                            Size = file.Size,
-                            LastModified = file.LastModified,
-                            Content = content,
-                            ErrorMessage = null,
-                            IsError = false
-                        });
-
-                        _logger.LogDebug("Successfully read file: {FilePath} ({Size} bytes)",
-                            file.RelativePath, file.Size);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        _logger.LogWarning(ex, "Access denied reading file: {FilePath}", file.RelativePath);
-                        fileContents.Add(new FileContentInfo
-                        {
-                            RelativePath = file.RelativePath,
-                            FullPath = file.FullPath,
-                            FileType = file.FileType,
-                            Size = file.Size,
-                            LastModified = file.LastModified,
-                            Content = null,
-                            ErrorMessage = "Access denied",
-                            IsError = true
-                        });
+                        var content = await File.ReadAllTextAsync(file.FullPath);
+                        fileContentInfo.Content = content;
+                        result.Add(fileContentInfo);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error reading file: {FilePath}", file.RelativePath);
-                        fileContents.Add(new FileContentInfo
-                        {
-                            RelativePath = file.RelativePath,
-                            FullPath = file.FullPath,
-                            FileType = file.FileType,
-                            Size = file.Size,
-                            LastModified = file.LastModified,
-                            Content = null,
-                            ErrorMessage = ex.Message,
-                            IsError = true
-                        });
+                        fileContentInfo.IsError = true;
+                        fileContentInfo.ErrorMessage = $"Error reading file: {ex.Message}";
+                        result.Add(fileContentInfo);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Unexpected error processing file: {FilePath}", file.RelativePath);
-                    fileContents.Add(new FileContentInfo
+                    _logger.LogWarning(ex, "Error processing file {FilePath}", file.FullPath);
+                    result.Add(new Models.FileContentInfo
                     {
                         RelativePath = file.RelativePath,
-                        FullPath = file.FullPath,
                         FileType = file.FileType,
+                        FullPath = file.FullPath,
                         Size = file.Size,
                         LastModified = file.LastModified,
-                        Content = null,
-                        ErrorMessage = $"Unexpected error: {ex.Message}",
-                        IsError = true
+                        IsError = true,
+                        ErrorMessage = $"Error processing file: {ex.Message}"
                     });
                 }
             }
 
-            _logger.LogInformation("Read {ReadCount} files out of {FilteredCount} filtered files, total bytes: {TotalBytes}",
-                fileContents.Count, filteredFiles.Count, totalBytesRead);
+            _logger.LogInformation("Read {ReadCount} files out of {FilteredCount} filtered files",
+                result.Count, filteredFiles.Count);
 
-            return fileContents;
+            return await Task.FromResult(result);
         }
         catch (Exception ex)
         {
@@ -1116,56 +1090,45 @@ public class GitServiceTools : IGitServiceTools
             throw new InvalidOperationException("Failed to read filtered workspace files. See inner exception for details.", ex);
         }
     }
-
-    /// <summary>
-    /// Determines if a file is likely binary based on its extension
-    /// </summary>
-    /// <param name="fileType">The file extension without the dot</param>
-    /// <returns>True if the file is likely binary</returns>
-    private static bool IsBinaryFile(string fileType)
+    private bool IsBinaryFile(string filePath)
     {
-        var binaryExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        try
         {
-            "exe", "dll", "pdb", "bin", "obj", "lib", "so", "dylib",
-            "jpg", "jpeg", "png", "gif", "bmp", "ico", "tiff", "webp",
-            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx",
-            "zip", "rar", "7z", "tar", "gz", "bz2",
-            "mp3", "mp4", "avi", "mov", "wmv", "flv",
-            "ttf", "otf", "woff", "woff2", "eot"
-        };
+            // Check if file is likely binary by examining first few bytes
+            var buffer = new byte[512];
+            using var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
+            if (stream.Length == 0)
+                return false; // Empty file
 
-        return binaryExtensions.Contains(fileType);
-    }
+            var bytesRead = stream.Read(buffer, 0, buffer.Length);
+            if (bytesRead == 0)
+                return false;
 
-    /// <summary>
-    /// Simple heuristic to detect binary data in byte array
-    /// </summary>
-    /// <param name="bytes">The byte array to check</param>
-    /// <returns>True if binary data is detected</returns>
-    private static bool ContainsBinaryData(byte[] bytes)
-    {
-        if (bytes.Length == 0) return false;
+            // Count null bytes and other control characters
+            var nullCount = 0;
+            var controlCount = 0;
 
-        // Check for null bytes (common in binary files but not in text)
-        var nullByteCount = bytes.Count(b => b == 0);
-        if (nullByteCount > 0)
-        {
-            // If more than 1% null bytes, consider it binary
-            return (double)nullByteCount / bytes.Length > 0.01;
-        }
-
-        // Check for non-printable characters
-        var nonPrintableCount = 0;
-        foreach (var b in bytes.Take(Math.Min(8192, bytes.Length))) // Check first 8KB
-        {
-            if (b < 9 || (b > 13 && b < 32) || b > 126)
+            for (var i = 0; i < bytesRead; i++)
             {
-                nonPrintableCount++;
-            }
-        }
+                if (buffer[i] == 0)
+                    nullCount++;
 
-        // If more than 30% non-printable characters, consider it binary
-        var sampleSize = Math.Min(8192, bytes.Length);
-        return (double)nonPrintableCount / sampleSize > 0.30;
+                // Control characters except common ones like CR, LF, tab
+                if (buffer[i] < 8 || (buffer[i] > 13 && buffer[i] < 32))
+                    controlCount++;
+            }
+
+            // If more than 10% of the content is null bytes or control characters,
+            // consider it a binary file
+            if ((double)nullCount / bytesRead > 0.1 || (double)controlCount / bytesRead > 0.3)
+                return true;
+
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error checking if file is binary: {FilePath}", filePath);
+            return true; // Safer to assume binary on error
+        }
     }
 }

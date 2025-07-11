@@ -176,6 +176,61 @@ Once configured, you can use natural language commands with Copilot:
 - Summary statistics (commits searched, matches found)
 - File-by-file breakdown with detailed context
 
+### Read File Contents:
+
+```
+@copilot Read all C# files in the Services directory and show their contents
+@copilot Get content of all JSON configuration files
+@copilot Read all markdown files and show their content
+@copilot Show me the contents of all files modified today
+```
+
+**Advanced Content Analysis:**
+
+```
+@copilot Read all TypeScript files and analyze the code structure
+@copilot Get contents of all configuration files for review
+@copilot Show me all SQL files and their queries
+@copilot Read recent test files and analyze test coverage
+```
+
+### 🆕 Workspace File Management
+
+**List All Workspace Files:**
+
+```
+@copilot List all files in the current workspace
+@copilot Show me all files in the project with their details
+@copilot Get a complete file listing of the workspace
+```
+
+**Filtered File Searches:**
+
+```
+@copilot List all .cs files in the workspace
+@copilot Show me all JSON configuration files
+@copilot Find all files in the Services directory
+@copilot List files modified in the last week
+@copilot Show me all files larger than 1MB
+```
+
+**Advanced File Analysis:**
+
+```
+@copilot List all .dll files and their sizes
+@copilot Find all files with "test" in their path
+@copilot Show me recent changes to documentation files
+@copilot List all executable files in the project
+```
+
+**Export and Documentation:**
+
+```
+@copilot Export workspace file listing to XML
+@copilot Create a file inventory report
+@copilot Generate project structure documentation
+```
+
 ### Advanced Use Cases
 
 #### Release Planning
@@ -202,51 +257,13 @@ Once configured, you can use natural language commands with Copilot:
 @copilot Compare upstream/main with our fork's main branch
 ```
 
-#### 🔥 Advanced Commit Search Use Cases
-
-**Bug Tracking & Debugging:**
+#### Project Analysis and File Management
 
 ```
-@copilot Search for "NullReferenceException" across all commits to track bug fixes
-@copilot Find commits mentioning "crash" or "error" in the last 50 commits
-@copilot Search for "memory leak" references in commit history
-@copilot Look for "timeout" issues across development timeline
-```
-
-**Security & Compliance:**
-
-```
-@copilot Search for "password" or "secret" across all commits for security audit
-@copilot Find all commits mentioning "encryption" or "decrypt"
-@copilot Search for "API key" references in commit messages and code
-@copilot Look for "vulnerability" mentions across project history
-```
-
-**Feature Development Analysis:**
-
-```
-@copilot Search for "user authentication" to trace feature development
-@copilot Find all commits related to "payment processing" functionality
-@copilot Search for "database migration" references with detailed context
-@copilot Look for "performance optimization" across development history
-```
-
-**Code Quality & Maintenance:**
-
-```
-@copilot Search for "TODO" comments across all commits to find pending work
-@copilot Find "deprecated" function usage across commit history
-@copilot Search for "refactor" mentions to track code improvements
-@copilot Look for "test" additions to understand testing evolution
-```
-
-**Integration & Dependencies:**
-
-```
-@copilot Search for "third-party" or "library" references in commits
-@copilot Find all commits mentioning specific package names like "React" or "jQuery"
-@copilot Search for "configuration" changes across project timeline
-@copilot Look for "environment" or "deployment" related commits
+@copilot List all files in the workspace and analyze the project structure
+@copilot Show me all C# files and their sizes for code review
+@copilot Find all configuration files that might need updates
+@copilot Generate a complete project file inventory
 ```
 
 ## Manual Testing
@@ -593,92 +610,186 @@ Once configured, you can use natural language commands with Copilot:
 }
 ```
 
-## Expected Responses
+#### 🆕 List Workspace Files
 
-### Initialize Response
+**Basic File Listing:**
 
 ```json
 {
   "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "protocolVersion": "2024-11-05",
-    "capabilities": {
-      "tools": {},
-      "logging": {}
-    },
-    "serverInfo": {
-      "name": "GitVisionMCP",
-      "version": "1.0.0"
+  "id": 16,
+  "method": "tools/call",
+  "params": {
+    "name": "list_workspace_files",
+    "arguments": {}
+  }
+}
+```
+
+**Filter by File Type:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 17,
+  "method": "tools/call",
+  "params": {
+    "name": "list_workspace_files",
+    "arguments": {
+      "fileType": "cs"
     }
   }
 }
 ```
 
-### Tools List Response (Partial)
+**Filter by Path:**
 
 ```json
 {
   "jsonrpc": "2.0",
-  "id": 2,
+  "id": 18,
+  "method": "tools/call",
+  "params": {
+    "name": "list_workspace_files",
+    "arguments": {
+      "relativePath": "Services",
+      "fileType": "cs"
+    }
+  }
+}
+```
+
+**Filter by Date Range:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 19,
+  "method": "tools/call",
+  "params": {
+    "name": "list_workspace_files",
+    "arguments": {
+      "lastModifiedAfter": "2025-07-01",
+      "lastModifiedBefore": "2025-07-10"
+    }
+  }
+}
+```
+
+**Advanced Filtering:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 20,
+  "method": "tools/call",
+  "params": {
+    "name": "list_workspace_files",
+    "arguments": {
+      "fileType": "json",
+      "relativePath": "appsettings",
+      "lastModifiedAfter": "2025-07-01"
+    }
+  }
+}
+```
+
+#### 🆕 Read Filtered File Contents
+
+**Read All C# Files:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 21,
+  "method": "tools/call",
+  "params": {
+    "name": "read_filtered_workspace_files",
+    "arguments": {
+      "fileType": "cs",
+      "maxFiles": 10
+    }
+  }
+}
+```
+
+**Read Recent Configuration Files:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 22,
+  "method": "tools/call",
+  "params": {
+    "name": "read_filtered_workspace_files",
+    "arguments": {
+      "fileType": "json",
+      "relativePath": "appsettings",
+      "lastModifiedAfter": "2025-07-01",
+      "maxFiles": 5,
+      "maxFileSize": 102400
+    }
+  }
+}
+```
+
+**Read Files from Specific Directory:**
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 23,
+  "method": "tools/call",
+  "params": {
+    "name": "read_filtered_workspace_files",
+    "arguments": {
+      "relativePath": "Services",
+      "fileType": "cs",
+      "maxFiles": 20
+    }
+  }
+}
+```
+
+### Workspace File Listing Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 16,
   "result": {
-    "tools": [
+    "content": [
       {
-        "name": "generate_git_documentation",
-        "description": "Generate documentation from git logs for the current workspace",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "maxCommits": {
-              "type": "integer",
-              "description": "Maximum number of commits to include (default: 50)"
-            },
-            "outputFormat": {
-              "type": "string",
-              "description": "Output format: markdown, html, or text (default: markdown)"
-            }
-          }
-        }
-      },
-      {
-        "name": "compare_branches_with_remote",
-        "description": "Generate documentation comparing differences between two branches with remote support",
-        "inputSchema": {
-          "type": "object",
-          "properties": {
-            "branch1": {
-              "type": "string",
-              "description": "First branch name (can be local or remote, e.g., 'main' or 'origin/main')"
-            },
-            "branch2": {
-              "type": "string",
-              "description": "Second branch name (can be local or remote, e.g., 'feature/xyz' or 'origin/feature/xyz')"
-            },
-            "filePath": {
-              "type": "string",
-              "description": "Path where to save the documentation file"
-            },
-            "outputFormat": {
-              "type": "string",
-              "description": "Output format: markdown, html, or text (default: markdown)"
-            },
-            "fetchRemote": {
-              "type": "boolean",
-              "description": "Whether to fetch from remote before comparison (default: true)"
-            }
-          },
-          "required": ["branch1", "branch2", "filePath"]
-        }
+        "type": "text",
+        "text": "[{\"RelativePath\":\"Program.cs\",\"FileType\":\"cs\",\"FullPath\":\"C:\\\\Users\\\\U00001\\\\source\\\\repos\\\\MCP\\\\GitVisionMCP\\\\Program.cs\",\"Size\":2048,\"LastModified\":\"2025-07-10T14:30:00\"},{\"RelativePath\":\"appsettings.json\",\"FileType\":\"json\",\"FullPath\":\"C:\\\\Users\\\\U00001\\\\source\\\\repos\\\\MCP\\\\GitVisionMCP\\\\appsettings.json\",\"Size\":512,\"LastModified\":\"2025-07-09T10:15:00\"},{\"RelativePath\":\"Services\\\\GitService.cs\",\"FileType\":\"cs\",\"FullPath\":\"C:\\\\Users\\\\U00001\\\\source\\\\repos\\\\MCP\\\\GitVisionMCP\\\\Services\\\\GitService.cs\",\"Size\":15360,\"LastModified\":\"2025-07-10T16:45:00\"}]"
       }
-      // ... 11 more tools
-    ]
+    ],
+    "isError": false
+  }
+}
+```
+
+### File Content Reading Response
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 21,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[{\"RelativePath\":\"Program.cs\",\"FullPath\":\"C:\\\\Users\\\\U00001\\\\source\\\\repos\\\\MCP\\\\GitVisionMCP\\\\Program.cs\",\"FileType\":\"cs\",\"Size\":2048,\"LastModified\":\"2025-07-10T14:30:00\",\"Content\":\"using Microsoft.Extensions.Hosting;\\nusing GitVisionMCP.Services;\\n\\nvar builder = Host.CreateApplicationBuilder(args);\\n\\n// Add services\\nbuilder.Services.AddSingleton<IGitService, GitService>();\\nbuilder.Services.AddSingleton<ILocationService, LocationService>();\\nbuilder.Services.AddSingleton<IMcpServer, McpServer>();\\n\\nvar host = builder.Build();\\nvar mcpServer = host.Services.GetRequiredService<IMcpServer>();\\n\\nawait mcpServer.StartAsync();\\n\",\"ErrorMessage\":null,\"IsError\":false},{\"RelativePath\":\"appsettings.json\",\"FullPath\":\"C:\\\\Users\\\\U00001\\\\source\\\\repos\\\\MCP\\\\GitVisionMCP\\\\appsettings.json\",\"FileType\":\"json\",\"Size\":512,\"LastModified\":\"2025-07-09T10:15:00\",\"Content\":\"{\\n  \\\"Logging\\\": {\\n    \\\"LogLevel\\\": {\\n      \\\"Default\\\": \\\"Information\\\",\\n      \\\"Microsoft.AspNetCore\\\": \\\"Warning\\\"\\n    }\\n  }\\n}\",\"ErrorMessage\":null,\"IsError\":false}]"
+      }
+    ],
+    "isError": false
   }
 }
 ```
 
 ### Git Documentation Response
 
-````json
+```json
 {
   "jsonrpc": "2.0",
   "id": 3,
@@ -686,346 +797,20 @@ Once configured, you can use natural language commands with Copilot:
     "content": [
       {
         "type": "text",
-        "text": "# Git Commit Documentation\n\nGenerated on: 2025-01-15 10:30:00\nTotal commits: 10\n\n## Commit: abc12345\n\n**Author:** John Doe <john@example.com>\n**Date:** 2025-01-15 09:15:00\n\n**Message:**\n```\nAdd remote branch support to MCP server\n\n- Implemented remote branch discovery\n- Added fetch from remote functionality\n- Enhanced branch comparison with remote support\n- Updated documentation and examples\n```\n\n**Changed Files:**\n- Services/GitService.cs\n- Services/McpServer.cs\n- README.md\n- EXAMPLES.md\n\n**Changes:**\n- Modified: Services/GitService.cs (+150, -25)\n- Modified: Services/McpServer.cs (+75, -10)\n- Modified: README.md (+200, -50)\n- Modified: EXAMPLES.md (+100, -20)\n\n---\n\n..."
+        "text": "# Git Documentation\n\n## Recent Changes\n\n### Commit abc123def\n\n- **Author**: John Doe <john.doe@example.com>\n- **Date**: 2025-07-10 14:30:00\n- **Message**: Fix issue with authentication flow\n\n#### Changed Files:\n\n- `Program.cs`\n- `appsettings.json`\n\n#### Detailed Changes:\n\n- **Program.cs**:\n  - Line 42: `if (user == null) {` changed to `if (user == null) throw new Exception(\"User not found\");`\n  - Line 56: Added null check for `token`\n\n- **appsettings.json**:\n  - Updated connection string for production\n\n### Commit 456ghi789\n\n- **Author**: Jane Smith <jane.smith@example.com>\n- **Date**: 2025-07-09 10:15:00\n- **Message**: Update README and fix typos\n\n#### Changed Files:\n\n- `README.md`\n\n#### Detailed Changes:\n\n- **README.md**:\n  - Line 10: Fixed typo in installation instructions\n  - Line 25: Updated link to documentation\n\n## Commit Search Results\n\n### Search Query: \"authentication\"\n\n- **Commit abc123def**:\n  - **Message**: Fix issue with authentication flow\n  - **Files Changed**: Program.cs, appsettings.json\n  - **Line Matches**:\n    - Program.cs:42: `if (user == null) {`\n    - Program.cs:56: `token`\n\n### Search Query: \"bug fix\"\n\n- **Commit 789jkl012**:\n  - **Message**: Bug fix for null reference exception\n  - **Files Changed**: Services/GitService.cs\n  - **Line Matches**:\n    - Services/GitService.cs:78: `if (data == null) {`\n\n### Search Query: \"TODO\"\n\n- **Commit mno345pqr**:\n  - **Message**: TODO comments cleanup\n  - **Files Changed**: All files\n  - **Line Matches**:\n    - Program.cs:10: `// TODO: Implement logging`\n    - Services/GitService.cs:20: `// TODO: Handle exceptions`\n\n## Statistics\n\n- **Total Commits Searched**: 100\n- **Total Matches Found**: 15\n- **Files Involved**: 10\n- **Lines Involved**: 25\n\n---\n\nGenerated by GitVisionMCP",
+        "isError": false
       }
-    ],
-    "isError": false
-  }
-}
-````
-
-### Branch List Response
-
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 11,
-  "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "# All Branches\n\n## Local Branches\n- main (current)\n- feature/user-auth\n- bugfix/login-error\n- dev\n\n## Remote Branches\n- origin/main\n- origin/dev\n- origin/release/v1.0\n- upstream/main\n- upstream/dev\n\n## Branch Summary\n- Total Local: 4\n- Total Remote: 5\n- Current Branch: main\n- Default Remote: origin"
-      }
-    ],
-    "isError": false
+    ]
   }
 }
 ```
 
-### Commit Diff Info Response
+# Test workspace file listing
 
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 10,
-  "result": {
-    "content": [
-      {
-        "type": "text",
-        "text": "# Commit Diff Analysis\n\n**From:** abc123def\n**To:** 456ghi789\n**Date Range:** 2025-01-10 to 2025-01-15\n\n## Summary\n- **Files Changed:** 8\n- **Total Insertions:** 245\n- **Total Deletions:** 67\n- **Net Change:** +178 lines\n\n## File Changes\n\n### Services/GitService.cs\n- **Status:** Modified\n- **Insertions:** 150\n- **Deletions:** 25\n- **Net:** +125\n\n### Services/McpServer.cs\n- **Status:** Modified\n- **Insertions:** 75\n- **Deletions:** 10\n- **Net:** +65\n\n### README.md\n- **Status:** Modified\n- **Insertions:** 20\n- **Deletions:** 32\n- **Net:** -12\n\n## Change Categories\n- **New Features:** 3 files\n- **Bug Fixes:** 2 files\n- **Documentation:** 3 files\n- **Tests:** 0 files"
-      }
-    ],
-    "isError": false
-  }
-}
-```
+Test-JsonRpc '{"jsonrpc":"2.0","id":6,"method":"tools/call","params":{"name":"list_workspace_files","arguments":{"fileType":"cs"}}}' '"content"'
 
-## PowerShell Testing Script
+# Test reading file contents
 
-Create a `test-mcp.ps1` file for comprehensive testing:
-
-```powershell
-# Test MCP Server Functionality
-param(
-    [string]$ProjectPath = ".",
-    [string]$Environment = "Production"
-)
-
-$env:DOTNET_ENVIRONMENT = $Environment
-
-function Test-JsonRpc {
-    param([string]$Message, [string]$ExpectedPattern = "")
-
-    Write-Host "Testing: $Message" -ForegroundColor Cyan
-    $response = $Message | dotnet run --project $ProjectPath --no-build --verbosity quiet
-
-    if ($ExpectedPattern -and $response -match $ExpectedPattern) {
-        Write-Host "✓ PASS" -ForegroundColor Green
-    } elseif (-not $ExpectedPattern) {
-        Write-Host "Response: $response" -ForegroundColor Yellow
-    } else {
-        Write-host "✗ FAIL - Expected pattern not found" -ForegroundColor Red
-    }
-    Write-Host ""
-}
-
-# Test initialization
-Test-JsonRpc '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' '"serverInfo"'
-
-# Test tools list
-Test-JsonRpc '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' '"tools"'
-
-# Test git documentation
-Test-JsonRpc '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"generate_git_documentation","arguments":{"maxCommits":5}}}' '"content"'
-
-# Test branch listing
-Test-JsonRpc '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"get_all_branches","arguments":{}}}' '"content"'
-
-# Test recent commits
-Test-JsonRpc '{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"get_recent_commits","arguments":{"count":3}}}' '"content"'
+Test-JsonRpc '{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"read_filtered_workspace_files","arguments":{"fileType":"json","maxFiles":3}}}' '"content"'
 
 Write-Host "Testing complete!" -ForegroundColor Green
-```
-
-Run the test script:
-
-```powershell
-.\test-mcp.ps1 -ProjectPath "path\to\GitVisionMCP.csproj"
-```
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Git Repository Not Found**
-
-   - **Error**: "Repository not found" or "Not a git repository"
-   - **Solution**: Ensure you're running the MCP server from within a git repository
-   - **Check**: `git status` should work in the current directory
-
-2. **Branch Not Found**
-
-   - **Error**: "Branch 'xyz' not found"
-   - **Solution**: Verify branch names using the branch discovery tools
-   - **Check**: Use `get_all_branches` tool to see available branches
-
-3. **Remote Branch Access Issues**
-
-   - **Error**: "Remote branch not accessible" or "Authentication failed"
-   - **Solutions**:
-     - Verify remote access: `git remote -v`
-     - Check authentication (SSH keys or personal access tokens)
-     - Use `fetch_from_remote` tool to update remote references
-
-4. **Commit Hash Invalid**
-
-   - **Error**: "Invalid commit hash" or "Commit not found"
-   - **Solution**: Use `get_recent_commits` tool to find valid commit hashes
-   - **Check**: `git log --oneline -10` for recent commits
-
-5. **File Path Issues**
-
-   - **Error**: "Access denied" or "Path not found"
-   - **Solutions**:
-     - Use absolute paths or ensure relative paths are correct
-     - Check write permissions to the target directory
-     - Create target directories if they don't exist
-
-6. **JSON-RPC Communication Issues**
-
-   - **Error**: "Failed to parse message" warnings
-   - **Solutions**:
-     - Build project first: `dotnet build --configuration Release`
-     - Use production environment: `DOTNET_ENVIRONMENT=Production`
-     - Add `--no-build --verbosity quiet` flags
-
-7. **🔍 Search Tool Issues**
-
-   - **Error**: "Search timeout" or "Too many results"
-   - **Solutions**:
-     - Reduce `maxCommits` parameter (try 25-50 for large repos)
-     - Use more specific search terms to narrow results
-     - Avoid very common words like "the", "and", "if"
-   - **Performance Tips**:
-     - Start with recent commits: `maxCommits: 25`
-     - Use specific technical terms for better targeting
-     - Large repositories may take 10-30 seconds for comprehensive searches
-
-8. **Search Result Interpretation**
-   - **Issue**: "Too many or too few results"
-   - **Solutions**:
-     - Search is case-insensitive by default
-     - Searches both commit messages AND file contents
-     - Try variations of search terms (e.g., "auth", "authentication", "login")
-     - Use quotation marks in natural language: `"user authentication"`
-
-### Performance Issues
-
-1. **Slow Response with Large Repositories**
-
-   - **Issue**: Timeouts or very slow responses
-   - **Solutions**:
-     - Use smaller `maxCommits` values (10-50 instead of 100+)
-     - Specify `specificFiles` when getting detailed diffs
-     - Avoid comparing very old commits
-
-2. **Memory Usage**
-   - **Issue**: High memory consumption
-   - **Solutions**:
-     - Limit commit count in documentation generation
-     - Use text format instead of HTML for large outputs
-     - Restart the MCP server periodically for long-running sessions
-
-### Debugging
-
-#### Enable Debug Logging
-
-```json
-{
-  "env": {
-    "DOTNET_ENVIRONMENT": "Development"
-  }
-}
-```
-
-Check logs in `logs/gitvisionmcp-dev.log` for detailed error information.
-
-#### Manual Testing Commands
-
-Test basic connectivity:
-
-```powershell
-$env:DOTNET_ENVIRONMENT="Production"
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | dotnet run --no-build --verbosity quiet
-```
-
-Test tool availability:
-
-```powershell
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | dotnet run --no-build --verbosity quiet
-```
-
-#### VS Code Integration Testing
-
-1. **Check MCP Configuration**: Ensure the path to the project is correct
-2. **Restart VS Code**: After changing MCP configuration
-3. **Check Copilot**: Verify Copilot can see the MCP tools
-4. **Test Simple Commands**: Start with basic documentation generation
-
-## Output Examples
-
-### Markdown Format (Default)
-
-- Clean, readable documentation with headers and code blocks
-- Suitable for README files, GitHub wikis, and documentation sites
-- Includes tables for structured data and proper code highlighting
-
-### HTML Format
-
-- Rich formatting with CSS styling and professional appearance
-- Interactive elements and proper HTML structure
-- Suitable for web viewing, reports, and presentations
-- Includes responsive design for different screen sizes
-
-### Text Format
-
-- Plain text output without formatting
-- Good for logs, simple documentation, and integration with other tools
-- Raw information without markup or styling
-- Useful for automated processing and parsing
-
-## Best Practices
-
-### Repository Management
-
-1. **Keep Remotes Updated**: Regularly fetch from remote repositories
-2. **Use Descriptive Branch Names**: Follow team conventions (feature/, bugfix/, hotfix/)
-3. **Clean Commit Messages**: Write clear, descriptive commit messages
-
-### Documentation Generation
-
-1. **Reasonable Limits**: Use appropriate `maxCommits` values (10-100)
-2. **Organized Output**: Save documentation to dedicated folders (docs/, analysis/)
-3. **Format Selection**: Choose format based on intended use:
-   - Markdown for documentation and README files
-   - HTML for reports and web viewing
-   - Text for logs and automated processing
-
-### Remote Branch Usage
-
-1. **Fetch Before Comparing**: Use `fetchRemote: true` for up-to-date comparisons
-2. **Meaningful Comparisons**: Compare related branches (feature vs main, release vs main)
-3. **Clear Naming**: Use consistent remote naming (origin, upstream, fork)
-
-### Performance Optimization
-
-1. **Incremental Analysis**: Start with small commit ranges, expand as needed
-2. **Specific File Analysis**: Use file filters when analyzing large changes
-3. **Batch Operations**: Group related analysis tasks together
-
-### Integration with Workflow
-
-1. **Pre-commit Analysis**: Review changes before committing
-2. **Pull Request Preparation**: Document changes for code review
-3. **Release Planning**: Compare release branches with main for release notes
-4. **Team Collaboration**: Share analysis results with team members
-
-## 🚀 Search Optimization Guide
-
-### Best Practices for Commit Search
-
-**1. Search Term Selection:**
-
-- Use specific technical terms: `"HttpClient"`, `"database"`, `"authentication"`
-- Avoid very common words: `"the"`, `"and"`, `"for"`, `"in"`
-- Try variations: `"auth"`, `"login"`, `"signin"`, `"authentication"`
-- Use compound terms: `"user authentication"`, `"bug fix"`, `"performance optimization"`
-
-**2. Performance Optimization:**
-
-```bash
-# Fast interactive search (immediate feedback)
-@copilot Search last 25 commits for "API" changes
-
-# Comprehensive analysis (thorough investigation)
-@copilot Search all commits for "security" with maxCommits 150
-
-# Targeted search (specific timeframe)
-@copilot Search recent 50 commits for "database migration"
-```
-
-**3. Result Interpretation:**
-
-- **High match count**: Consider more specific search terms
-- **Low match count**: Try broader terms or synonyms
-- **No results**: Verify spelling, try related terms
-- **Performance issues**: Reduce maxCommits or use more specific terms
-
-**4. Advanced Search Strategies:**
-
-```bash
-# Multi-phase search approach
-@copilot Search for "login" in last 30 commits  # Quick overview
-@copilot Search for "authentication" in last 100 commits  # Detailed analysis
-
-# Combine with other tools for context
-@copilot Search for "refactor" then show file changes between found commits
-@copilot Search for "bug" then get recent commits for timeline context
-```
-
-### Search Use Case Templates
-
-**Bug Investigation:**
-
-```
-1. @copilot Search for "[bug description]" in recent commits
-2. @copilot Get detailed diff between commits found in search
-3. @copilot List files changed between bug introduction and fix
-```
-
-**Feature Development Tracking:**
-
-```
-1. @copilot Search for "[feature name]" across all commits
-2. @copilot Compare first and last commits mentioning feature
-3. @copilot Generate documentation covering feature development
-```
-
-**Security Audit Workflow:**
-
-```
-1. @copilot Search for "password" or "secret" across all commits
-2. @copilot Search for "authentication" and "authorization"
-3. @copilot Search for "encryption" and security-related terms
-4. @copilot Generate comprehensive security audit report
-```

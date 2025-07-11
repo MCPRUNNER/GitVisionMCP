@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using GitVisionMCP.Models;
 using GitVisionMCP.Services;
+using GitVisionMCP.Tools;
 using GitVisionMCP.Prompts;
 using System.Text;
 using System.Text.Json;
@@ -9,28 +10,29 @@ using System.Text.Json.Serialization;
 
 namespace GitVisionMCP.Services;
 
-public interface IMcpServer
-{
-    Task StartAsync(CancellationToken cancellationToken = default);
-    Task StopAsync(CancellationToken cancellationToken = default);
-}
-
 public class McpServer : IMcpServer
 {
     private readonly ILogger<McpServer> _logger;
     private readonly IConfiguration _configuration;
     private readonly IGitService _gitService;
     private readonly ILocationService _locationService;
+    private readonly IGitServiceTools _gitServiceTools;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly JsonSerializerOptions _outputJsonOptions;
     private bool _isRunning;
 
-    public McpServer(ILogger<McpServer> logger, IConfiguration configuration, IGitService gitService, ILocationService locationService)
+    public McpServer(
+        ILogger<McpServer> logger,
+        IConfiguration configuration,
+        IGitService gitService,
+        ILocationService locationService,
+        IGitServiceTools gitServiceTools)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
         _locationService = locationService ?? throw new ArgumentNullException(nameof(locationService));
+        _gitServiceTools = gitServiceTools ?? throw new ArgumentNullException(nameof(gitServiceTools));
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -1142,44 +1144,22 @@ public class McpServer : IMcpServer
             var lastModifiedAfter = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedAfter", null);
             var lastModifiedBefore = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedBefore", null);
 
+            // Get all files once and pass them to GitServiceTools to avoid redundant calls
             var allFiles = _locationService.GetAllFiles();
-            var filteredFiles = allFiles.AsEnumerable();
 
-            // Apply file type filter
-            if (!string.IsNullOrWhiteSpace(fileType))
-            {
-                filteredFiles = filteredFiles.Where(f =>
-                    f.FileType.Equals(fileType, StringComparison.OrdinalIgnoreCase));
-            }
+            // Capture the total count before filtering
+            var totalCount = allFiles.Count;
 
-            // Apply relative path filter
-            if (!string.IsNullOrWhiteSpace(relativePath))
-            {
-                filteredFiles = filteredFiles.Where(f =>
-                    f.RelativePath.Contains(relativePath, StringComparison.OrdinalIgnoreCase));
-            }
+            // Modify GitServiceTools implementation to accept the pre-fetched file list
+            var result = await _gitServiceTools.ListWorkspaceFilesWithCachedDataAsync(
+                allFiles,
+                fileType,
+                relativePath,
+                fullPath,
+                lastModifiedAfter,
+                lastModifiedBefore);
 
-            // Apply full path filter
-            if (!string.IsNullOrWhiteSpace(fullPath))
-            {
-                filteredFiles = filteredFiles.Where(f =>
-                    f.FullPath.Contains(fullPath, StringComparison.OrdinalIgnoreCase));
-            }
-
-            // Apply last modified after filter
-            if (!string.IsNullOrWhiteSpace(lastModifiedAfter) && DateTime.TryParse(lastModifiedAfter, out var afterDate))
-            {
-                filteredFiles = filteredFiles.Where(f => f.LastModified >= afterDate);
-            }
-
-            // Apply last modified before filter
-            if (!string.IsNullOrWhiteSpace(lastModifiedBefore) && DateTime.TryParse(lastModifiedBefore, out var beforeDate))
-            {
-                filteredFiles = filteredFiles.Where(f => f.LastModified <= beforeDate.AddDays(1).AddTicks(-1));
-            }
-
-            var result = filteredFiles.ToList();
-            _logger.LogInformation("Listed {FilteredCount} files out of {TotalCount} total files", result.Count, allFiles.Count);
+            _logger.LogInformation("Listed {FilteredCount} files out of {TotalCount} total files", result.Count, totalCount);
 
             var response = new CallToolResponse
             {
@@ -1235,7 +1215,8 @@ public class McpServer : IMcpServer
                         var underlyingType = Nullable.GetUnderlyingType(typeof(T));
                         if (underlyingType == typeof(string))
                         {
-                            return property.ValueKind == JsonValueKind.Null ? defaultValue : (T)(object?)property.GetString();
+                            var value = property.ValueKind == JsonValueKind.Null ? null : property.GetString();
+                            return property.ValueKind == JsonValueKind.Null ? defaultValue : (T)(object)value!;
                         }
                     }
                     // Handle nullable reference types
@@ -1247,7 +1228,8 @@ public class McpServer : IMcpServer
                         }
                         if (typeof(T).Name.Contains("String"))
                         {
-                            return (T)(object?)property.GetString();
+                            var value = property.GetString();
+                            return (T)(object)(value ?? string.Empty);
                         }
                         return (T)(object)property;
                     }

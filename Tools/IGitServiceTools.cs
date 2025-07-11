@@ -1,0 +1,120 @@
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+using GitVisionMCP.Models;
+using GitVisionMCP.Services;
+
+namespace GitVisionMCP.Tools;
+
+/// <summary>
+/// Interface for Git-related tools implementation using ModelContextProtocol attributes
+/// </summary>
+public interface IGitServiceTools
+{
+    /// <summary>
+    /// Fetch latest changes from remote repository
+    /// </summary>
+    Task<bool> FetchFromRemoteAsync(string? remoteName = "origin");
+
+    /// <summary>
+    /// Generate documentation from git logs for the current workspace
+    /// </summary>
+    Task<string> GenerateGitDocumentationAsync(int? maxCommits = 50, string? outputFormat = "markdown");
+
+    /// <summary>
+    /// Generate documentation from git logs and write to a file
+    /// </summary>
+    Task<string> GenerateGitDocumentationToFileAsync(string filePath, int? maxCommits = 50, string? outputFormat = "markdown");
+
+    /// <summary>
+    /// Generate documentation comparing differences between two branches
+    /// </summary>
+    Task<string> CompareBranchesDocumentationAsync(string branch1, string branch2, string filePath, string? outputFormat = "markdown");
+
+    /// <summary>
+    /// Generate documentation comparing differences between two branches with remote support
+    /// </summary>
+    Task<string> CompareBranchesWithRemote(string branch1, string branch2, string filePath, bool fetchRemote = true, string? outputFormat = "markdown");
+
+    /// <summary>
+    /// Generate documentation comparing differences between two commits
+    /// </summary>
+    Task<string> CompareCommitsDocumentation(string commit1, string commit2, string filePath, string? outputFormat = "markdown");
+
+    /// <summary>
+    /// Get the current active branch in the repository
+    /// </summary>
+    Task<string> GetCurrentBranchAsync();
+
+    /// <summary>
+    /// Get list of local branches in the repository
+    /// </summary>
+    Task<List<string>> GetLocalBranchesAsync();
+
+    /// <summary>
+    /// Get list of remote branches in the repository
+    /// </summary>
+    Task<List<string>> GetRemoteBranchesAsync();
+
+    /// <summary>
+    /// Get list of all branches (local and remote) in the repository
+    /// </summary>
+    Task<List<string>> GetAllBranchesAsync();
+
+    /// <summary>
+    /// Get recent commits from the current repository
+    /// </summary>
+    Task<List<Models.GitCommitInfo>> GetRecentCommitsAsync(int? count = 10);
+
+    /// <summary>
+    /// Get list of files changed between two commits
+    /// </summary>
+    Task<List<string>> GetChangedFilesBetweenCommits(string commit1, string commit2);
+
+    /// <summary>
+    /// Get comprehensive diff information between two commits including file changes and statistics
+    /// </summary>
+    Task<Models.GitCommitDiffInfo> GetCommitDiffInfo(string commit1, string commit2);
+
+    /// <summary>
+    /// Get detailed diff content between two commits
+    /// </summary>
+    Task<string> GetDetailedDiffBetweenCommits(string commit1, string commit2, List<string>? specificFiles = null);
+
+    /// <summary>
+    /// Get line-by-line file diff between two commits
+    /// </summary>
+    Task<Models.FileLineDiffInfo> GetFileLineDiffBetweenCommits(string commit1, string commit2, string filePath);
+
+    /// <summary>
+    /// Search all commits for a specific string and return commit details, filenames, and line matches
+    /// </summary>
+    Task<Models.CommitSearchResponse> SearchCommitsForStringAsync(string searchString, int? maxCommits = 100);
+
+    /// <summary>
+    /// List all files in the workspace with optional filtering
+    /// </summary>
+    Task<List<Services.WorkspaceFileInfo>> ListWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null);
+
+    /// <summary>
+    /// List workspace files with optional filtering using pre-fetched file data to improve performance
+    /// </summary>
+    /// <param name="cachedFiles">Pre-fetched list of workspace files</param>
+    /// <param name="fileType">Filter by file type (extension without dot, e.g., 'cs', 'json')</param>
+    /// <param name="relativePath">Filter by relative path (contains search)</param>
+    /// <param name="fullPath">Filter by full path (contains search)</param>
+    /// <param name="lastModifiedAfter">Filter by last modified date (ISO format: yyyy-MM-dd)</param>
+    /// <param name="lastModifiedBefore">Filter by last modified date (ISO format: yyyy-MM-dd)</param>
+    /// <returns>A filtered list of workspace files</returns>
+    Task<List<Services.WorkspaceFileInfo>> ListWorkspaceFilesWithCachedDataAsync(
+        List<Services.WorkspaceFileInfo> cachedFiles,
+        string? fileType = null,
+        string? relativePath = null,
+        string? fullPath = null,
+        string? lastModifiedAfter = null,
+        string? lastModifiedBefore = null);
+
+    /// <summary>
+    /// Read contents of all files from filtered workspace results
+    /// </summary>
+    Task<List<Models.FileContentInfo>> ReadFilteredWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null, int? maxFiles = 50, long? maxFileSize = 1048576);
+}

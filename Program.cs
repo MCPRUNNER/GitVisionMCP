@@ -72,8 +72,10 @@ else
 // Add our GitVision MCP services
 builder.Services.AddSingleton<ILocationService, LocationService>();
 builder.Services.AddSingleton<IGitService, GitService>();
+
 builder.Services.AddTransient<IGitServiceTools, GitServiceTools>();
 builder.Services.AddSingleton<GitVisionMCP.Services.IMcpServer, GitVisionMCP.Services.McpServer>();
+
 
 // Configure JSON options
 if (transportType.Equals("Http", StringComparison.OrdinalIgnoreCase))

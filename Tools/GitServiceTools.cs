@@ -10,7 +10,7 @@ namespace GitVisionMCP.Tools;
 /// Git-related tools implementation using ModelContextProtocol attributes
 /// </summary>
 [McpServerToolType]
-public class GitServiceTools
+public class GitServiceTools : IGitServiceTools
 {
     private readonly IGitService _gitService;
     private readonly ILocationService _locationService;

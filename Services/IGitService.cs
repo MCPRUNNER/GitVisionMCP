@@ -25,7 +25,7 @@ public interface IGitService
     Task<string> GetCurrentBranchAsync(string repositoryPath);
     Task<bool> FetchFromRemoteAsync(string repositoryPath, string remoteName = "origin");
     Task<List<GitCommitInfo>> GetGitLogsBetweenBranchesWithRemoteAsync(string repositoryPath, string branch1, string branch2, bool fetchRemote = true);
-
+    Task<string> GenerateAutoDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown");
     // New method for searching commits
     Task<CommitSearchResponse> SearchCommitsForStringAsync(string repositoryPath, string searchString, int maxCommits = 100);
 }

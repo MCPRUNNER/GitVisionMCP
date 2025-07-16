@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitVisionMCP.Services;
+
 public interface ILocationService
 {
     /// <summary>
@@ -22,4 +23,11 @@ public interface ILocationService
     /// <param name="xmlFilePath">The path where the XML file will be saved</param>
     /// <returns>True if the file was saved successfully, false otherwise</returns>
     bool SaveAllFilesToXml(string xmlFilePath);
+
+    /// <summary>
+    /// Reads a file from the Prompts directory within the workspace root
+    /// </summary>
+    /// <param name="filename">The name of the file to read from the Prompts directory</param>
+    /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
+    string? ReadPromptFile(string filename);
 }

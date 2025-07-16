@@ -163,6 +163,41 @@ public class LocationService : ILocationService
     }
 
     /// <summary>
+    /// Reads a file from the Prompts directory within the workspace root
+    /// </summary>
+    /// <param name="filename">The name of the file to read from the Prompts directory</param>
+    /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
+    public string? ReadPromptFile(string filename)
+    {
+        if (string.IsNullOrWhiteSpace(filename))
+        {
+            _logger.LogError("Filename cannot be null or empty");
+            return null;
+        }
+
+        try
+        {
+            var promptsDirectory = Path.Combine(_workspaceRoot, "Prompts");
+            var filePath = Path.Combine(promptsDirectory, filename);
+
+            if (!File.Exists(filePath))
+            {
+                _logger.LogWarning("Prompt file does not exist: {FilePath}", filePath);
+                return null;
+            }
+
+            var content = File.ReadAllText(filePath);
+            _logger.LogInformation("Successfully read prompt file: {FilePath}", filePath);
+            return content;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading prompt file: {Filename}", filename);
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Determines the workspace root directory by checking environment variable first
     /// </summary>
     /// <returns>The workspace root directory path</returns>

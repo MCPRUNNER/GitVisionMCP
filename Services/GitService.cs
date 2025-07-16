@@ -9,10 +9,12 @@ namespace GitVisionMCP.Services;
 public class GitService : IGitService
 {
     private readonly ILogger<GitService> _logger;
+    private readonly ILocationService _locationService;
 
-    public GitService(ILogger<GitService> logger)
+    public GitService(ILogger<GitService> logger, ILocationService locationService)
     {
         _logger = logger;
+        _locationService = locationService;
     }
 
     public async Task<List<GitCommitInfo>> GetGitLogsAsync(string repositoryPath, int maxCommits = 50)
@@ -158,13 +160,35 @@ public class GitService : IGitService
             throw;
         }
     }
+    public async Task<string> GenerateAutoDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown")
+    {
+        try
+        {
+            _logger.LogInformation("Generating documentation for {Count} commits in {Format} format", commits.Count, format);
+            var sysPrompt = _locationService.ReadPromptFile("GenerateDocumentation.md");
+            var documentation = format.ToLower() switch
+            {
+                "markdown" => await GenerateMarkdownDocumentationAsync(commits),
+                "html" => await GenerateHtmlDocumentationAsync(commits),
+                "text" => await GenerateTextDocumentationAsync(commits),
+                _ => await GenerateMarkdownDocumentationAsync(commits)
+            };
 
+            _logger.LogInformation("Generated documentation with {Length} characters", documentation.Length);
+            return documentation;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating documentation");
+            throw;
+        }
+    }
     public async Task<string> GenerateDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown")
     {
         try
         {
             _logger.LogInformation("Generating documentation for {Count} commits in {Format} format", commits.Count, format);
-
+            var sysPrompt = _locationService.ReadPromptFile("GenerateDocumentation.md");
             var documentation = format.ToLower() switch
             {
                 "markdown" => await GenerateMarkdownDocumentationAsync(commits),

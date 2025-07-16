@@ -22,7 +22,8 @@ namespace GitVisionMCP.Tests.Services
         public GitServiceTests()
         {
             _mockLogger = new Mock<ILogger<GitService>>();
-            _gitService = new GitService(_mockLogger.Object);
+            var mockLocationService = new Mock<ILocationService>();
+            _gitService = new GitService(_mockLogger.Object, mockLocationService.Object);
             _testRepoPath = Path.Combine(Path.GetTempPath(), "test-git-repo-" + Guid.NewGuid().ToString());
             _invalidRepoPath = Path.Combine(Path.GetTempPath(), "invalid-repo-" + Guid.NewGuid().ToString());
 

@@ -247,7 +247,12 @@ namespace GitVisionMCP.Tests.Tools
         public async Task ReadFilteredWorkspaceFilesAsync_HandlesNonExistentFiles()
         {
             // Arrange
-            // Do not create the files on disk
+            // Ensure files do not exist on disk
+            var mockWorkspaceRoot = _mockLocationService.Object.GetWorkspaceRoot();
+            if (Directory.Exists(mockWorkspaceRoot))
+            {
+                Directory.Delete(mockWorkspaceRoot, true);
+            }
 
             // Act
             var result = await _gitServiceTools.ReadFilteredWorkspaceFilesAsync();

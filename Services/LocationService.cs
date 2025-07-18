@@ -177,7 +177,7 @@ public class LocationService : ILocationService
 
         try
         {
-            var promptsDirectory = Path.Combine(_workspaceRoot, "Prompts");
+            var promptsDirectory = Path.Combine(_workspaceRoot, ".github/prompts");
             var filePath = Path.Combine(promptsDirectory, filename);
 
             if (!File.Exists(filePath))
@@ -186,7 +186,7 @@ public class LocationService : ILocationService
                 return null;
             }
 
-            var content = File.ReadAllText(filePath);
+            var content = ReadFile(filePath);
             _logger.LogInformation("Successfully read prompt file: {FilePath}", filePath);
             return content;
         }
@@ -196,7 +196,33 @@ public class LocationService : ILocationService
             return null;
         }
     }
+    public string? ReadFile(string filename)
+    {
+        if (string.IsNullOrWhiteSpace(filename))
+        {
+            _logger.LogError("Filename cannot be null or empty");
+            return null;
+        }
 
+        try
+        {
+     
+            if (!File.Exists(filename))
+            {
+                _logger.LogWarning("Prompt file does not exist: {FilePath}", filename);
+                return null;
+            }
+
+            var content = File.ReadAllText(filename);
+            _logger.LogInformation("Successfully read prompt file: {FilePath}", filename);
+            return content;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading prompt file: {Filename}", filename);
+            return null;
+        }
+    }
     /// <summary>
     /// Determines the workspace root directory by checking environment variable first
     /// </summary>

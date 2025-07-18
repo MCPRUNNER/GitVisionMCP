@@ -10,7 +10,7 @@ public interface ILocationService
     /// </summary>
     /// <returns>The workspace root directory path</returns>
     string GetWorkspaceRoot();
-
+    public string? ReadFile(string filename);
     /// <summary>
     /// Gets all files under the workspace root directory with relative paths and file types
     /// </summary>

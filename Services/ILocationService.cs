@@ -18,6 +18,13 @@ public interface ILocationService
     List<WorkspaceFileInfo> GetAllFiles();
 
     /// <summary>
+    ///  Gets all files under the workspace root directory with relative paths and file types that match a specific search pattern.
+    /// </summary>
+    /// <param name="searchPattern"></param>
+    /// <returns></returns>
+    List<WorkspaceFileInfo> GetAllFilesMatching(string searchPattern);
+
+    /// <summary>
     /// Saves the output of GetAllFiles() to an XML file
     /// </summary>
     /// <param name="xmlFilePath">The path where the XML file will be saved</param>
@@ -29,5 +36,5 @@ public interface ILocationService
     /// </summary>
     /// <param name="filename">The name of the file to read from the Prompts directory</param>
     /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
-    string? ReadPromptFile(string filename);
+    string? GetGitHubPromptFileContent(string filename);
 }

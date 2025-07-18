@@ -165,7 +165,7 @@ public class GitService : IGitService
         try
         {
             _logger.LogInformation("Generating documentation for {Count} commits in {Format} format", commits.Count, format);
-            var sysPrompt = _locationService.ReadPromptFile("GenerateDocumentation.md");
+            var sysPrompt = _locationService.GetGitHubPromptFileContent("GenerateDocumentation.md");
             var documentation = format.ToLower() switch
             {
                 "markdown" => await GenerateMarkdownDocumentationAsync(commits),
@@ -188,7 +188,7 @@ public class GitService : IGitService
         try
         {
             _logger.LogInformation("Generating documentation for {Count} commits in {Format} format", commits.Count, format);
-            var sysPrompt = _locationService.ReadPromptFile("GenerateDocumentation.md");
+            var sysPrompt = _locationService.GetGitHubPromptFileContent("GenerateDocumentation.md");
             var documentation = format.ToLower() switch
             {
                 "markdown" => await GenerateMarkdownDocumentationAsync(commits),

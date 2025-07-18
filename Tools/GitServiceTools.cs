@@ -189,8 +189,8 @@ public class GitServiceTools : IGitServiceTools
            [Description("Maximum number of tokens to generate")] int maxTokens = 1000)
     {
         // Create messages list with system prompt and user message
-        var sysPrompt = _locationService.ReadPromptFile(system_prompt);
-        var userPrompt = _locationService.ReadPromptFile(user_prompt);
+        var sysPrompt = _locationService.GetGitHubPromptFileContent(system_prompt);
+        var userPrompt = _locationService.GetGitHubPromptFileContent(user_prompt);
         var messages = new List<ChatMessage>
         {
             new(ChatRole.System, sysPrompt ?? "Default system prompt"),
@@ -1084,7 +1084,8 @@ public class GitServiceTools : IGitServiceTools
                     // Read content if file exists and meets criteria
                     try
                     {
-                        var content = await File.ReadAllTextAsync(file.FullPath);
+                        var content = _locationService.ReadFile(file.RelativePath);
+                        // var content = await File.ReadAllTextAsync(file.FullPath);
                         fileContentInfo.Content = content;
                         result.Add(fileContentInfo);
                     }

@@ -140,15 +140,36 @@ The server now fully supports remote branches, enabling:
 
 ### Remote Branch Examples
 
-```javascript
-// Compare local feature branch with remote main
-compare_branches_with_remote("feature/new-api", "origin/main", "analysis.md")
+#### Using Copilot Commands
 
-// Compare two remote branches
-compare_branches_with_remote("origin/release/v2.0", "origin/main", "release-diff.md")
+```bash
+# Compare local feature branch with remote main
+@copilot Compare my feature/new-api branch with origin/main and save to analysis.md
 
-// Compare with automatic remote fetch
-compare_branches_with_remote("main", "origin/main", "sync-check.md", fetchRemote: true)
+# Compare two remote branches
+@copilot Compare origin/release/v2.0 with origin/main and save to release-diff.md
+
+# Compare with automatic remote fetch
+@copilot Fetch from origin and compare main with origin/main to check synchronization
+```
+
+#### JSON-RPC Tool Calls
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "compare_branches_with_remote",
+    "arguments": {
+      "branch1": "feature/new-api",
+      "branch2": "origin/main",
+      "filePath": "analysis.md",
+      "fetchRemote": true
+    }
+  }
+}
 ```
 
 ## Output Formats
@@ -373,11 +394,13 @@ To enable MCP prompts in your VS Code environment, add the prompts section to yo
 }
 ```
 
-## �🚀 Quick Start
+## 🚀 Quick Start
 
 ### Test the Search Feature
 
 Once the MCP server is running, try these commands to test the powerful search functionality:
+
+#### Copilot Commands
 
 ```bash
 # Search for "authentication" across all commits
@@ -388,23 +411,41 @@ Once the MCP server is running, try these commands to test the powerful search f
 
 # Search for specific API usage
 @copilot Look for "HttpClient" usage across commit history
+
+# Security audit search
+@copilot Search for "password" or "secret" patterns in all commits
+```
+
+#### Direct JSON-RPC Testing
+
+```bash
+# Test the search tool directly
+echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search_commits_for_string","arguments":{"searchString":"authentication","maxCommits":20}}}' | dotnet run --no-build --verbosity quiet
 ```
 
 ### Test Documentation Generation
+
+#### Copilot Commands
 
 ```bash
 # Generate recent commit documentation
 @copilot Generate documentation from the last 10 commits
 
-# Compare branches
+# Compare branches and save results
 @copilot Compare main branch with origin/main and save analysis to sync-check.md
+
+# Create comprehensive git history
+@copilot Generate git documentation from last 50 commits and save to docs/project-history.md
 ```
 
-### Manual Testing (JSON-RPC)
+#### Direct JSON-RPC Testing
 
 ```bash
-# Test the search tool directly
-echo '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"search_commits_for_string","arguments":{"searchString":"git","maxCommits":20}}}' | dotnet run --no-build --verbosity quiet
+# Test documentation generation
+echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"generate_git_documentation","arguments":{"maxCommits":10,"outputFormat":"markdown"}}}' | dotnet run --no-build --verbosity quiet
+
+# Test branch comparison
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_all_branches","arguments":{}}}' | dotnet run --no-build --verbosity quiet
 ```
 
 ## Tool Reference
@@ -595,56 +636,204 @@ Fetches latest changes from remote repository.
 
 ### 1. Release Planning and Analysis
 
+#### Copilot Command:
+
+```bash
+@copilot Compare the release/v2.0 branch with main and save the analysis to release-notes.md
 ```
-"Compare the release/v2.0 branch with main and save the analysis to release-notes.md"
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "compare_branches_with_remote",
+    "arguments": {
+      "branch1": "release/v2.0",
+      "branch2": "main",
+      "filePath": "release-notes.md",
+      "outputFormat": "markdown"
+    }
+  }
+}
 ```
 
 Perfect for understanding what's included in a release and generating release notes.
 
 ### 2. Feature Branch Review
 
+#### Copilot Command:
+
+```bash
+@copilot Compare my feature/user-authentication branch with origin/main and save to feature-review.md
 ```
-"Compare my feature/user-authentication branch with origin/main"
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "compare_branches_with_remote",
+    "arguments": {
+      "branch1": "feature/user-authentication",
+      "branch2": "origin/main",
+      "filePath": "feature-review.md",
+      "fetchRemote": true
+    }
+  }
+}
 ```
 
 Great for preparing pull requests and understanding the scope of changes.
 
 ### 3. Code Review Preparation
 
+#### Copilot Command:
+
+```bash
+@copilot Show me what files changed between commits abc123 and def456
 ```
-"Show me what files changed between commits abc123 and def456"
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "get_changed_files_between_commits",
+    "arguments": {
+      "commit1": "abc123",
+      "commit2": "def456"
+    }
+  }
+}
 ```
 
 Quickly identify which files need attention during code review.
 
 ### 4. Team Synchronization
 
+#### Copilot Command:
+
+```bash
+@copilot Fetch from origin and compare main with origin/main to see if we're up to date
 ```
-"Fetch from origin and compare main with origin/main to see if we're up to date"
+
+#### JSON-RPC Calls:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "tools/call",
+  "params": {
+    "name": "fetch_from_remote",
+    "arguments": {
+      "remoteName": "origin"
+    }
+  }
+}
 ```
 
 Stay synchronized with remote repository changes.
 
 ### 5. Historical Analysis
 
+#### Copilot Command:
+
+```bash
+@copilot Generate documentation from the last 100 commits and save to project-history.md
 ```
-"Generate documentation from the last 100 commits and save to project-history.md"
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 5,
+  "method": "tools/call",
+  "params": {
+    "name": "generate_git_documentation_to_file",
+    "arguments": {
+      "filePath": "project-history.md",
+      "maxCommits": 100,
+      "outputFormat": "markdown"
+    }
+  }
+}
 ```
 
 Create comprehensive project history documentation.
 
 ### 6. Cross-Repository Comparison
 
+#### Copilot Command:
+
+```bash
+@copilot Compare origin/main with upstream/main to see differences from the original repo
 ```
-"Compare origin/main with upstream/main to see differences from the original repo"
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 6,
+  "method": "tools/call",
+  "params": {
+    "name": "compare_branches_with_remote",
+    "arguments": {
+      "branch1": "origin/main",
+      "branch2": "upstream/main",
+      "filePath": "fork-comparison.md"
+    }
+  }
+}
 ```
 
 Useful for forks and understanding differences from upstream repositories.
 
-### 7. Code and Commit Search
+### 7. Advanced Commit Search
 
+#### Copilot Commands:
+
+```bash
+# Security audit
+@copilot Search all commits for 'password' to find potential security issues
+
+# Bug tracking
+@copilot Find all commits that mention 'authentication error' in messages or code
+
+# Feature history
+@copilot Search for 'user registration' across all development history
+
+# Code archaeology
+@copilot Look for 'deprecated' functions and show me where they were used
 ```
-"Search all commits for 'authentication' to find related changes"
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 7,
+  "method": "tools/call",
+  "params": {
+    "name": "search_commits_for_string",
+    "arguments": {
+      "searchString": "authentication",
+      "maxCommits": 100
+    }
+  }
+}
 ```
 
 Perfect for finding all instances where specific features, bugs, or keywords were addressed across the project history. The search will return:
@@ -661,6 +850,34 @@ This is especially useful for:
 - **Code review**: Find all instances of deprecated functions or patterns
 - **Security audits**: Search for sensitive patterns or keywords
 - **Documentation**: Locate all references to specific APIs or configurations
+
+### 8. Line-by-Line Analysis
+
+#### Copilot Command:
+
+```bash
+@copilot Get line-by-line diff for Services/GitService.cs between commits abc123 and def456
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "method": "tools/call",
+  "params": {
+    "name": "get_file_line_diff_between_commits",
+    "arguments": {
+      "commit1": "abc123",
+      "commit2": "def456",
+      "filePath": "Services/GitService.cs"
+    }
+  }
+}
+```
+
+Get detailed line-by-line changes for specific files to understand exact modifications.
 
 ## Configuration
 

@@ -66,7 +66,39 @@ public class LocationService : ILocationService
     {
         return _workspaceRoot;
     }
+    public List<WorkspaceFileInfo> GetAllFilesMatching(string searchPattern)
+    {
+        var files = new List<WorkspaceFileInfo>();
 
+        try
+        {
+            var workspaceRoot = new DirectoryInfo(_workspaceRoot);
+            var allFiles = workspaceRoot.GetFiles(searchPattern, SearchOption.AllDirectories);
+
+            foreach (var file in allFiles)
+            {
+                var relativePath = Path.GetRelativePath(_workspaceRoot, file.FullName);
+                var fileType = Path.GetExtension(file.Name).ToLowerInvariant();
+
+                files.Add(new WorkspaceFileInfo
+                {
+                    RelativePath = relativePath,
+                    FileType = string.IsNullOrEmpty(fileType) ? "no extension" : fileType.TrimStart('.'),
+                    FullPath = file.FullName,
+                    Size = file.Length,
+                    LastModified = file.LastWriteTime
+                });
+            }
+
+            _logger.LogInformation("Retrieved {FileCount} files from workspace root: {WorkspaceRoot}", files.Count, _workspaceRoot);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving files from workspace root: {WorkspaceRoot}", _workspaceRoot);
+        }
+
+        return files;
+    }
     /// <summary>
     /// Gets all files under the workspace root directory with relative paths and file types
     /// </summary>
@@ -167,7 +199,7 @@ public class LocationService : ILocationService
     /// </summary>
     /// <param name="filename">The name of the file to read from the Prompts directory</param>
     /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
-    public string? ReadPromptFile(string filename)
+    public string? GetGitHubPromptFileContent(string filename)
     {
         if (string.IsNullOrWhiteSpace(filename))
         {

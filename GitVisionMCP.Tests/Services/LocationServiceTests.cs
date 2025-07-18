@@ -24,7 +24,7 @@ public class LocationServiceTests
             var promptFilename = "ReleaseNotesPrompt.md";
 
             // Act
-            var content = locationService.ReadPromptFile(promptFilename);
+            var content = locationService.GetGitHubPromptFileContent(promptFilename);
 
             // Assert
             Assert.NotNull(content);
@@ -47,7 +47,7 @@ public class LocationServiceTests
         var promptFilename = "NonExistentFile.md";
 
         // Act
-        var content = locationService.ReadPromptFile(promptFilename);
+        var content = locationService.GetGitHubPromptFileContent(promptFilename);
 
         // Assert
         Assert.Null(content);
@@ -61,7 +61,7 @@ public class LocationServiceTests
         var locationService = new LocationService(mockLogger.Object);
 
         // Act
-        var content = locationService.ReadPromptFile("");
+        var content = locationService.GetGitHubPromptFileContent("");
 
         // Assert
         Assert.Null(content);
@@ -75,7 +75,7 @@ public class LocationServiceTests
         var locationService = new LocationService(mockLogger.Object);
 
         // Act
-        var content = locationService.ReadPromptFile(null!);
+        var content = locationService.GetGitHubPromptFileContent(null!);
 
         // Assert
         Assert.Null(content);

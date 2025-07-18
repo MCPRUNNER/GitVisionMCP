@@ -1139,13 +1139,19 @@ public class McpServer : IMcpServer
         try
         {
             var fileType = GetArgumentValue<string?>(toolRequest.Arguments, "fileType", null);
-            var relativePath = GetArgumentValue<string?>(toolRequest.Arguments, "relativePath", null);
+            var relativePath = GetArgumentValue<string?>(toolRequest.Arguments, "relativePath", "*");
             var fullPath = GetArgumentValue<string?>(toolRequest.Arguments, "fullPath", null);
             var lastModifiedAfter = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedAfter", null);
             var lastModifiedBefore = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedBefore", null);
 
             // Get all files once and pass them to GitServiceTools to avoid redundant calls
-            var allFiles = _locationService.GetAllFiles();
+            string myPath = "*";
+
+            if (!string.IsNullOrEmpty(relativePath) && relativePath != "*")
+            {
+                myPath = relativePath;
+            }
+            var allFiles = _locationService.GetAllFilesMatching(myPath);
 
             // Capture the total count before filtering
             var totalCount = allFiles.Count;

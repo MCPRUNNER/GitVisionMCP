@@ -196,9 +196,11 @@ public class LocationService : ILocationService
             return null;
         }
     }
+ 
     public string? ReadFile(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
+ 
         {
             _logger.LogError("Filename cannot be null or empty");
             return null;
@@ -207,6 +209,7 @@ public class LocationService : ILocationService
         try
         {
      
+ 
             if (!File.Exists(filePath))
             {
                 _logger.LogWarning("Prompt file does not exist: {FilePath}", filePath);
@@ -215,11 +218,15 @@ public class LocationService : ILocationService
 
             var content = File.ReadAllText(filePath);
             _logger.LogInformation("Successfully read file: {FilePath}", filePath);
+ 
+
             return content;
         }
         catch (Exception ex)
         {
+
             _logger.LogError(ex, "Error reading file: {Filename}", filePath);
+
             return null;
         }
     }

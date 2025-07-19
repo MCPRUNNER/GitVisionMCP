@@ -148,6 +148,67 @@ public class DeconstructionService : IDeconstructionService
     }
 
     /// <summary>
+    /// Analyzes a C# ASP.NET Core controller file and saves the structure to a JSON file in the workspace directory
+    /// </summary>
+    /// <param name="filePath">The path to the controller file relative to workspace root</param>
+    /// <param name="outputFileName">The name of the output JSON file (optional, defaults to controller name + '_analysis.json')</param>
+    /// <returns>The full path to the saved JSON file, or null if the operation failed</returns>
+    public string? AnalyzeControllerToFile(string filePath, string? outputFileName = null)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                _logger.LogError("File path cannot be null or empty");
+                return null;
+            }
+
+            // Analyze the controller
+            var jsonResult = AnalyzeController(filePath);
+            if (string.IsNullOrEmpty(jsonResult))
+            {
+                _logger.LogError("Failed to analyze controller: {FilePath}", filePath);
+                return null;
+            }
+
+            // Generate output filename if not provided
+            if (string.IsNullOrWhiteSpace(outputFileName))
+            {
+                var controllerFileName = Path.GetFileNameWithoutExtension(filePath);
+                outputFileName = $"{controllerFileName}_analysis.json";
+            }
+
+            // Ensure .json extension
+            if (!outputFileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+            {
+                outputFileName += ".json";
+            }
+
+            // Create full output path in workspace directory
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var outputPath = Path.Combine(workspaceRoot, outputFileName);
+
+            // Create directory if it doesn't exist
+            var directory = Path.GetDirectoryName(outputPath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            // Save to file
+            File.WriteAllText(outputPath, jsonResult, Encoding.UTF8);
+
+            _logger.LogInformation("Successfully saved controller analysis to: {OutputPath}", outputPath);
+            return outputPath;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error saving controller analysis to file: {FilePath}", filePath);
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Parses the controller file content and extracts structure information
     /// </summary>
     private ControllerStructure ParseControllerFile(string fileContent, string filePath)

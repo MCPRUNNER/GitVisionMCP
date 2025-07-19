@@ -154,13 +154,33 @@ namespace GitVisionMCP.Tests.Tools
         public async Task ListWorkspaceFilesAsync_FiltersFilesByLastModifiedBefore()
         {
             // Arrange
-            var lastModifiedBefore = DateTime.Now.AddDays(-2.5).ToString("yyyy-MM-dd");
+            // Use a fixed date to avoid any timing issues
+            var baseDate = new DateTime(2025, 7, 19); // Today's date fixed
+            var cutoffDate = baseDate.AddDays(-2.5); // Should be July 16 12:00:00
+            var lastModifiedBefore = cutoffDate.ToString("yyyy-MM-dd"); // "2025-07-16"
+
+            // Update mock files to have specific dates for this test
+            _mockFiles[0].LastModified = baseDate.AddDays(-1); // July 18 - should NOT match (newer)
+            _mockFiles[1].LastModified = baseDate.AddDays(-2); // July 17 - should NOT match (newer)  
+            _mockFiles[2].LastModified = baseDate.AddDays(-3); // July 16 - should NOT match (same date)
+            _mockFiles[3].LastModified = baseDate.AddDays(-4); // July 15 - should match (older)
 
             // Act
             var result = await _gitServiceTools.ListWorkspaceFilesAsync(lastModifiedBefore: lastModifiedBefore);
 
-            // Assert
-            Assert.Equal(2, result.Count); // Should return files older than 2.5 days
+            // Debug output
+            foreach (var file in _mockFiles)
+            {
+                System.Console.WriteLine($"Mock file: {file.RelativePath}, LastModified: {file.LastModified:yyyy-MM-dd}, Before filter: {lastModifiedBefore}");
+            }
+            foreach (var file in result)
+            {
+                System.Console.WriteLine($"Result file: {file.RelativePath}, LastModified: {file.LastModified:yyyy-MM-dd}");
+            }
+
+            // Assert - only file4.json (July 15) should match as it's before July 16
+            Assert.Single(result);
+            Assert.Equal("subfolder/file4.json", result.First().RelativePath);
         }
 
         [Fact]
@@ -208,6 +228,8 @@ namespace GitVisionMCP.Tests.Tools
             foreach (var file in _mockFiles)
             {
                 File.WriteAllText(file.FullPath, fileContent);
+                // Setup mock for ReadFile to return the content
+                _mockLocationService.Setup(m => m.ReadFile(file.RelativePath)).Returns(fileContent);
             }
 
             try
@@ -342,7 +364,7 @@ namespace GitVisionMCP.Tests.Tools
             var jsonPath = "$.name";
             var expectedResult = "\"John Doe\"";
 
-            _mockLocationService.Setup(m => m.SearchJsonFile(jsonFilePath, jsonPath, true, true))
+            _mockLocationService.Setup(m => m.SearchJsonFile(jsonFilePath, jsonPath, true, false))
                 .Returns(expectedResult);
 
             // Act
@@ -350,7 +372,7 @@ namespace GitVisionMCP.Tests.Tools
 
             // Assert
             Assert.Equal(expectedResult, result);
-            _mockLocationService.Verify(m => m.SearchJsonFile(jsonFilePath, jsonPath, true, true), Times.Once);
+            _mockLocationService.Verify(m => m.SearchJsonFile(jsonFilePath, jsonPath, true, false), Times.Once);
         }
 
         [Fact]

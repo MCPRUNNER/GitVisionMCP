@@ -938,7 +938,7 @@ public class GitServiceTools : IGitServiceTools
             // Apply last modified before filter
             if (!string.IsNullOrWhiteSpace(lastModifiedBefore) && DateTime.TryParse(lastModifiedBefore, out var beforeDate))
             {
-                filteredFiles = filteredFiles.Where(f => f.LastModified < beforeDate);
+                filteredFiles = filteredFiles.Where(f => f.LastModified.Date < beforeDate.Date);
             }
 
             var result = filteredFiles.ToList();
@@ -1295,6 +1295,52 @@ public class GitServiceTools : IGitServiceTools
         {
             _logger.LogError(ex, "Error analyzing controller file {FilePath}", filePath);
             throw new InvalidOperationException($"Error analyzing controller file: {ex.Message}. See inner exception for details.", ex);
+        }
+    }
+
+    [McpServerToolAttribute]
+    [Description("Analyzes a C# ASP.NET Core controller file and saves the structure to a JSON file in the workspace directory")]
+    public Task<string?> AnalyzeControllerToFileAsync(
+        [Description("Path to the controller file relative to workspace root")] string filePath,
+        [Description("The name of the output JSON file (optional, defaults to controller name + '_analysis.json')")] string? outputFileName = null)
+    {
+        try
+        {
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                _logger.LogError("Controller file path cannot be null or empty");
+                throw new ArgumentException("Controller file path must be specified", nameof(filePath));
+            }
+
+            _logger.LogInformation("Analyzing controller file to save: {FilePath}, Output: {OutputFileName}",
+                filePath, outputFileName ?? "auto-generated");
+
+            var outputPath = _deconstructionService.AnalyzeControllerToFile(filePath, outputFileName);
+
+            if (string.IsNullOrEmpty(outputPath))
+            {
+                _logger.LogWarning("Failed to analyze and save controller file: {FilePath}", filePath);
+                return Task.FromResult<string?>("Failed to analyze and save controller file");
+            }
+
+            _logger.LogInformation("Successfully analyzed and saved controller file to: {OutputPath}", outputPath);
+            return Task.FromResult<string?>($"Controller analysis saved to: {outputPath}");
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid argument for controller analysis to file");
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "Controller file not found: {FilePath}", filePath);
+            throw new FileNotFoundException($"Controller file not found: {filePath}. Please check the file path.", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error analyzing controller file to file {FilePath}", filePath);
+            throw new InvalidOperationException($"Error analyzing controller file to file: {ex.Message}. See inner exception for details.", ex);
         }
     }
 

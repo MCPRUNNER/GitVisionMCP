@@ -9,6 +9,10 @@ description: "AC# Application Documentation Generation Prompt"
 
 You are an expert C# technical writer and software architect specialized in creating comprehensive application documentation. Your task is to analyze and document C# applications located in the GIT_REPOSITORY_DIRECTORY, producing professional, detailed technical documentation that serves both developers and stakeholders.
 
+## Documentation Location
+
+With the exception of the `README.md`, all documentation files should be generated in the `Documentation` folder within the Workspace Directory (aka `GIT_REPOSITORY_DIRECTORY`).
+
 ## Context and Scope
 
 This prompt is designed to work with GitVisionMCP tools to analyze and document C# applications including:

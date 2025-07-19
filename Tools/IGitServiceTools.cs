@@ -137,4 +137,19 @@ public interface IGitServiceTools
     /// <param name="showKeyPaths">Whether to return structured results with path, value, and key information (default: false)</param>
     /// <returns>XML search result or null if not found</returns>
     Task<string?> SearchXmlFileAsync(string xmlFilePath, string xPath, bool? indented = true, bool? showKeyPaths = false);
+
+    /// <summary>
+    /// Analyzes a C# ASP.NET Core controller file and returns its structure as JSON
+    /// </summary>
+    /// <param name="filePath">Path to the controller file relative to workspace root</param>
+    /// <returns>JSON representation of the controller structure</returns>
+    Task<string?> AnalyzeControllerAsync(string filePath);
+
+    /// <summary>
+    /// Analyzes a C# ASP.NET Core controller file and saves the structure to a JSON file in the workspace directory
+    /// </summary>
+    /// <param name="filePath">Path to the controller file relative to workspace root</param>
+    /// <param name="outputFileName">The name of the output JSON file (optional, defaults to controller name + '_analysis.json')</param>
+    /// <returns>Success message with the output file path</returns>
+    Task<string?> AnalyzeControllerToFileAsync(string filePath, string? outputFileName = null);
 }

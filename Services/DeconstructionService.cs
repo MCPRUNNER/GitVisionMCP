@@ -319,7 +319,7 @@ public class DeconstructionService : IDeconstructionService
 
                 // Extract controller name (remove "Controller" suffix if present)
                 structure.ControllerName = structure.ClassName.EndsWith("Controller")
-                    ? structure.ClassName[..^10] // Remove "Controller"
+                    ? structure.ClassName[..^"Controller".Length] // Remove "Controller"
                     : structure.ClassName;
 
                 // Parse base class and interfaces

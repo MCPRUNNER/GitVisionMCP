@@ -1,6 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.XPath;
 namespace GitVisionMCP.Services;
 
 /// <summary>
@@ -233,7 +236,7 @@ public class LocationService : ILocationService
         }
 
         // Use the ToString method with a Formatting option. [1, 2]
-        Formatting formatting = indented ? Formatting.Indented : Formatting.None;
+        Newtonsoft.Json.Formatting formatting = indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None;
         return token.ToString(formatting);
     }
     public string? SearchJsonFile(string jsonFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false)
@@ -281,7 +284,7 @@ public class LocationService : ILocationService
                     var pathInfo = new JObject();
                     pathInfo["path"] = result.Path;
                     pathInfo["value"] = result;
-                    
+
                     // Try to extract a meaningful key name from the path
                     var pathParts = result.Path.Split('.');
                     if (pathParts.Length > 0)
@@ -292,7 +295,7 @@ public class LocationService : ILocationService
                             pathInfo["key"] = lastPart;
                         }
                     }
-                    
+
                     structuredResults.Add(pathInfo);
                 }
 
@@ -336,6 +339,253 @@ public class LocationService : ILocationService
             _logger.LogError(ex, "An unexpected error occurred while searching JSON file '{JsonFilePath}': {Message}", jsonFilePath, ex.Message);
             return null;
         }
+    }
+
+    /// <summary>
+    /// Searches for XML values in an XML file using XPath queries with support for namespaces and structured results.
+    /// </summary>
+    /// <param name="xmlFilePath">The path to the XML file relative to workspace root</param>
+    /// <param name="xPath">The XPath query string (e.g., '//users/user/@email', '/configuration/database/host')</param>
+    /// <param name="indented">Whether to format the output as indented XML</param>
+    /// <param name="showKeyPaths">Whether to return structured results with path, value, and key information</param>
+    /// <returns>A string representation of the search results, or an empty string if no matches are found</returns>
+    public string? SearchXmlFile(string xmlFilePath, string xPath, bool indented = true, bool showKeyPaths = false)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(xmlFilePath))
+            {
+                _logger.LogError("XML file path cannot be null or empty");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(xPath))
+            {
+                _logger.LogError("XPath cannot be null or empty");
+                return null;
+            }
+
+            // Read the entire content of the XML file into a string
+            var filePath = Path.Combine(_workspaceRoot, xmlFilePath);
+            var xmlContent = ReadFile(filePath);
+
+            if (string.IsNullOrWhiteSpace(xmlContent))
+            {
+                _logger.LogError("XML file content is empty or null: {XmlFilePath}", xmlFilePath);
+                return null;
+            }
+
+            // Parse the XML string into an XDocument
+            XDocument xmlDoc = XDocument.Parse(xmlContent);
+
+            // Use XPath to find matching nodes
+            var results = xmlDoc.XPathSelectElements(xPath).ToList();
+
+            if (!results.Any())
+            {
+                // Try selecting attributes or text nodes
+                var attributeResults = xmlDoc.XPathEvaluate(xPath);
+
+                if (attributeResults is IEnumerable<object> enumerable)
+                {
+                    var resultList = enumerable.ToList();
+                    if (resultList.Any())
+                    {
+                        return FormatXmlResults(resultList, indented, showKeyPaths, xPath);
+                    }
+                }
+
+                _logger.LogWarning("No matches found for XPath: {XPath} in file: {XmlFilePath}", xPath, xmlFilePath);
+                return string.Empty; // Return an empty string if no matches are found
+            }
+
+            // Handle multiple element results
+            return FormatXmlResults(results.Cast<object>().ToList(), indented, showKeyPaths, xPath);
+        }
+        catch (FileNotFoundException)
+        {
+            _logger.LogError("The file '{XmlFilePath}' was not found", xmlFilePath);
+            return null;
+        }
+        catch (XmlException ex)
+        {
+            _logger.LogError(ex, "Invalid XML format in '{XmlFilePath}'. Details: {Message}", xmlFilePath, ex.Message);
+            return null;
+        }
+        catch (System.Xml.XPath.XPathException ex)
+        {
+            _logger.LogError(ex, "Invalid XPath expression '{XPath}'. Details: {Message}", xPath, ex.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while searching XML file '{XmlFilePath}': {Message}", xmlFilePath, ex.Message);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Formats XML search results into the appropriate output format
+    /// </summary>
+    private string FormatXmlResults(List<object> results, bool indented, bool showKeyPaths, string xPath)
+    {
+        if (showKeyPaths)
+        {
+            // When preserving keys, create a structured result that shows the path and value
+            var structuredResults = new JArray();
+
+            for (int i = 0; i < results.Count; i++)
+            {
+                var result = results[i];
+                var pathInfo = new JObject();
+
+                string path = "";
+                string value = "";
+                string key = "";
+
+                if (result is XElement element)
+                {
+                    path = GetXElementPath(element);
+                    value = element.ToString(indented ? SaveOptions.None : SaveOptions.DisableFormatting);
+                    key = element.Name.LocalName;
+                }
+                else if (result is XAttribute attribute)
+                {
+                    path = GetXAttributePath(attribute);
+                    value = attribute.Value;
+                    key = attribute.Name.LocalName;
+                }
+                else if (result is XText text)
+                {
+                    path = GetXTextPath(text);
+                    value = text.Value;
+                    key = "text";
+                }
+                else
+                {
+                    path = $"{xPath}[{i}]";
+                    value = result.ToString() ?? "";
+                    key = ExtractKeyFromXPath(xPath);
+                }
+
+                pathInfo["path"] = path;
+                pathInfo["value"] = value;
+                pathInfo["key"] = key;
+
+                structuredResults.Add(pathInfo);
+            }
+
+            if (structuredResults.Count == 1)
+            {
+                return structuredResults[0].ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
+            }
+            else
+            {
+                return structuredResults.ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
+            }
+        }
+        else
+        {
+            // Original behavior - return values only
+            if (results.Count == 1)
+            {
+                // Single result - return as-is
+                var result = results[0];
+
+                if (result is XElement element)
+                {
+                    return element.ToString(indented ? SaveOptions.None : SaveOptions.DisableFormatting);
+                }
+                else if (result is XAttribute attribute)
+                {
+                    return attribute.Value;
+                }
+                else
+                {
+                    return result.ToString() ?? "";
+                }
+            }
+            else
+            {
+                // Multiple results - return as JSON array for consistency
+                var resultArray = new JArray();
+
+                foreach (var result in results)
+                {
+                    if (result is XElement element)
+                    {
+                        resultArray.Add(element.ToString(SaveOptions.DisableFormatting));
+                    }
+                    else if (result is XAttribute attribute)
+                    {
+                        resultArray.Add(attribute.Value);
+                    }
+                    else
+                    {
+                        resultArray.Add(result.ToString());
+                    }
+                }
+
+                return resultArray.ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the XPath for an XElement
+    /// </summary>
+    private string GetXElementPath(XElement element)
+    {
+        var path = new List<string>();
+        var current = element;
+
+        while (current != null)
+        {
+            var index = current.ElementsBeforeSelf(current.Name).Count();
+            var name = current.Name.LocalName;
+
+            if (index > 0)
+            {
+                path.Insert(0, $"{name}[{index + 1}]");
+            }
+            else
+            {
+                path.Insert(0, name);
+            }
+
+            current = current.Parent;
+        }
+
+        return "/" + string.Join("/", path);
+    }
+
+    /// <summary>
+    /// Gets the XPath for an XAttribute
+    /// </summary>
+    private string GetXAttributePath(XAttribute attribute)
+    {
+        var elementPath = GetXElementPath(attribute.Parent ?? throw new InvalidOperationException("Attribute has no parent element"));
+        return $"{elementPath}/@{attribute.Name.LocalName}";
+    }
+
+    /// <summary>
+    /// Gets the XPath for an XText node
+    /// </summary>
+    private string GetXTextPath(XText text)
+    {
+        var elementPath = GetXElementPath(text.Parent ?? throw new InvalidOperationException("Text node has no parent element"));
+        return $"{elementPath}/text()";
+    }
+
+    /// <summary>
+    /// Extracts a meaningful key name from an XPath expression
+    /// </summary>
+    private string ExtractKeyFromXPath(string xPath)
+    {
+        // Remove leading slashes and extract the last meaningful part
+        var parts = xPath.TrimStart('/').Split('/');
+        var lastPart = parts.LastOrDefault()?.Split('@').LastOrDefault()?.Split('[').FirstOrDefault();
+        return !string.IsNullOrEmpty(lastPart) ? lastPart : "result";
     }
 
     public string? ReadFile(string filePath)

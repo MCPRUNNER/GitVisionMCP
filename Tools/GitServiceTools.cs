@@ -1186,6 +1186,72 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
+    [McpServerToolAttribute]
+    [Description("Search for XML values in an XML file using XPath")]
+    public Task<string?> SearchXmlFileAsync(
+        [Description("Path to the XML file relative to workspace root")] string xmlFilePath,
+        [Description("XPath query string (e.g., '//users/user/@email', '/configuration/database/host')")] string xPath,
+        [Description("Whether to format the output with indentation (default: true)")] bool? indented = true,
+        [Description("Whether to return structured results with path, value, and key information (default: false)")] bool? showKeyPaths = false)
+    {
+        try
+        {
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(xmlFilePath))
+            {
+                _logger.LogError("XML file path cannot be null or empty");
+                throw new ArgumentException("XML file path must be specified", nameof(xmlFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(xPath))
+            {
+                _logger.LogError("XPath cannot be null or empty");
+                throw new ArgumentException("XPath must be specified", nameof(xPath));
+            }
+
+            _logger.LogInformation("Searching XML file {XmlFilePath} with XPath {XPath}, showKeyPaths: {ShowKeyPaths}",
+                xmlFilePath, xPath, showKeyPaths ?? false);
+
+            var result = _locationService.SearchXmlFile(xmlFilePath, xPath, indented ?? true, showKeyPaths ?? false);
+
+            if (string.IsNullOrEmpty(result))
+            {
+                _logger.LogInformation("No matches found for XPath {XPath} in file {XmlFilePath}",
+                    xPath, xmlFilePath);
+                return Task.FromResult<string?>("No matches found");
+            }
+
+            _logger.LogInformation("Successfully found matches for XPath {XPath} in file {XmlFilePath}",
+                xPath, xmlFilePath);
+            return Task.FromResult<string?>(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid argument for XML search");
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "XML file not found: {XmlFilePath}", xmlFilePath);
+            throw new FileNotFoundException($"XML file not found: {xmlFilePath}. Please check the file path.", ex);
+        }
+        catch (System.Xml.XmlException ex)
+        {
+            _logger.LogError(ex, "Invalid XML format in file {XmlFilePath}", xmlFilePath);
+            throw new InvalidDataException($"Invalid XML format in file: {xmlFilePath}. Details: {ex.Message}", ex);
+        }
+        catch (System.Xml.XPath.XPathException ex)
+        {
+            _logger.LogError(ex, "Invalid XPath expression: {XPath}", xPath);
+            throw new InvalidDataException($"Invalid XPath expression: {xPath}. Details: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching XML file {XmlFilePath}", xmlFilePath);
+            throw new InvalidOperationException($"Error searching XML file: {ex.Message}. See inner exception for details.", ex);
+        }
+    }
+
     private bool IsBinaryFile(string filePath)
     {
         try

@@ -481,6 +481,23 @@ public class McpServer : IMcpServer
                     },
                     required = new[] { "jsonFilePath", "jsonPath" }
                 }
+            },
+            new Tool
+            {
+                Name = "search_xml_file",
+                Description = "Search for XML values in an XML file using XPath",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        xmlFilePath = new { type = "string", description = "Path to the XML file relative to workspace root" },
+                        xPath = new { type = "string", description = "XPath query string (e.g., '//users/user/@email', '/configuration/database/host')" },
+                        indented = new { type = "boolean", description = "Whether to format the output with indentation (default: true)" },
+                        showKeyPaths = new { type = "boolean", description = "Whether to return structured results with path, value, and key information (default: false)" }
+                    },
+                    required = new[] { "xmlFilePath", "xPath" }
+                }
             }
         };
 
@@ -530,6 +547,7 @@ public class McpServer : IMcpServer
             "search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
             "list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
             "search_json_file" => await HandleSearchJsonFileAsync(toolRequest),
+            "search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
             _ => new CallToolResponse
             {
                 IsError = true,
@@ -1269,6 +1287,69 @@ public class McpServer : IMcpServer
             {
                 IsError = true,
                 Content = new[] { new ToolContent { Type = "text", Text = $"Error searching JSON file: {ex.Message}" } }
+            };
+        }
+    }
+
+    private async Task<CallToolResponse> HandleSearchXmlFileAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var xmlFilePath = GetArgumentValue<string>(toolRequest.Arguments, "xmlFilePath", "");
+            var xPath = GetArgumentValue<string>(toolRequest.Arguments, "xPath", "");
+            var indented = GetArgumentValue<bool?>(toolRequest.Arguments, "indented", true);
+            var showKeyPaths = GetArgumentValue<bool?>(toolRequest.Arguments, "showKeyPaths", false);
+
+            if (string.IsNullOrWhiteSpace(xmlFilePath))
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "xmlFilePath argument is required" } }
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(xPath))
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "xPath argument is required" } }
+                };
+            }
+
+            var result = await _gitServiceTools.SearchXmlFileAsync(xmlFilePath, xPath, indented, showKeyPaths);
+
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = result ?? "No results found" } }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid arguments for SearchXmlFile");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Invalid arguments: {ex.Message}" } }
+            };
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "XML file not found");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"File not found: {ex.Message}" } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching XML file");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error searching XML file: {ex.Message}" } }
             };
         }
     }

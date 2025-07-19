@@ -103,6 +103,7 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - **get_file_line_diff_between_commits**: 🆕 Get line-by-line diff for a specific file between two commits
 - **search_commits_for_string**: 🆕 Search all commits for a specific string and return detailed match information
 - **search_json_file**: 🆕 Search for JSON values in a JSON file using JSONPath queries
+- **search_xml_file**: 🆕 Search for XML values in an XML file using XPath queries
 
 ### Commit Search Tool
 
@@ -165,6 +166,60 @@ The enhanced **search_json_file** tool provides powerful JSON querying capabilit
 - Extracted JSON values matching the JSONPath query
 - Formatted output (indented or compact)
 - "No matches found" message when query returns no results
+
+### XML Search Tool
+
+The **search_xml_file** tool provides powerful XML querying capabilities using XPath with comprehensive features:
+
+- **XPath queries**: Search XML files using standard XPath syntax with full expression support
+- **Element and attribute queries**: Navigate XML structures and extract values from both elements and attributes
+- **Structured Results**: Optional `showKeyPaths` parameter returns path context with values
+- **Flexible file access**: Search any XML file in the workspace
+- **Formatted output**: Option to return results with or without indentation
+- **Multiple result handling**: Automatically handles single values or arrays of results
+- **Error handling**: Comprehensive error reporting for invalid XML or malformed XPath queries
+
+#### Enhanced XML Features:
+
+- **showKeyPaths option**: Returns structured results with path, value, and key information
+- **Element queries**: `//user`, `//database/connectionString`, `/configuration/settings`
+- **Attribute queries**: `//user/@name`, `//feature[@enabled='true']/@name`
+- **Context preservation**: Track exactly where values are located in complex XML structures
+- **Performance optimized**: Uses XDocument and XPath for efficient XML processing
+
+#### XPath Query Examples:
+
+- `//connectionString` - Get all connectionString elements
+- `//user` - Get all user elements (equivalent to `$.users[*]` in JSON)
+- `//user/@email` - Get all user email attributes
+- `//feature[@enabled='true']` - Get all enabled features (conditional filtering)
+- `//user[@id='1']/@name` - Get name of user with specific ID
+- `/configuration/settings/*` - Get all direct children of settings element
+
+#### Enhanced XPath Support:
+
+- **Element Navigation**: Use `//` for recursive search or `/` for direct path navigation
+- **Attribute Access**: Use `@attribute` to access XML attributes
+- **Conditional Filtering**: Use `[@condition]` to filter based on attributes or content
+- **Multiple Results**: Automatically returns arrays for queries matching multiple items
+- **Single Results**: Returns individual values when only one match is found
+
+#### XML Search Results:
+
+- Extracted XML elements or attributes matching the XPath query
+- Formatted output (indented or compact)
+- Full element content including child elements and attributes
+- "No matches found" message when query returns no results
+
+#### JSON vs XML Query Comparison:
+
+| Operation | JSON (JSONPath) | XML (XPath) | Description |
+|-----------|-----------------|-------------|-------------|
+| Get all users | `$.users[*]` | `//user` | All user records |
+| Get user names | `$.users[*].name` | `//user/@name` | All user names |
+| Get first user | `$.users[0]` | `//user[1]` | First user (XPath is 1-indexed) |
+| Filter by condition | `$.users[?(@.active)]` | `//user[@active='true']` | Conditional filtering |
+| Get nested value | `$.config.db.host` | `//config/db/host` | Nested element access |
 
 ### Branch Discovery and Remote Support
 
@@ -707,7 +762,86 @@ When `showKeyPaths` is enabled, the tool returns structured objects containing:
 - **Documentation**: Generate configuration summaries with path context
 - **Debugging**: Locate specific values within large JSON structures
 
-- Summary statistics (total commits searched, matching commits, total line matches)
+#### search_xml_file
+
+Searches for XML values in an XML file using XPath queries with comprehensive element and attribute support.
+
+**Parameters:**
+
+- `xmlFilePath` (required): Path to the XML file relative to workspace root
+- `xPath` (required): XPath query string (e.g., '//users/user/@email', '/configuration/database/host')
+- `indented` (optional): Whether to format the output with indentation (default: true)
+- `showKeyPaths` (optional): Whether to return structured results with path, value, and key information (default: false)
+
+**Returns:** XML elements or attributes matching the XPath query, or "No matches found" if the query returns no results
+
+**Enhanced XPath Support:**
+
+- **Element Queries**: `//user` - Get all user elements
+- **Attribute Queries**: `//user/@email` - Get all user email attributes
+- **Path Navigation**: `/configuration/settings/database` - Direct path navigation
+- **Conditional Filtering**: `//feature[@enabled='true']` - Filter by attribute values
+- **Multiple Results**: Automatically returns arrays for queries with multiple matches
+- **Single Results**: Returns individual elements/attributes when only one match is found
+
+**Structured Results with showKeyPaths=true:**
+
+When `showKeyPaths` is enabled, the tool returns structured objects containing:
+
+- `path`: The XPath location of the found element/attribute
+- `value`: The actual XML content or attribute value found
+- `key`: The element or attribute name extracted from the path
+
+**Example without showKeyPaths (default):**
+
+```xml
+<user id="1" name="John Doe" email="john@example.com" />
+<user id="2" name="Jane Smith" email="jane@example.com" />
+```
+
+**Example with showKeyPaths=true:**
+
+```json
+[
+  {
+    "path": "/configuration/users/user",
+    "value": "<user id=\"1\" name=\"John Doe\" email=\"john@example.com\" />",
+    "key": "user"
+  },
+  {
+    "path": "/configuration/users/user[2]",
+    "value": "<user id=\"2\" name=\"Jane Smith\" email=\"jane@example.com\" />",
+    "key": "user"
+  }
+]
+```
+
+**XPath Examples:**
+
+- `//connectionString` - Get all connectionString elements
+- `//user` - Get all user elements
+- `//user/@email` - Get all user email attributes
+- `//feature[@enabled='true']/@name` - Get names of enabled features
+- `/configuration/settings/*` - Get all direct children of settings
+- `//user[@id='1']/@name` - Get name of specific user by ID
+
+**JSONPath vs XPath Comparison:**
+
+| Operation | JSON (JSONPath) | XML (XPath) |
+|-----------|-----------------|-------------|
+| All users | `$.users[*]` | `//user` |
+| User emails | `$.users[*].email` | `//user/@email` |
+| First user | `$.users[0]` | `//user[1]` |
+| Enabled features | `$.features[?(@.enabled)]` | `//feature[@enabled='true']` |
+
+**Use Cases:**
+
+- **Configuration Analysis**: Extract database settings, API endpoints, feature flags
+- **Data Extraction**: Query structured XML documents with precise filtering
+- **Documentation**: Generate configuration references with element context
+- **System Integration**: Parse XML configuration files and web service responses
+
+### Commit Search Tool
 
 **Search Capabilities:**
 

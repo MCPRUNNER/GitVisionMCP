@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <settings>
+    <database>
+      <connectionString>Server=localhost;Database=TestDB</connectionString>
+      <timeout>30</timeout>
+    </database>
+    <email>
+      <server>smtp.example.com</server>
+      <port>587</port>
+    </email>
+    <features>
+      <feature name="logging" enabled="true" />
+      <feature name="caching" enabled="false" />
+    </features>
+  </settings>
+  <users>
+    <user id="1" name="John Doe" email="john@example.com" />
+    <user id="2" name="Jane Smith" email="jane@example.com" />
+  </users>
+</configuration>

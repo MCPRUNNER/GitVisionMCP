@@ -117,4 +117,14 @@ public interface IGitServiceTools
     /// Read contents of all files from filtered workspace results
     /// </summary>
     Task<List<Models.FileContentInfo>> ReadFilteredWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null, int? maxFiles = 50, long? maxFileSize = 1048576);
+
+    /// <summary>
+    /// Search for JSON values in a JSON file using JSONPath
+    /// </summary>
+    /// <param name="jsonFilePath">Path to the JSON file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')</param>
+    /// <param name="indented">Whether to format the output with indentation (default: true)</param>
+    /// <param name="preserveKeys">Whether to return structured results with path, value, and key information (default: false)</param>
+    /// <returns>JSON search result or null if not found</returns>
+    Task<string?> SearchJsonFileAsync(string jsonFilePath, string jsonPath, bool? indented = true, bool? preserveKeys = false);
 }

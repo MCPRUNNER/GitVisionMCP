@@ -459,6 +459,93 @@ Once configured, you can use natural language commands with Copilot:
 - File-by-file breakdown (file names, match counts)
 - Line-level details (line numbers, full content, exact matches)
 
+## 🆕 JSON Search Examples
+
+### Extract Configuration Values
+
+#### Copilot Command:
+
+```bash
+@copilot Search appsettings.json for the database connection string using JSONPath $.Database.ConnectionString
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 9,
+  "method": "tools/call",
+  "params": {
+    "name": "search_json_file",
+    "arguments": {
+      "jsonFilePath": "appsettings.json",
+      "jsonPath": "$.Database.ConnectionString",
+      "indented": true
+    }
+  }
+}
+```
+
+### Extract Multiple Values from Arrays
+
+#### Copilot Command:
+
+```bash
+@copilot Get all user email addresses from users.json using JSONPath $.users[*].email
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "method": "tools/call",
+  "params": {
+    "name": "search_json_file",
+    "arguments": {
+      "jsonFilePath": "data/users.json",
+      "jsonPath": "$.users[*].email",
+      "indented": false
+    }
+  }
+}
+```
+
+### Complex JSONPath Queries
+
+#### Copilot Command:
+
+```bash
+@copilot Find all products with price over 100 from catalog.json using JSONPath $.products[?(@.price > 100)].name
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "method": "tools/call",
+  "params": {
+    "name": "search_json_file",
+    "arguments": {
+      "jsonFilePath": "catalog.json",
+      "jsonPath": "$.products[?(@.price > 100)].name",
+      "indented": true
+    }
+  }
+}
+```
+
+**Expected Response Format:**
+
+- Extracted JSON values matching the JSONPath query
+- Formatted output (indented or compact based on `indented` parameter)
+- "No matches found" message when query returns no results
+- Error messages for invalid JSON files or malformed JSONPath queries
+
 #### Get Changed Files Between Commits
 
 ```json

@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
-
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 namespace GitVisionMCP.Services;
 
 public interface ILocationService
@@ -16,6 +17,17 @@ public interface ILocationService
     /// </summary>
     /// <returns>A list of file information including relative path and file type</returns>
     List<WorkspaceFileInfo> GetAllFiles();
+
+
+    /// <summary>
+    /// Searches a JSON file for values using JSONPath query with support for wildcards and recursive descent.
+    /// </summary>
+    /// <param name="jsonFilePath">The path to the JSON file to search</param>
+    /// <param name="jsonPath">The JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey', '$..email')</param>
+    /// <param name="indented">Whether to format the output as indented JSON</param>
+    /// <param name="preserveKeys">Whether to return structured results with path, value, and key information</param>
+    /// <returns>A string representation of the search results, or an empty string if no matches are found</returns>
+    string? SearchJsonFile(string jsonFilePath, string jsonPath, bool indented = true, bool preserveKeys = false);
 
     /// <summary>
     ///  Gets all files under the workspace root directory with relative paths and file types that match a specific search pattern.

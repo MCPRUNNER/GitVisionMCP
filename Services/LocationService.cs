@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
-
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 namespace GitVisionMCP.Services;
 
 /// <summary>
@@ -38,10 +40,6 @@ public class WorkspaceFileInfo
         get; set;
     }
 }
-
-/// <summary>
-/// Service responsible for determining the workspace root directory
-/// </summary>
 
 
 /// <summary>
@@ -228,11 +226,123 @@ public class LocationService : ILocationService
             return null;
         }
     }
- 
+    string JTokenToString(JToken token, bool indented = false)
+    {
+        if (token == null)
+        {
+            return string.Empty;
+        }
+
+        // Use the ToString method with a Formatting option. [1, 2]
+        Formatting formatting = indented ? Formatting.Indented : Formatting.None;
+        return token.ToString(formatting);
+    }
+    public string? SearchJsonFile(string jsonFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(jsonFilePath))
+            {
+                _logger.LogError("JSON file path cannot be null or empty");
+                return null;
+            }
+
+            // Read the entire content of the JSON file into a string
+            var filePath = Path.Combine(_workspaceRoot, jsonFilePath);
+            var jsonContent = ReadFile(filePath);
+
+            if (string.IsNullOrWhiteSpace(jsonContent))
+            {
+                _logger.LogError("JSON file content is empty or null: {JsonFilePath}", jsonFilePath);
+                return null;
+            }
+
+            // Parse the JSON string into a JObject
+            JObject jsonObj = JObject.Parse(jsonContent);
+
+            // Use SelectTokens to support wildcards and multiple results
+            IEnumerable<JToken> results = jsonObj.SelectTokens(jsonPath);
+
+            if (!results.Any())
+            {
+                _logger.LogWarning("No matches found for JSONPath: {JsonPath} in file: {JsonFilePath}", jsonPath, jsonFilePath);
+                return String.Empty; // Return an empty string if no matches are found
+            }
+
+            // Handle multiple results
+            var resultsList = results.ToList();
+
+            if (showKeyPaths)
+            {
+                // When preserving keys, create a structured result that shows the path and value
+                var structuredResults = new JArray();
+
+                foreach (var result in resultsList)
+                {
+                    var pathInfo = new JObject();
+                    pathInfo["path"] = result.Path;
+                    pathInfo["value"] = result;
+                    
+                    // Try to extract a meaningful key name from the path
+                    var pathParts = result.Path.Split('.');
+                    if (pathParts.Length > 0)
+                    {
+                        var lastPart = pathParts.Last().Replace("[", "").Replace("]", "");
+                        if (!string.IsNullOrEmpty(lastPart) && !char.IsDigit(lastPart[0]))
+                        {
+                            pathInfo["key"] = lastPart;
+                        }
+                    }
+                    
+                    structuredResults.Add(pathInfo);
+                }
+
+                if (structuredResults.Count == 1)
+                {
+                    return JTokenToString(structuredResults[0], indented);
+                }
+                else
+                {
+                    return JTokenToString(structuredResults, indented);
+                }
+            }
+            else
+            {
+                // Original behavior - return values only
+                if (resultsList.Count == 1)
+                {
+                    // Single result - return as-is
+                    return JTokenToString(resultsList[0], indented);
+                }
+                else
+                {
+                    // Multiple results - return as JSON array
+                    JArray resultArray = new JArray(resultsList);
+                    return JTokenToString(resultArray, indented);
+                }
+            }
+        }
+        catch (FileNotFoundException)
+        {
+            _logger.LogError("The file '{JsonFilePath}' was not found", jsonFilePath);
+            return null;
+        }
+        catch (JsonReaderException ex)
+        {
+            _logger.LogError(ex, "Invalid JSON format in '{JsonFilePath}'. Details: {Message}", jsonFilePath, ex.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while searching JSON file '{JsonFilePath}': {Message}", jsonFilePath, ex.Message);
+            return null;
+        }
+    }
+
     public string? ReadFile(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
- 
+
         {
             _logger.LogError("Filename cannot be null or empty");
             return null;
@@ -240,8 +350,8 @@ public class LocationService : ILocationService
 
         try
         {
-     
- 
+
+
             if (!File.Exists(filePath))
             {
                 _logger.LogWarning("Prompt file does not exist: {FilePath}", filePath);
@@ -250,7 +360,7 @@ public class LocationService : ILocationService
 
             var content = File.ReadAllText(filePath);
             _logger.LogInformation("Successfully read file: {FilePath}", filePath);
- 
+
 
             return content;
         }

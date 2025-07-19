@@ -234,7 +234,9 @@ public class McpServerTests : IDisposable
                 "fetch_from_remote",
                 "compare_branches_with_remote",
                 "search_commits_for_string",
-                "get_file_line_diff_between_commits"
+                "get_file_line_diff_between_commits",
+                "list_workspace_files",
+                "search_json_file"
             };
 
         // Assert

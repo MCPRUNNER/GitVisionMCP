@@ -54,9 +54,9 @@ This prevents build messages and logging output from interfering with the JSON-R
 
 ## Features
 
-### 🛠️ Complete Tool Suite (14 Tools Available)
+### 🛠️ Complete Tool Suite (15 Tools Available)
 
-This MCP server provides comprehensive git documentation and analysis capabilities through 14 specialized tools:
+This MCP server provides comprehensive git documentation and analysis capabilities through 15 specialized tools:
 
 **📝 Documentation & Analysis (6 tools)**
 
@@ -65,10 +65,11 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - Remote repository integration and synchronization
 - Historical change tracking and statistics
 
-**🔍 Search & Discovery (2 tools)**
+**🔍 Search & Discovery (3 tools)**
 
 - Comprehensive commit search across messages and file contents
 - Intelligent file change detection between commits
+- JSON file search and query capabilities using JSONPath
 
 **🌿 Branch Management (4 tools)**
 
@@ -101,6 +102,7 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - **get_commit_diff_info**: Get comprehensive diff statistics and file changes
 - **get_file_line_diff_between_commits**: 🆕 Get line-by-line diff for a specific file between two commits
 - **search_commits_for_string**: 🆕 Search all commits for a specific string and return detailed match information
+- **search_json_file**: 🆕 Search for JSON values in a JSON file using JSONPath queries
 
 ### Commit Search Tool
 
@@ -121,6 +123,38 @@ The new **search_commits_for_string** tool provides comprehensive commit searchi
 - File names containing matches
 - Line numbers where matches occur
 - Full line content showing the match in context
+
+### JSON Search Tool
+
+The new **search_json_file** tool provides powerful JSON querying capabilities using JSONPath:
+
+- **JSONPath queries**: Search JSON files using standard JSONPath syntax
+- **Flexible file access**: Search any JSON file in the workspace
+- **Formatted output**: Option to return results with or without indentation
+- **Error handling**: Comprehensive error reporting for invalid files or queries
+
+#### JSONPath Query Examples:
+
+- `$.name` - Get the root-level name property
+- `$.users[*].email` - Get all user email addresses (supports wildcards)
+- `$.configuration.database.host` - Get nested configuration values
+- `$.items[?(@.price > 100)].name` - Get names of items with price > 100 (conditional filtering)
+- `$..author` - Get all author properties at any level (recursive descent)
+- `$.configuration.*` - Get all values under configuration (wildcard properties)
+
+#### Enhanced JSONPath Support:
+
+- **Wildcards**: Use `[*]` to select all elements in arrays or `.*` for all properties
+- **Recursive Descent**: Use `..` to search at any depth in the JSON structure
+- **Conditional Filtering**: Use `[?(@.property == 'value')]` to filter based on conditions
+- **Multiple Results**: Automatically returns JSON arrays for queries matching multiple items
+- **Single Results**: Returns individual values when only one match is found
+
+#### JSON Search Results:
+
+- Extracted JSON values matching the JSONPath query
+- Formatted output (indented or compact)
+- "No matches found" message when query returns no results
 
 ### Branch Discovery and Remote Support
 
@@ -593,6 +627,39 @@ Searches all commits for a specific string and returns detailed match informatio
 - File names containing matches
 - Line numbers where matches occur
 - Full line content showing the match in context
+
+#### search_json_file
+
+Searches for JSON values in a JSON file using JSONPath queries.
+
+**Parameters:**
+
+- `jsonFilePath` (required): Path to the JSON file relative to workspace root
+- `jsonPath` (required): JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')
+- `indented` (optional): Whether to format the output with indentation (default: true)
+
+**Returns:** JSON values matching the JSONPath query, or "No matches found" if the query returns no results
+
+**Enhanced JSONPath Support:**
+
+- **Wildcards**: `$.users[*].email` - Get all user email addresses
+- **Recursive Descent**: `$..author` - Get all author properties at any depth
+- **Property Wildcards**: `$.configuration.*` - Get all configuration values
+- **Conditional Filtering**: `$.items[?(@.price > 100)].name` - Conditional queries
+- **Multiple Results**: Automatically returns arrays for queries with multiple matches
+- **Single Results**: Returns individual values when only one match is found
+
+**JSONPath Examples:**
+
+- `$.name` - Get the root-level name property
+- `$.users[*].email` - Get all user email addresses (wildcard array access)
+- `$.configuration.database.host` - Get nested configuration values
+- `$.items[?(@.price > 100)].name` - Get names of items with price > 100 (filtering)
+- `$..author` - Get all author properties at any level (recursive)
+- `$.configuration.*` - Get all values under configuration (property wildcard)
+
+**Example:** Extract API configuration from settings file
+
 - Summary statistics (total commits searched, matching commits, total line matches)
 
 **Search Capabilities:**
@@ -851,7 +918,48 @@ This is especially useful for:
 - **Security audits**: Search for sensitive patterns or keywords
 - **Documentation**: Locate all references to specific APIs or configurations
 
-### 8. Line-by-Line Analysis
+### 8. Configuration Analysis
+
+#### Copilot Command:
+
+```bash
+@copilot Search appsettings.json for database configuration using JSONPath $.Database.ConnectionString
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "method": "tools/call",
+  "params": {
+    "name": "search_json_file",
+    "arguments": {
+      "jsonFilePath": "appsettings.json",
+      "jsonPath": "$.Database.ConnectionString",
+      "indented": true
+    }
+  }
+}
+```
+
+Perfect for extracting configuration values, API keys, or any structured data from JSON files. The search supports:
+
+- **Simple property access**: `$.propertyName`
+- **Nested navigation**: `$.level1.level2.property`
+- **Array access**: `$.users[0].name` or `$.users[*].email`
+- **Complex queries**: `$.items[?(@.price > 100)].name`
+- **Wildcard searches**: `$..author` (all author properties at any level)
+
+Use cases include:
+
+- **Configuration validation**: Check environment-specific settings
+- **Security audits**: Extract API keys or sensitive configuration
+- **Documentation**: Generate configuration references from JSON files
+- **Data analysis**: Extract specific data points from JSON datasets
+
+### 9. Line-by-Line Analysis
 
 #### Copilot Command:
 
@@ -864,7 +972,7 @@ This is especially useful for:
 ```json
 {
   "jsonrpc": "2.0",
-  "id": 8,
+  "id": 9,
   "method": "tools/call",
   "params": {
     "name": "get_file_line_diff_between_commits",

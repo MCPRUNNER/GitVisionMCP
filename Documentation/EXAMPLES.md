@@ -892,14 +892,14 @@ The `showKeyPaths` parameter is particularly useful when you need to:
 
 #### JSONPath vs XPath Comparison Table
 
-| Operation | JSON (JSONPath) | XML (XPath) | Description |
-|-----------|-----------------|-------------|-------------|
-| All users | `$.users[*]` | `//user` | Get all user records |
-| User emails | `$.users[*].email` | `//user/@email` | Get all user email addresses |
-| First user | `$.users[0]` | `//user[1]` | Get first user (XPath is 1-indexed) |
-| Filter by attribute | `$.users[?(@.active)]` | `//user[@active='true']` | Filter by condition |
-| Nested elements | `$.config.database.host` | `//config/database/host` | Navigate nested structure |
-| All children | `$.settings.*` | `/configuration/settings/*` | Get all direct children |
+| Operation           | JSON (JSONPath)          | XML (XPath)                 | Description                         |
+| ------------------- | ------------------------ | --------------------------- | ----------------------------------- |
+| All users           | `$.users[*]`             | `//user`                    | Get all user records                |
+| User emails         | `$.users[*].email`       | `//user/@email`             | Get all user email addresses        |
+| First user          | `$.users[0]`             | `//user[1]`                 | Get first user (XPath is 1-indexed) |
+| Filter by attribute | `$.users[?(@.active)]`   | `//user[@active='true']`    | Filter by condition                 |
+| Nested elements     | `$.config.database.host` | `//config/database/host`    | Navigate nested structure           |
+| All children        | `$.settings.*`           | `/configuration/settings/*` | Get all direct children             |
 
 ### Branch Discovery Tools
 

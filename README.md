@@ -213,13 +213,13 @@ The **search_xml_file** tool provides powerful XML querying capabilities using X
 
 #### JSON vs XML Query Comparison:
 
-| Operation | JSON (JSONPath) | XML (XPath) | Description |
-|-----------|-----------------|-------------|-------------|
-| Get all users | `$.users[*]` | `//user` | All user records |
-| Get user names | `$.users[*].name` | `//user/@name` | All user names |
-| Get first user | `$.users[0]` | `//user[1]` | First user (XPath is 1-indexed) |
-| Filter by condition | `$.users[?(@.active)]` | `//user[@active='true']` | Conditional filtering |
-| Get nested value | `$.config.db.host` | `//config/db/host` | Nested element access |
+| Operation           | JSON (JSONPath)        | XML (XPath)              | Description                     |
+| ------------------- | ---------------------- | ------------------------ | ------------------------------- |
+| Get all users       | `$.users[*]`           | `//user`                 | All user records                |
+| Get user names      | `$.users[*].name`      | `//user/@name`           | All user names                  |
+| Get first user      | `$.users[0]`           | `//user[1]`              | First user (XPath is 1-indexed) |
+| Filter by condition | `$.users[?(@.active)]` | `//user[@active='true']` | Conditional filtering           |
+| Get nested value    | `$.config.db.host`     | `//config/db/host`       | Nested element access           |
 
 ### Branch Discovery and Remote Support
 
@@ -827,11 +827,11 @@ When `showKeyPaths` is enabled, the tool returns structured objects containing:
 
 **JSONPath vs XPath Comparison:**
 
-| Operation | JSON (JSONPath) | XML (XPath) |
-|-----------|-----------------|-------------|
-| All users | `$.users[*]` | `//user` |
-| User emails | `$.users[*].email` | `//user/@email` |
-| First user | `$.users[0]` | `//user[1]` |
+| Operation        | JSON (JSONPath)            | XML (XPath)                  |
+| ---------------- | -------------------------- | ---------------------------- |
+| All users        | `$.users[*]`               | `//user`                     |
+| User emails      | `$.users[*].email`         | `//user/@email`              |
+| First user       | `$.users[0]`               | `//user[1]`                  |
 | Enabled features | `$.features[?(@.enabled)]` | `//feature[@enabled='true']` |
 
 **Use Cases:**

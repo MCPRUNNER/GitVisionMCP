@@ -1,11 +1,11 @@
-# Quick Setup Guide for selfDocumentMCP
+# Quick Setup Guide for GitVisionMCP
 
 A comprehensive Model Context Protocol (MCP) Server with advanced git analysis and remote branch support.
 
 ## Step 1: Build the Project
 
 ```powershell
-cd "c:\Users\U00001\source\repos\MCP\selfDocumentMCP"
+cd "c:\Users\U00001\source\repos\MCP\GitVisionMCP"
 dotnet build --configuration Release
 ```
 
@@ -43,125 +43,140 @@ Update your VS Code MCP configuration file (`.vscode/mcp.json` or similar):
 
 ```json
 {
-    "servers": {
-        "GitVisionMCP": {
-            "type": "stdio",
-            "command": "dotnet",
-            "args": [
-                "run",
-                "--project",
-                "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP\\GitVisionMCP.csproj",
-                "--no-build",
-                "--verbosity",
-                "quiet"
-            ],
-             "env": {
-                "DOTNET_ENVIRONMENT": "Production",
-                "GIT_REPOSITORY_DIRECTORY": "c:\\Users\\my\\source\\repos\\gitrepo_directory"
-            }
-        },
-        "GitVisionMCP-Docker": {
-            "type": "stdio",
-            "command": "docker",
-            "args": [
-                "run",
-                "--rm",
-                "-i",
-                "--init",
-                "--stop-timeout", "10",
-                "-e", "GITVISION_MCP_TRANSPORT=Stdio",
-                "-e", "GIT_APP_LOG_DIRECTORY=/app/logs",
-                "-e", "GIT_REPOSITORY_DIRECTORY=c:\\Users\\my\\source\\repos\\gitrepo_directory",
-                "-v", "c:\\Users\\my\\source\\repos\\MCP\\GitVisionMCP:/app/repo:ro",
-                "-v", "c:\\Users\\my\\source\\repos\\MCP\\GitVisionMCP\\logs:/app/logs",
-                "mcprunner/gitvisionmcp:latest"
-            ],
-            "env": {
-                "DOTNET_ENVIRONMENT": "Production"
-            }
-        }
+  "servers": {
+    "GitVisionMCP": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP\\GitVisionMCP.csproj",
+        "--no-build",
+        "--verbosity",
+        "quiet"
+      ],
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production",
+        "GIT_REPOSITORY_DIRECTORY": "c:\\Users\\my\\source\\repos\\gitrepo_directory"
+      }
+    },
+    "GitVisionMCP-Docker": {
+      "type": "stdio",
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--init",
+        "--stop-timeout",
+        "10",
+        "-e",
+        "GITVISION_MCP_TRANSPORT=Stdio",
+        "-e",
+        "GIT_APP_LOG_DIRECTORY=/app/logs",
+        "-e",
+        "GIT_REPOSITORY_DIRECTORY=c:\\Users\\my\\source\\repos\\gitrepo_directory",
+        "-v",
+        "c:\\Users\\my\\source\\repos\\gitrepo_directory:/app/repo:ro",
+        "-v",
+        "c:\\Users\\my\\source\\repos\\gitrepo_directory\\logs:/app/logs",
+        "mcprunner/gitvisionmcp:latest"
+      ],
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production"
+      }
     }
+  }
 }
 ```
 
-## Step 4: Restart VS Code
+### Configuration Parameters Explained
 
-After updating the MCP configuration, restart VS Code completely for the changes to take effect.
+#### Environment Variables
 
-## Step 5: Test with Copilot
+**DOTNET_ENVIRONMENT**
 
-Try asking Copilot about the enhanced capabilities:
+- **Purpose**: Controls the .NET application environment and logging behavior
+- **Values**: `Production`, `Development`, `Staging`
+- **Recommended**: `Production` for clean JSON-only output without debug messages
+- **Effect**: In Production mode, suppresses verbose logging to ensure clean MCP communication
 
-### Basic Documentation
+**GIT_REPOSITORY_DIRECTORY**
 
-- "Generate documentation from git logs"
-- "Show me the available MCP tools"
-- "Create git documentation and save it to docs/changelog.md"
+- **Purpose**: Specifies the target git repository to analyze and document
+- **Format**: Absolute path to a git repository directory
+- **Example**: `c:\\Users\\my\\source\\repos\\gitrepo_directory`
+- **Required**: Yes - this is the repository that GitVisionMCP will analyze
+- **Note**: Must be a valid git repository with `.git` folder
 
-### Remote Branch Features (🆕 New)
+**GITVISION_MCP_TRANSPORT** (Docker only)
 
-- "Compare my feature branch with origin/main"
-- "List all remote branches in this repository"
-- "Fetch from origin and compare branches"
-- "Show me recent commits with detailed information"
+- **Purpose**: Specifies the communication transport method for the MCP server
+- **Value**: `Stdio` (standard input/output for VS Code communication)
+- **Required**: Yes for Docker container communication
+- **Effect**: Enables proper JSON-RPC communication between VS Code and the container
 
-### Advanced Analysis
+**GIT_APP_LOG_DIRECTORY** (Docker only)
 
-- "Compare two commits and show me what files changed"
-- "Get comprehensive diff information between commits"
-- "Analyze differences between release and main branches"
+- **Purpose**: Directory path inside container where application logs are written
+- **Value**: `/app/logs` (container internal path)
+- **Effect**: Separates application logs from MCP communication output
+- **Mount**: Maps to host directory via volume mount for log persistence
 
-## Available Tools (13 Total)
+#### Command Arguments Explained
 
-The MCP server provides comprehensive git analysis tools:
+**GitVisionMCP (Direct .NET) Configuration:**
 
-### Core Documentation (2)
+- `"command": "dotnet"` - Uses the .NET CLI to run the application
+- `"--project"` - Specifies the exact .csproj file to run
+- `"--no-build"` - Skips building, uses existing compiled binaries (faster startup)
+- `"--verbosity quiet"` - Suppresses build output for clean JSON communication
 
-- `generate_git_documentation` - Generate docs from git logs
-- `generate_git_documentation_to_file` - Save docs to file
+**GitVisionMCP-Docker Configuration:**
 
-### Branch Operations (6)
+- `"command": "docker"` - Uses Docker to run containerized version
+- `"--rm"` - Automatically removes container when it stops
+- `"-i"` - Keeps stdin open for interactive communication
+- `"--init"` - Uses proper init process for signal handling
+- `"--stop-timeout 10"` - Allows 10 seconds for graceful shutdown
 
-- `compare_branches_documentation` - Compare local branches
-- `compare_branches_with_remote` - 🆕 Compare with remote support
-- `get_local_branches` - 🆕 List local branches
-- `get_remote_branches` - 🆕 List remote branches
-- `get_all_branches` - 🆕 List all branches
-- `fetch_from_remote` - 🆕 Fetch from remote
+#### Volume Mounts (Docker)
 
-### Commit Analysis (5)
+**Repository Mount:**
 
-- `compare_commits_documentation` - Compare commits
-- `get_recent_commits` - 🆕 Get recent commits
-- `get_changed_files_between_commits` - 🆕 List changed files
-- `get_detailed_diff_between_commits` - 🆕 Detailed diffs
-- `get_commit_diff_info` - 🆕 Comprehensive diff stats
-
-## Verification Commands
-
-### Test tools list:
-
-```powershell
-$env:DOTNET_ENVIRONMENT="Production"
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | dotnet run --no-build --verbosity quiet
+```
+-v "c:\\Users\\my\\source\\repos\\gitrepo_directory:/app/repo:ro"
 ```
 
-### Test git documentation generation:
+- **Host Path**: `c:\\Users\\my\\source\\repos\\gitrepo_directory` (the git repository to analyze)
+- **Container Path**: `/app/repo` (where the repository appears inside container)
+- **Mode**: `:ro` (read-only - container cannot modify your source code)
+- **Purpose**: Provides container access to analyze your git repository
 
-```powershell
-$env:DOTNET_ENVIRONMENT="Production"
-echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"generate_git_documentation","arguments":{"maxCommits":5}}}' | dotnet run --no-build --verbosity quiet
+**Logs Mount:**
+
+```
+-v "c:\\Users\\my\\source\\repos\\gitrepo_directory\\logs:/app/logs"
 ```
 
-## Common Issues
+- **Host Path**: `c:\\Users\\my\\source\\repos\\gitrepo_directory\\logs` (where logs are saved on host)
+- **Container Path**: `/app/logs` (where container writes logs)
+- **Mode**: Read-write (container can write log files)
+- **Purpose**: Persists application logs on host filesystem
 
-❌ **If you see build messages**: Use `--no-build` and build first
-❌ **If you see log messages**: Use `GIT_APP_LOG_DIRECTORY=/path/to/logs` to set log directory
-❌ **If VS Code can't connect**: Check the project path in the configuration
-❌ **If git operations fail**: Ensure you're in a git repository
+#### Path Requirements
 
-✅ **Success indicators**:
+**Critical Paths to Update:**
 
-- Clean JSON-only output from test commands
-- No "Failed to parse message" warnings in VS Code
-- Copilot can list and use the MCP tools
+1. **Project Path**: `c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP\\GitVisionMCP.csproj`
+   - Must point to your actual GitVisionMCP installation location
+2. **Repository Directory**: `c:\\Users\\my\\source\\repos\\gitrepo_directory`
+
+   - Must point to the git repository you want to analyze
+   - Must be a valid git repository (contains `.git` folder)
+   - Can be any git repository on your system
+
+3. **Docker Image**: `mcprunner/gitvisionmcp:latest`
+   - Pre-built Docker image with GitVisionMCP
+   - Alternative to running .NET directly
+   - Ensures consistent environment

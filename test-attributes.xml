@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <database host="localhost" port="5432">
+        <connection user="admin" password="secret">maindb</connection>
+        <backup user="backup_user" enabled="true"/>
+    </database>
+    <users>
+        <user name="john" email="john@example.com" active="true"/>
+        <user name="jane" email="jane@example.com" active="false"/>
+        <user name="bob" email="bob@example.com" active="true"/>
+    </users>
+    <features>
+        <feature name="logging" enabled="true"/>
+        <feature name="cache" enabled="false"/>
+    </features>
+</configuration>

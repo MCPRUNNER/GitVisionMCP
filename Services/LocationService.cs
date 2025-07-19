@@ -378,29 +378,31 @@ public class LocationService : ILocationService
             // Parse the XML string into an XDocument
             XDocument xmlDoc = XDocument.Parse(xmlContent);
 
-            // Use XPath to find matching nodes
-            var results = xmlDoc.XPathSelectElements(xPath).ToList();
+            // Use XPath to evaluate and get results (handles elements, attributes, and text)
+            var xPathResults = xmlDoc.XPathEvaluate(xPath);
+            var resultsList = new List<object>();
 
-            if (!results.Any())
+            // Handle different types of XPath results
+            if (xPathResults is IEnumerable<object> enumerable)
             {
-                // Try selecting attributes or text nodes
-                var attributeResults = xmlDoc.XPathEvaluate(xPath);
+                resultsList.AddRange(enumerable);
+            }
+            else if (xPathResults != null)
+            {
+                resultsList.Add(xPathResults);
+            }
 
-                if (attributeResults is IEnumerable<object> enumerable)
-                {
-                    var resultList = enumerable.ToList();
-                    if (resultList.Any())
-                    {
-                        return FormatXmlResults(resultList, indented, showKeyPaths, xPath);
-                    }
-                }
-
+            if (!resultsList.Any())
+            {
                 _logger.LogWarning("No matches found for XPath: {XPath} in file: {XmlFilePath}", xPath, xmlFilePath);
                 return string.Empty; // Return an empty string if no matches are found
             }
 
-            // Handle multiple element results
-            return FormatXmlResults(results.Cast<object>().ToList(), indented, showKeyPaths, xPath);
+            _logger.LogInformation("Successfully found {Count} matches for XPath: {XPath} in file: {XmlFilePath}",
+                resultsList.Count, xPath, xmlFilePath);
+
+            // Handle results
+            return FormatXmlResults(resultsList, indented, showKeyPaths, xPath);
         }
         catch (FileNotFoundException)
         {
@@ -434,14 +436,14 @@ public class LocationService : ILocationService
             // When preserving keys, create a structured result that shows the path and value
             var structuredResults = new JArray();
 
-            for (int i = 0; i < results.Count; i++)
+            for (var i = 0; i < results.Count; i++)
             {
                 var result = results[i];
                 var pathInfo = new JObject();
 
-                string path = "";
-                string value = "";
-                string key = "";
+                string path;
+                string value;
+                string key;
 
                 if (result is XElement element)
                 {

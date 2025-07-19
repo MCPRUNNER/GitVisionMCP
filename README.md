@@ -48,6 +48,19 @@ To ensure clean JSON-RPC communication, the MCP server should be run with:
 
 - Pre-built binaries (`--no-build` flag)
 - Production environment (`DOTNET_ENVIRONMENT=Production`)
+
+### Recent Fixes for VS Code Integration
+
+**Version 1.4.1** addresses VS Code MCP client integration issues:
+
+- **Fixed:** Console logging interference with JSON-RPC protocol
+  - Added `builder.Logging.ClearProviders()` to disable console output
+  - All logging now goes to file-only when using stdio transport
+  - Eliminates "Failed to parse message" warnings in VS Code
+- **Enhanced:** XML attribute search support
+  - Fixed XPath evaluation for attribute queries like `//user/@email`
+  - Proper handling of elements, attributes, and text content
+  - Comprehensive error handling for all XPath result types
 - Quiet verbosity (`--verbosity quiet`)
 
 This prevents build messages and logging output from interfering with the JSON-RPC protocol.

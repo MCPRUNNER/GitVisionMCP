@@ -1,6 +1,6 @@
 ---
 mode: "agent"
-description: "AC# Application Documentation Generation Prompt"
+description: "C# Application Documentation Generation Prompt"
 ---
 
 # C# Application Documentation Generation Prompt

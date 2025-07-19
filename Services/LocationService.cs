@@ -225,7 +225,7 @@ public class LocationService : ILocationService
             return null;
         }
     }
-    string JTokenToString(JToken token, bool indented = false)
+    private string JTokenToString(JToken token, bool indented = false)
     {
         if (token == null)
         {

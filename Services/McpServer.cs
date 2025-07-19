@@ -464,6 +464,23 @@ public class McpServer : IMcpServer
                         lastModifiedBefore = new { type = "string", description = "Filter by last modified date (ISO format: yyyy-MM-dd)" }
                     }
                 }
+            },
+            new Tool
+            {
+                Name = "search_json_file",
+                Description = "Search for JSON values in a JSON file using JSONPath",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        jsonFilePath = new { type = "string", description = "Path to the JSON file relative to workspace root" },
+                        jsonPath = new { type = "string", description = "JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')" },
+                        indented = new { type = "boolean", description = "Whether to format the output with indentation (default: true)" },
+                        showKeyPaths = new { type = "boolean", description = "Whether to return structured results with path, value, and key information (default: false)" }
+                    },
+                    required = new[] { "jsonFilePath", "jsonPath" }
+                }
             }
         };
 
@@ -512,6 +529,7 @@ public class McpServer : IMcpServer
             "compare_branches_with_remote" => await HandleCompareBranchesWithRemoteAsync(toolRequest),
             "search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
             "list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
+            "search_json_file" => await HandleSearchJsonFileAsync(toolRequest),
             _ => new CallToolResponse
             {
                 IsError = true,
@@ -1145,7 +1163,7 @@ public class McpServer : IMcpServer
             var lastModifiedBefore = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedBefore", null);
 
             // Get all files once and pass them to GitServiceTools to avoid redundant calls
-            string myPath = "*";
+            var myPath = "*";
 
             if (!string.IsNullOrEmpty(relativePath) && relativePath != "*")
             {
@@ -1188,6 +1206,69 @@ public class McpServer : IMcpServer
             {
                 IsError = true,
                 Content = new[] { new ToolContent { Type = "text", Text = $"Error listing workspace files: {ex.Message}" } }
+            };
+        }
+    }
+
+    private async Task<CallToolResponse> HandleSearchJsonFileAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var jsonFilePath = GetArgumentValue<string>(toolRequest.Arguments, "jsonFilePath", "");
+            var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
+            var indented = GetArgumentValue<bool?>(toolRequest.Arguments, "indented", true);
+            var showKeyPaths = GetArgumentValue<bool?>(toolRequest.Arguments, "showKeyPaths", false);
+
+            if (string.IsNullOrWhiteSpace(jsonFilePath))
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "jsonFilePath argument is required" } }
+                };
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "jsonPath argument is required" } }
+                };
+            }
+
+            var result = await _gitServiceTools.SearchJsonFileAsync(jsonFilePath, jsonPath, indented, showKeyPaths);
+
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = result ?? "No results found" } }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid arguments for SearchJsonFile");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Invalid arguments: {ex.Message}" } }
+            };
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "JSON file not found");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"File not found: {ex.Message}" } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching JSON file");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error searching JSON file: {ex.Message}" } }
             };
         }
     }

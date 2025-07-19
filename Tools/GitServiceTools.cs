@@ -4,6 +4,7 @@ using GitVisionMCP.Services;
 using GitVisionMCP.Models;
 using System.ComponentModel;
 using Microsoft.Extensions.AI;
+using Newtonsoft.Json;
 namespace GitVisionMCP.Tools;
 
 /// <summary>
@@ -1123,6 +1124,68 @@ public class GitServiceTools : IGitServiceTools
             throw new InvalidOperationException("Failed to read filtered workspace files. See inner exception for details.", ex);
         }
     }
+
+    [McpServerToolAttribute]
+    [Description("Search for JSON values in a JSON file using JSONPath")]
+    public Task<string?> SearchJsonFileAsync(
+        [Description("Path to the JSON file relative to workspace root")] string jsonFilePath,
+        [Description("JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')")] string jsonPath,
+        [Description("Whether to format the output with indentation (default: true)")] bool? indented = true,
+        [Description("Whether to return structured results with path, value, and key information (default: false)")] bool? showKeyPaths = false)
+    {
+        try
+        {
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(jsonFilePath))
+            {
+                _logger.LogError("JSON file path cannot be null or empty");
+                throw new ArgumentException("JSON file path must be specified", nameof(jsonFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                _logger.LogError("JSONPath cannot be null or empty");
+                throw new ArgumentException("JSONPath must be specified", nameof(jsonPath));
+            }
+
+            _logger.LogInformation("Searching JSON file {JsonFilePath} with JSONPath {JsonPath}, showKeyPaths: {ShowKeyPaths}",
+                jsonFilePath, jsonPath, showKeyPaths ?? false);
+
+            var result = _locationService.SearchJsonFile(jsonFilePath, jsonPath, indented ?? true, showKeyPaths ?? false);
+
+            if (string.IsNullOrEmpty(result))
+            {
+                _logger.LogInformation("No matches found for JSONPath {JsonPath} in file {JsonFilePath}",
+                    jsonPath, jsonFilePath);
+                return Task.FromResult<string?>("No matches found");
+            }
+
+            _logger.LogInformation("Successfully found matches for JSONPath {JsonPath} in file {JsonFilePath}",
+                jsonPath, jsonFilePath);
+            return Task.FromResult<string?>(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid argument for JSON search");
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "JSON file not found: {JsonFilePath}", jsonFilePath);
+            throw new FileNotFoundException($"JSON file not found: {jsonFilePath}", jsonFilePath, ex);
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Invalid JSON format in file: {JsonFilePath}", jsonFilePath);
+            throw new InvalidDataException($"Invalid JSON format in file: {jsonFilePath}. Details: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching JSON file {JsonFilePath}", jsonFilePath);
+            throw new InvalidOperationException($"Error searching JSON file: {ex.Message}. See inner exception for details.", ex);
+        }
+    }
+
     private bool IsBinaryFile(string filePath)
     {
         try

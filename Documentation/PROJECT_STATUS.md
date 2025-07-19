@@ -9,7 +9,7 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
 - **Program.cs**: Application entry point with dependency injection and Serilog logging
 - **Models/McpModels.cs**: Complete MCP protocol data models and JSON-RPC structures
 - **Services/GitService.cs**: Advanced git operations with remote branch support and search capabilities
-- **Services/McpServer.cs**: Complete MCP protocol implementation with 14 specialized tools
+- **Services/McpServer.cs**: Complete MCP protocol implementation with 15 specialized tools
 
 ### 🆕 Latest Major Enhancements
 
@@ -52,6 +52,24 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
 - ✅ **Code Archaeology**: Locate all references to deprecated APIs or functions
 - ✅ **Documentation Discovery**: Find TODO comments, documentation references, or specific APIs
 
+#### JSON Configuration Analysis (NEW - July 2025)
+
+- ✅ **search_json_file**: 🆕 Advanced JSON querying with JSONPath support
+  - **JSONPath Integration**: Full JSONPath syntax support for complex queries
+  - **Flexible File Access**: Search any JSON file within the workspace
+  - **Rich Query Support**: Simple property access to complex filtered queries
+  - **Formatted Output**: Option for indented or compact JSON results
+  - **Error Handling**: Comprehensive validation for files and query syntax
+  - **Configuration Analysis**: Extract API keys, database settings, environment configs
+  - **Data Extraction**: Pull specific values from JSON datasets or configuration files
+
+#### JSON Search Applications
+
+- ✅ **Configuration Validation**: Extract environment-specific settings from config files
+- ✅ **Security Audits**: Find API keys, passwords, or sensitive data in JSON files
+- ✅ **Documentation Generation**: Build configuration references from JSON schemas
+- ✅ **Data Analysis**: Query JSON datasets for specific information or patterns
+
 #### Remote Branch Discovery & Operations (New)
 
 - ✅ **get_local_branches**: List all local branches
@@ -72,7 +90,7 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
 
 - ✅ JSON-RPC 2.0 protocol implementation with compact output
 - ✅ Initialize/initialized handshake
-- ✅ Tools list and tool calling (14 total tools including advanced search)
+- ✅ Tools list and tool calling (15 total tools including advanced search and JSON querying)
 - ✅ Comprehensive error handling and responses
 - ✅ STDIO communication optimized for VS Code integration
 
@@ -202,9 +220,10 @@ GitVisionMCP/
 13. **get_commit_diff_info** - 🆕 Comprehensive diff statistics
 14. **get_file_line_diff_between_commits** - 🆕 Line-by-line file diff
 
-### 🔍 Search & Discovery (1 tool)
+### 🔍 Search & Discovery (2 tools)
 
 14. **search_commits_for_string** - 🔥 **NEW**: Advanced commit search across messages and file contents
+15. **search_json_file** - 🆕 **NEW**: JSONPath queries for JSON file analysis
 
 ## 📋 Tool Capabilities Matrix
 
@@ -225,8 +244,9 @@ GitVisionMCP/
 | get_all_branches                   |       ✅       |       ✅        |       ❌        |     ❌      |   Text   |
 | fetch_from_remote                  |       ❌       |       ✅        |       ❌        |     ❌      |   Text   |
 | search_commits_for_string          |       ✅       |       ✅        |       ✅        |     ❌      | Markdown |
+| search_json_file                   |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
 
-**Legend**: M=Markdown, H=HTML, T=Text
+**Legend**: M=Markdown, H=HTML, T=Text, JSON=JSON formatted output
 
 ## 🎯 Business Value & Use Cases
 
@@ -265,12 +285,13 @@ GitVisionMCP/
 
 ### Testing Completed
 
-- [x] All 14 tools tested and verified
+- [x] All 15 tools tested and verified (including new JSON search functionality)
 - [x] Remote branch operations tested with GitHub repositories
 - [x] JSON-RPC protocol communication verified
 - [x] Error handling tested for edge cases
 - [x] Performance tested with large repositories
 - [x] VS Code integration tested with Copilot
+- [x] JSONPath queries tested with various JSON file structures
 
 ### Quality Metrics
 

@@ -54,9 +54,9 @@ This prevents build messages and logging output from interfering with the JSON-R
 
 ## Features
 
-### 🛠️ Complete Tool Suite (14 Tools Available)
+### 🛠️ Complete Tool Suite (15 Tools Available)
 
-This MCP server provides comprehensive git documentation and analysis capabilities through 14 specialized tools:
+This MCP server provides comprehensive git documentation and analysis capabilities through 15 specialized tools:
 
 **📝 Documentation & Analysis (6 tools)**
 
@@ -65,10 +65,11 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - Remote repository integration and synchronization
 - Historical change tracking and statistics
 
-**🔍 Search & Discovery (2 tools)**
+**🔍 Search & Discovery (3 tools)**
 
 - Comprehensive commit search across messages and file contents
 - Intelligent file change detection between commits
+- JSON file search and query capabilities using JSONPath
 
 **🌿 Branch Management (4 tools)**
 
@@ -101,6 +102,7 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - **get_commit_diff_info**: Get comprehensive diff statistics and file changes
 - **get_file_line_diff_between_commits**: 🆕 Get line-by-line diff for a specific file between two commits
 - **search_commits_for_string**: 🆕 Search all commits for a specific string and return detailed match information
+- **search_json_file**: 🆕 Search for JSON values in a JSON file using JSONPath queries
 
 ### Commit Search Tool
 
@@ -121,6 +123,48 @@ The new **search_commits_for_string** tool provides comprehensive commit searchi
 - File names containing matches
 - Line numbers where matches occur
 - Full line content showing the match in context
+
+### JSON Search Tool
+
+The enhanced **search_json_file** tool provides powerful JSON querying capabilities using JSONPath with advanced features:
+
+- **JSONPath queries**: Search JSON files using standard JSONPath syntax with wildcard support
+- **Wildcard Support**: Use `*` wildcards and recursive descent (`..`) for complex queries
+- **Structured Results**: Optional `showKeyPaths` parameter returns path context with values
+- **Flexible file access**: Search any JSON file in the workspace
+- **Formatted output**: Option to return results with or without indentation
+- **Multiple result handling**: Automatically handles single values or arrays of results
+- **Error handling**: Comprehensive error reporting for invalid files or queries
+
+#### Enhanced Features:
+
+- **showKeyPaths option**: Returns structured results with path, value, and key information
+- **Wildcard patterns**: `$.users[*].email`, `$..author`, `$.config.*`
+- **Context preservation**: Track exactly where values are located in complex JSON structures
+- **Performance optimized**: Uses SelectTokens for efficient multiple result processing
+
+#### JSONPath Query Examples:
+
+- `$.name` - Get the root-level name property
+- `$.users[*].email` - Get all user email addresses (supports wildcards)
+- `$.configuration.database.host` - Get nested configuration values
+- `$.items[?(@.price > 100)].name` - Get names of items with price > 100 (conditional filtering)
+- `$..author` - Get all author properties at any level (recursive descent)
+- `$.configuration.*` - Get all values under configuration (wildcard properties)
+
+#### Enhanced JSONPath Support:
+
+- **Wildcards**: Use `[*]` to select all elements in arrays or `.*` for all properties
+- **Recursive Descent**: Use `..` to search at any depth in the JSON structure
+- **Conditional Filtering**: Use `[?(@.property == 'value')]` to filter based on conditions
+- **Multiple Results**: Automatically returns JSON arrays for queries matching multiple items
+- **Single Results**: Returns individual values when only one match is found
+
+#### JSON Search Results:
+
+- Extracted JSON values matching the JSONPath query
+- Formatted output (indented or compact)
+- "No matches found" message when query returns no results
 
 ### Branch Discovery and Remote Support
 
@@ -593,6 +637,76 @@ Searches all commits for a specific string and returns detailed match informatio
 - File names containing matches
 - Line numbers where matches occur
 - Full line content showing the match in context
+
+#### search_json_file
+
+Searches for JSON values in a JSON file using JSONPath queries with advanced wildcard support and structured results.
+
+**Parameters:**
+
+- `jsonFilePath` (required): Path to the JSON file relative to workspace root
+- `jsonPath` (required): JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')
+- `indented` (optional): Whether to format the output with indentation (default: true)
+- `showKeyPaths` (optional): Whether to return structured results with path, value, and key information (default: false)
+
+**Returns:** JSON values matching the JSONPath query, or "No matches found" if the query returns no results
+
+**Enhanced JSONPath Support:**
+
+- **Wildcards**: `$.users[*].email` - Get all user email addresses
+- **Recursive Descent**: `$..author` - Get all author properties at any depth
+- **Property Wildcards**: `$.configuration.*` - Get all configuration values
+- **Conditional Filtering**: `$.items[?(@.price > 100)].name` - Conditional queries
+- **Multiple Results**: Automatically returns arrays for queries with multiple matches
+- **Single Results**: Returns individual values when only one match is found
+
+**Structured Results with showKeyPaths=true:**
+
+When `showKeyPaths` is enabled, the tool returns structured objects containing:
+
+- `path`: The JSONPath location of the found value
+- `value`: The actual value found
+- `key`: The property name extracted from the path
+
+**Example without showKeyPaths (default):**
+
+```json
+["john@example.com", "jane@example.com"]
+```
+
+**Example with showKeyPaths=true:**
+
+```json
+[
+  {
+    "path": "users[0].email",
+    "value": "john@example.com",
+    "key": "email"
+  },
+  {
+    "path": "users[1].email",
+    "value": "jane@example.com",
+    "key": "email"
+  }
+]
+```
+
+**JSONPath Examples:**
+
+- `$.name` - Get the root-level name property
+- `$.users[*].email` - Get all user email addresses (wildcard array access)
+- `$.configuration.database.host` - Get nested configuration values
+- `$.items[?(@.price > 100)].name` - Get names of items with price > 100 (filtering)
+- `$..author` - Get all author properties at any level (recursive)
+- `$.configuration.*` - Get all values under configuration (property wildcard)
+
+**Use Cases:**
+
+- **Configuration Management**: Extract API keys, database settings, feature flags
+- **Data Analysis**: Query complex JSON datasets with precise filtering
+- **Documentation**: Generate configuration summaries with path context
+- **Debugging**: Locate specific values within large JSON structures
+
 - Summary statistics (total commits searched, matching commits, total line matches)
 
 **Search Capabilities:**
@@ -851,7 +965,65 @@ This is especially useful for:
 - **Security audits**: Search for sensitive patterns or keywords
 - **Documentation**: Locate all references to specific APIs or configurations
 
-### 8. Line-by-Line Analysis
+### 8. Configuration Analysis
+
+#### Copilot Command:
+
+```bash
+@copilot Search appsettings.json for database configuration using JSONPath $.Database.ConnectionString
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "method": "tools/call",
+  "params": {
+    "name": "search_json_file",
+    "arguments": {
+      "jsonFilePath": "appsettings.json",
+      "jsonPath": "$.Database.ConnectionString",
+      "indented": true,
+      "showKeyPaths": false
+    }
+  }
+}
+```
+
+Perfect for extracting configuration values, API keys, or any structured data from JSON files. The enhanced search supports:
+
+- **Simple property access**: `$.propertyName`
+- **Nested navigation**: `$.level1.level2.property`
+- **Array wildcards**: `$.users[0].name` or `$.users[*].email`
+- **Complex queries**: `$.items[?(@.price > 100)].name`
+- **Recursive searches**: `$..author` (all author properties at any level)
+- **Structured results**: Enable `showKeyPaths` for path context and metadata
+
+**New showKeyPaths Feature:**
+
+When `showKeyPaths=true`, returns structured objects with:
+
+- `path`: JSONPath location of the value
+- `value`: The actual JSON value
+- `key`: Extracted property name
+
+This is invaluable for:
+
+- **Configuration tracking**: Know exactly where values originate
+- **Complex JSON analysis**: Navigate large configuration files with context
+- **Data migration**: Map old paths to new structure requirements
+- **Documentation generation**: Create structured reports with location details
+
+Use cases include:
+
+- **Configuration validation**: Check environment-specific settings with path context
+- **Security audits**: Extract API keys with their exact locations
+- **Documentation**: Generate configuration references from JSON files
+- **Data analysis**: Extract specific data points with full context preservation
+
+### 9. Line-by-Line Analysis
 
 #### Copilot Command:
 
@@ -864,7 +1036,7 @@ This is especially useful for:
 ```json
 {
   "jsonrpc": "2.0",
-  "id": 8,
+  "id": 9,
   "method": "tools/call",
   "params": {
     "name": "get_file_line_diff_between_commits",

@@ -498,6 +498,20 @@ public class McpServer : IMcpServer
                     },
                     required = new[] { "xmlFilePath", "xPath" }
                 }
+            },
+            new Tool
+            {
+                Name = "analyze_controller",
+                Description = "Analyzes a C# ASP.NET Core controller file and returns its structure as JSON",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        filePath = new { type = "string", description = "Path to the controller file relative to workspace root" }
+                    },
+                    required = new[] { "filePath" }
+                }
             }
         };
 
@@ -548,6 +562,7 @@ public class McpServer : IMcpServer
             "list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
             "search_json_file" => await HandleSearchJsonFileAsync(toolRequest),
             "search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
+            "analyze_controller" => await HandleAnalyzeControllerAsync(toolRequest),
             _ => new CallToolResponse
             {
                 IsError = true,
@@ -1350,6 +1365,57 @@ public class McpServer : IMcpServer
             {
                 IsError = true,
                 Content = new[] { new ToolContent { Type = "text", Text = $"Error searching XML file: {ex.Message}" } }
+            };
+        }
+    }
+
+    private async Task<CallToolResponse> HandleAnalyzeControllerAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "filePath argument is required" } }
+                };
+            }
+
+            var result = await _gitServiceTools.AnalyzeControllerAsync(filePath);
+
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = result ?? "Failed to analyze controller" } }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid arguments for AnalyzeController");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Invalid arguments: {ex.Message}" } }
+            };
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "Controller file not found");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"File not found: {ex.Message}" } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error analyzing controller file");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error analyzing controller: {ex.Message}" } }
             };
         }
     }

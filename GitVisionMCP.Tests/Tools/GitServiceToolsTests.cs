@@ -17,6 +17,7 @@ namespace GitVisionMCP.Tests.Tools
         private readonly Mock<ILogger<GitServiceTools>> _mockLogger;
         private readonly Mock<IGitService> _mockGitService;
         private readonly Mock<ILocationService> _mockLocationService;
+        private readonly Mock<IDeconstructionService> _mockDeconstructionService;
         private readonly GitServiceTools _gitServiceTools;
         private readonly List<WorkspaceFileInfo> _mockFiles;
 
@@ -25,9 +26,8 @@ namespace GitVisionMCP.Tests.Tools
             _mockLogger = new Mock<ILogger<GitServiceTools>>();
             _mockGitService = new Mock<IGitService>();
             _mockLocationService = new Mock<ILocationService>();
-            _gitServiceTools = new GitServiceTools(_mockGitService.Object, _mockLocationService.Object, _mockLogger.Object);
-
-            // Setup mock workspace root
+            _mockDeconstructionService = new Mock<IDeconstructionService>();
+            _gitServiceTools = new GitServiceTools(_mockGitService.Object, _mockLocationService.Object, _mockDeconstructionService.Object, _mockLogger.Object);            // Setup mock workspace root
             var mockWorkspaceRoot = Path.Combine(Path.GetTempPath(), "mock-workspace");
             _mockLocationService.Setup(m => m.GetWorkspaceRoot()).Returns(mockWorkspaceRoot);
 

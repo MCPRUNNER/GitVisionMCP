@@ -30,6 +30,16 @@ public interface ILocationService
     string? SearchJsonFile(string jsonFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false);
 
     /// <summary>
+    /// Searches for XML values in an XML file using XPath queries with support for namespaces and structured results.
+    /// </summary>
+    /// <param name="xmlFilePath">The path to the XML file to search</param>
+    /// <param name="xPath">The XPath query string (e.g., '//users/user/@email', '/configuration/database/host')</param>
+    /// <param name="indented">Whether to format the output as indented XML</param>
+    /// <param name="showKeyPaths">Whether to return structured results with path, value, and key information</param>
+    /// <returns>A string representation of the search results, or an empty string if no matches are found</returns>
+    string? SearchXmlFile(string xmlFilePath, string xPath, bool indented = true, bool showKeyPaths = false);
+
+    /// <summary>
     ///  Gets all files under the workspace root directory with relative paths and file types that match a specific search pattern.
     /// </summary>
     /// <param name="searchPattern"></param>

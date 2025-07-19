@@ -722,6 +722,185 @@ The `showKeyPaths` parameter is particularly useful when you need to:
 }
 ```
 
+## 🆕 Enhanced XML Search Examples
+
+The XML search tool provides powerful XML querying capabilities using XPath with comprehensive element and attribute support.
+
+### Extract Configuration Values
+
+#### Copilot Command:
+
+```bash
+@copilot Search test-config.xml for the database connection string using XPath //database/connectionString
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "method": "tools/call",
+  "params": {
+    "name": "search_xml_file",
+    "arguments": {
+      "xmlFilePath": "test-config.xml",
+      "xPath": "//database/connectionString",
+      "indented": true
+    }
+  }
+}
+```
+
+#### Expected Response:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "<connectionString>Server=localhost;Database=TestDB</connectionString>"
+      }
+    ],
+    "isError": false
+  }
+}
+```
+
+### Extract Multiple Values with Element Queries
+
+#### Copilot Command:
+
+```bash
+@copilot Search test-config.xml for all user elements with path context using XPath //user
+```
+
+#### JSON-RPC Call (Structured Results with Path Context):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "method": "tools/call",
+  "params": {
+    "name": "search_xml_file",
+    "arguments": {
+      "xmlFilePath": "test-config.xml",
+      "xPath": "//user",
+      "indented": true,
+      "showKeyPaths": true
+    }
+  }
+}
+```
+
+#### Expected Response:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[\n  {\n    \"path\": \"/configuration/users/user\",\n    \"value\": \"<user id=\\\"1\\\" name=\\\"John Doe\\\" email=\\\"john@example.com\\\" />\",\n    \"key\": \"user\"\n  },\n  {\n    \"path\": \"/configuration/users/user[2]\",\n    \"value\": \"<user id=\\\"2\\\" name=\\\"Jane Smith\\\" email=\\\"jane@example.com\\\" />\",\n    \"key\": \"user\"\n  }\n]"
+      }
+    ],
+    "isError": false
+  }
+}
+```
+
+### Advanced XPath Patterns
+
+#### Filter Features by Attribute
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 14,
+  "method": "tools/call",
+  "params": {
+    "name": "search_xml_file",
+    "arguments": {
+      "xmlFilePath": "test-config.xml",
+      "xPath": "//feature[@enabled='true']",
+      "showKeyPaths": true
+    }
+  }
+}
+```
+
+#### Get All Email Attributes
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 15,
+  "method": "tools/call",
+  "params": {
+    "name": "search_xml_file",
+    "arguments": {
+      "xmlFilePath": "test-config.xml",
+      "xPath": "//user/@email",
+      "indented": true
+    }
+  }
+}
+```
+
+### Complex XPath Queries with Filtering
+
+#### Get User by Specific ID
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 16,
+  "method": "tools/call",
+  "params": {
+    "name": "search_xml_file",
+    "arguments": {
+      "xmlFilePath": "test-config.xml",
+      "xPath": "//user[@id='1']/@name"
+    }
+  }
+}
+```
+
+### Use Cases for showKeyPaths
+
+The `showKeyPaths` parameter is particularly useful when you need to:
+
+- **Track element sources**: Know exactly where each XML element originated in complex documents
+- **Generate reports**: Create structured summaries with XPath location context
+- **Debug configurations**: Identify the path to problematic XML elements or attributes
+- **Data migration**: Map old XML structure paths to new schema requirements
+
+**Expected Response Formats:**
+
+- **showKeyPaths=false**: Direct XML content (arrays for multiple results)
+- **showKeyPaths=true**: Structured objects with `path`, `value`, and `key` properties
+- **Single results**: Individual XML elements or attributes
+- **Multiple results**: Arrays of XML elements or structured objects
+- **No matches**: "No matches found" message
+- **Errors**: Descriptive error messages for invalid XML or malformed XPath queries
+
+#### JSONPath vs XPath Comparison Table
+
+| Operation           | JSON (JSONPath)          | XML (XPath)                 | Description                         |
+| ------------------- | ------------------------ | --------------------------- | ----------------------------------- |
+| All users           | `$.users[*]`             | `//user`                    | Get all user records                |
+| User emails         | `$.users[*].email`       | `//user/@email`             | Get all user email addresses        |
+| First user          | `$.users[0]`             | `//user[1]`                 | Get first user (XPath is 1-indexed) |
+| Filter by attribute | `$.users[?(@.active)]`   | `//user[@active='true']`    | Filter by condition                 |
+| Nested elements     | `$.config.database.host` | `//config/database/host`    | Navigate nested structure           |
+| All children        | `$.settings.*`           | `/configuration/settings/*` | Get all direct children             |
+
 ### Branch Discovery Tools
 
 #### Get All Branches

@@ -41,6 +41,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 // Add Serilog to logging providers
+builder.Logging.ClearProviders(); // Clear default providers including console
 builder.Logging.AddSerilog(Log.Logger);
 
 // Determine transport type from environment variable

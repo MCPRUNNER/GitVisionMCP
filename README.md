@@ -126,12 +126,22 @@ The new **search_commits_for_string** tool provides comprehensive commit searchi
 
 ### JSON Search Tool
 
-The new **search_json_file** tool provides powerful JSON querying capabilities using JSONPath:
+The enhanced **search_json_file** tool provides powerful JSON querying capabilities using JSONPath with advanced features:
 
-- **JSONPath queries**: Search JSON files using standard JSONPath syntax
+- **JSONPath queries**: Search JSON files using standard JSONPath syntax with wildcard support
+- **Wildcard Support**: Use `*` wildcards and recursive descent (`..`) for complex queries
+- **Structured Results**: Optional `showKeyPaths` parameter returns path context with values
 - **Flexible file access**: Search any JSON file in the workspace
 - **Formatted output**: Option to return results with or without indentation
+- **Multiple result handling**: Automatically handles single values or arrays of results
 - **Error handling**: Comprehensive error reporting for invalid files or queries
+
+#### Enhanced Features:
+
+- **showKeyPaths option**: Returns structured results with path, value, and key information
+- **Wildcard patterns**: `$.users[*].email`, `$..author`, `$.config.*`
+- **Context preservation**: Track exactly where values are located in complex JSON structures
+- **Performance optimized**: Uses SelectTokens for efficient multiple result processing
 
 #### JSONPath Query Examples:
 
@@ -630,13 +640,14 @@ Searches all commits for a specific string and returns detailed match informatio
 
 #### search_json_file
 
-Searches for JSON values in a JSON file using JSONPath queries.
+Searches for JSON values in a JSON file using JSONPath queries with advanced wildcard support and structured results.
 
 **Parameters:**
 
 - `jsonFilePath` (required): Path to the JSON file relative to workspace root
 - `jsonPath` (required): JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')
 - `indented` (optional): Whether to format the output with indentation (default: true)
+- `showKeyPaths` (optional): Whether to return structured results with path, value, and key information (default: false)
 
 **Returns:** JSON values matching the JSONPath query, or "No matches found" if the query returns no results
 
@@ -649,6 +660,37 @@ Searches for JSON values in a JSON file using JSONPath queries.
 - **Multiple Results**: Automatically returns arrays for queries with multiple matches
 - **Single Results**: Returns individual values when only one match is found
 
+**Structured Results with showKeyPaths=true:**
+
+When `showKeyPaths` is enabled, the tool returns structured objects containing:
+
+- `path`: The JSONPath location of the found value
+- `value`: The actual value found
+- `key`: The property name extracted from the path
+
+**Example without showKeyPaths (default):**
+
+```json
+["john@example.com", "jane@example.com"]
+```
+
+**Example with showKeyPaths=true:**
+
+```json
+[
+  {
+    "path": "users[0].email",
+    "value": "john@example.com",
+    "key": "email"
+  },
+  {
+    "path": "users[1].email",
+    "value": "jane@example.com",
+    "key": "email"
+  }
+]
+```
+
 **JSONPath Examples:**
 
 - `$.name` - Get the root-level name property
@@ -658,7 +700,12 @@ Searches for JSON values in a JSON file using JSONPath queries.
 - `$..author` - Get all author properties at any level (recursive)
 - `$.configuration.*` - Get all values under configuration (property wildcard)
 
-**Example:** Extract API configuration from settings file
+**Use Cases:**
+
+- **Configuration Management**: Extract API keys, database settings, feature flags
+- **Data Analysis**: Query complex JSON datasets with precise filtering
+- **Documentation**: Generate configuration summaries with path context
+- **Debugging**: Locate specific values within large JSON structures
 
 - Summary statistics (total commits searched, matching commits, total line matches)
 
@@ -938,26 +985,43 @@ This is especially useful for:
     "arguments": {
       "jsonFilePath": "appsettings.json",
       "jsonPath": "$.Database.ConnectionString",
-      "indented": true
+      "indented": true,
+      "showKeyPaths": false
     }
   }
 }
 ```
 
-Perfect for extracting configuration values, API keys, or any structured data from JSON files. The search supports:
+Perfect for extracting configuration values, API keys, or any structured data from JSON files. The enhanced search supports:
 
 - **Simple property access**: `$.propertyName`
 - **Nested navigation**: `$.level1.level2.property`
-- **Array access**: `$.users[0].name` or `$.users[*].email`
+- **Array wildcards**: `$.users[0].name` or `$.users[*].email`
 - **Complex queries**: `$.items[?(@.price > 100)].name`
-- **Wildcard searches**: `$..author` (all author properties at any level)
+- **Recursive searches**: `$..author` (all author properties at any level)
+- **Structured results**: Enable `showKeyPaths` for path context and metadata
+
+**New showKeyPaths Feature:**
+
+When `showKeyPaths=true`, returns structured objects with:
+
+- `path`: JSONPath location of the value
+- `value`: The actual JSON value
+- `key`: Extracted property name
+
+This is invaluable for:
+
+- **Configuration tracking**: Know exactly where values originate
+- **Complex JSON analysis**: Navigate large configuration files with context
+- **Data migration**: Map old paths to new structure requirements
+- **Documentation generation**: Create structured reports with location details
 
 Use cases include:
 
-- **Configuration validation**: Check environment-specific settings
-- **Security audits**: Extract API keys or sensitive configuration
+- **Configuration validation**: Check environment-specific settings with path context
+- **Security audits**: Extract API keys with their exact locations
 - **Documentation**: Generate configuration references from JSON files
-- **Data analysis**: Extract specific data points from JSON datasets
+- **Data analysis**: Extract specific data points with full context preservation
 
 ### 9. Line-by-Line Analysis
 

@@ -1131,7 +1131,7 @@ public class GitServiceTools : IGitServiceTools
         [Description("Path to the JSON file relative to workspace root")] string jsonFilePath,
         [Description("JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')")] string jsonPath,
         [Description("Whether to format the output with indentation (default: true)")] bool? indented = true,
-        [Description("Whether to return structured results with path, value, and key information (default: false)")] bool? preserveKeys = false)
+        [Description("Whether to return structured results with path, value, and key information (default: false)")] bool? showKeyPaths = false)
     {
         try
         {
@@ -1148,10 +1148,10 @@ public class GitServiceTools : IGitServiceTools
                 throw new ArgumentException("JSONPath must be specified", nameof(jsonPath));
             }
 
-            _logger.LogInformation("Searching JSON file {JsonFilePath} with JSONPath {JsonPath}, preserveKeys: {PreserveKeys}",
-                jsonFilePath, jsonPath, preserveKeys ?? false);
+            _logger.LogInformation("Searching JSON file {JsonFilePath} with JSONPath {JsonPath}, showKeyPaths: {ShowKeyPaths}",
+                jsonFilePath, jsonPath, showKeyPaths ?? false);
 
-            var result = _locationService.SearchJsonFile(jsonFilePath, jsonPath, indented ?? true, preserveKeys ?? false);
+            var result = _locationService.SearchJsonFile(jsonFilePath, jsonPath, indented ?? true, showKeyPaths ?? false);
 
             if (string.IsNullOrEmpty(result))
             {

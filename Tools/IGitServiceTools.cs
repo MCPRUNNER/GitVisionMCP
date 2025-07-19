@@ -124,7 +124,7 @@ public interface IGitServiceTools
     /// <param name="jsonFilePath">Path to the JSON file relative to workspace root</param>
     /// <param name="jsonPath">JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')</param>
     /// <param name="indented">Whether to format the output with indentation (default: true)</param>
-    /// <param name="preserveKeys">Whether to return structured results with path, value, and key information (default: false)</param>
+    /// <param name="showKeyPaths">Whether to return structured results with path, value, and key information (default: false)</param>
     /// <returns>JSON search result or null if not found</returns>
-    Task<string?> SearchJsonFileAsync(string jsonFilePath, string jsonPath, bool? indented = true, bool? preserveKeys = false);
+    Task<string?> SearchJsonFileAsync(string jsonFilePath, string jsonPath, bool? indented = true, bool? showKeyPaths = false);
 }

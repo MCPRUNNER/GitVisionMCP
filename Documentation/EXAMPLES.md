@@ -459,7 +459,9 @@ Once configured, you can use natural language commands with Copilot:
 - File-by-file breakdown (file names, match counts)
 - Line-level details (line numbers, full content, exact matches)
 
-## 🆕 JSON Search Examples
+## 🆕 Enhanced JSON Search Examples
+
+The JSON search tool now supports advanced features including wildcard patterns and structured results with path context.
 
 ### Extract Configuration Values
 
@@ -481,13 +483,14 @@ Once configured, you can use natural language commands with Copilot:
     "arguments": {
       "jsonFilePath": "appsettings.json",
       "jsonPath": "$.Database.ConnectionString",
-      "indented": true
+      "indented": true,
+      "showKeyPaths": false
     }
   }
 }
 ```
 
-### Extract Multiple Values from Arrays
+### Extract Multiple Values with Wildcards
 
 #### Copilot Command:
 
@@ -495,7 +498,7 @@ Once configured, you can use natural language commands with Copilot:
 @copilot Get all user email addresses from users.json using JSONPath $.users[*].email
 ```
 
-#### JSON-RPC Call:
+#### JSON-RPC Call (Basic Results):
 
 ```json
 {
@@ -507,13 +510,104 @@ Once configured, you can use natural language commands with Copilot:
     "arguments": {
       "jsonFilePath": "data/users.json",
       "jsonPath": "$.users[*].email",
-      "indented": false
+      "indented": true,
+      "showKeyPaths": false
     }
   }
 }
 ```
 
-### Complex JSONPath Queries
+**Response:**
+
+```json
+["john@example.com", "jane@example.com"]
+```
+
+#### JSON-RPC Call (Structured Results with Path Context):
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 11,
+  "method": "tools/call",
+  "params": {
+    "name": "search_json_file",
+    "arguments": {
+      "jsonFilePath": "data/users.json",
+      "jsonPath": "$.users[*].email",
+      "indented": true,
+      "showKeyPaths": true
+    }
+  }
+}
+```
+
+**Response:**
+
+```json
+[
+  {
+    "path": "users[0].email",
+    "value": "john@example.com",
+    "key": "email"
+  },
+  {
+    "path": "users[1].email",
+    "value": "jane@example.com",
+    "key": "email"
+  }
+]
+```
+
+### Advanced JSONPath Patterns
+
+#### Recursive Search with Wildcards
+
+```bash
+@copilot Find all email addresses anywhere in config.json using JSONPath $..email
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 12,
+  "method": "tools/call",
+  "params": {
+    "name": "search_json_file",
+    "arguments": {
+      "jsonFilePath": "config.json",
+      "jsonPath": "$..email",
+      "indented": true,
+      "showKeyPaths": true
+    }
+  }
+}
+```
+
+#### Property Wildcards
+
+```bash
+@copilot Get all configuration values from settings.json using JSONPath $.configuration.*
+```
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 13,
+  "method": "tools/call",
+  "params": {
+    "name": "search_json_file",
+    "arguments": {
+      "jsonFilePath": "settings.json",
+      "jsonPath": "$.configuration.*",
+      "indented": true,
+      "showKeyPaths": true
+    }
+  }
+}
+```
+
+### Complex JSONPath Queries with Filtering
 
 #### Copilot Command:
 
@@ -526,25 +620,37 @@ Once configured, you can use natural language commands with Copilot:
 ```json
 {
   "jsonrpc": "2.0",
-  "id": 11,
+  "id": 14,
   "method": "tools/call",
   "params": {
     "name": "search_json_file",
     "arguments": {
       "jsonFilePath": "catalog.json",
       "jsonPath": "$.products[?(@.price > 100)].name",
-      "indented": true
+      "indented": true,
+      "showKeyPaths": false
     }
   }
 }
 ```
 
-**Expected Response Format:**
+### Use Cases for showKeyPaths
 
-- Extracted JSON values matching the JSONPath query
-- Formatted output (indented or compact based on `indented` parameter)
-- "No matches found" message when query returns no results
-- Error messages for invalid JSON files or malformed JSONPath queries
+The `showKeyPaths` parameter is particularly useful when you need to:
+
+- **Track data sources**: Know exactly where each value came from in complex JSON
+- **Generate reports**: Create structured summaries with location context
+- **Debug configurations**: Identify the path to problematic settings
+- **Data migration**: Map old structure paths to new structure requirements
+
+**Expected Response Formats:**
+
+- **showKeyPaths=false**: Direct JSON values (arrays for multiple results)
+- **showKeyPaths=true**: Structured objects with `path`, `value`, and `key` properties
+- **Single results**: Individual values or objects
+- **Multiple results**: Arrays of values or structured objects
+- **No matches**: "No matches found" message
+- **Errors**: Descriptive error messages for invalid JSON or malformed JSONPath queries
 
 #### Get Changed Files Between Commits
 

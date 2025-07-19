@@ -477,7 +477,7 @@ public class McpServer : IMcpServer
                         jsonFilePath = new { type = "string", description = "Path to the JSON file relative to workspace root" },
                         jsonPath = new { type = "string", description = "JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')" },
                         indented = new { type = "boolean", description = "Whether to format the output with indentation (default: true)" },
-                        preserveKeys = new { type = "boolean", description = "Whether to return structured results with path, value, and key information (default: false)" }
+                        showKeyPaths = new { type = "boolean", description = "Whether to return structured results with path, value, and key information (default: false)" }
                     },
                     required = new[] { "jsonFilePath", "jsonPath" }
                 }
@@ -1217,7 +1217,7 @@ public class McpServer : IMcpServer
             var jsonFilePath = GetArgumentValue<string>(toolRequest.Arguments, "jsonFilePath", "");
             var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
             var indented = GetArgumentValue<bool?>(toolRequest.Arguments, "indented", true);
-            var preserveKeys = GetArgumentValue<bool?>(toolRequest.Arguments, "preserveKeys", false);
+            var showKeyPaths = GetArgumentValue<bool?>(toolRequest.Arguments, "showKeyPaths", false);
 
             if (string.IsNullOrWhiteSpace(jsonFilePath))
             {
@@ -1237,7 +1237,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var result = await _gitServiceTools.SearchJsonFileAsync(jsonFilePath, jsonPath, indented, preserveKeys);
+            var result = await _gitServiceTools.SearchJsonFileAsync(jsonFilePath, jsonPath, indented, showKeyPaths);
 
             return new CallToolResponse
             {

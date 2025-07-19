@@ -265,7 +265,7 @@ public class LocationService : ILocationService
             if (!results.Any())
             {
                 _logger.LogWarning("No matches found for JSONPath: {JsonPath} in file: {JsonFilePath}", jsonPath, jsonFilePath);
-                return String.Empty; // Return an empty string if no matches are found
+                return string.Empty; // Return an empty string if no matches are found
             }
 
             // Handle multiple results

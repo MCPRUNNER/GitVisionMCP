@@ -938,7 +938,7 @@ public class GitServiceTools : IGitServiceTools
             // Apply last modified before filter
             if (!string.IsNullOrWhiteSpace(lastModifiedBefore) && DateTime.TryParse(lastModifiedBefore, out var beforeDate))
             {
-                filteredFiles = filteredFiles.Where(f => f.LastModified.Date < beforeDate.Date);
+                filteredFiles = filteredFiles.Where(f => f.LastModified < beforeDate);
             }
 
             var result = filteredFiles.ToList();

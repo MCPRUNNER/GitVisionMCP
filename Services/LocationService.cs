@@ -658,7 +658,7 @@ public class LocationService : ILocationService
 
             if (!File.Exists(filePath))
             {
-                _logger.LogWarning("ReadFilefile does not exist: {FilePath}", filePath);
+                _logger.LogWarning("ReadFile: file does not exist: {FilePath}", filePath);
                 return null;
             }
 

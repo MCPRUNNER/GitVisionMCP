@@ -1044,7 +1044,7 @@ public class GitServiceTools : IGitServiceTools
             {
                 try
                 {
-                    var fileInfo = new FileInfo(file.RelativePath);
+                    var fileInfo = new FileInfo(file.FullPath);
 
                     // Create FileContentInfo with basic properties
                     var fileContentInfo = new Models.FileContentInfo

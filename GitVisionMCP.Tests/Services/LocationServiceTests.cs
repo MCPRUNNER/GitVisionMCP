@@ -80,4 +80,55 @@ public class LocationServiceTests
         // Assert
         Assert.Null(content);
     }
+
+    [Fact]
+    public void SearchYamlFile_WithValidYamlContent_ReturnsSearchResult()
+    {
+        // Arrange
+        var mockLogger = new Mock<ILogger<LocationService>>();
+
+        // Set up environment to point to test directory
+        var originalDir = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
+        var testDir = Path.Combine(Path.GetTempPath(), "yaml-test");
+        Directory.CreateDirectory(testDir);
+
+        var yamlFilePath = Path.Combine(testDir, "test-config.yaml");
+        var yamlContent = @"
+application:
+  name: ""TestApp""
+  version: ""1.0.0""
+database:
+  host: ""localhost""
+  port: 5432
+users:
+  - name: ""John""
+    role: ""admin""
+  - name: ""Jane""
+    role: ""user""
+";
+        File.WriteAllText(yamlFilePath, yamlContent);
+
+        Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", testDir);
+
+        try
+        {
+            var locationService = new LocationService(mockLogger.Object);
+
+            // Act
+            var result = locationService.SearchYamlFile("test-config.yaml", "$.application.name");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Contains("TestApp", result);
+        }
+        finally
+        {
+            // Cleanup
+            Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", originalDir);
+            if (Directory.Exists(testDir))
+            {
+                Directory.Delete(testDir, true);
+            }
+        }
+    }
 }

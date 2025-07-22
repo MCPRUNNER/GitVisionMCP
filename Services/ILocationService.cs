@@ -43,6 +43,16 @@ public interface ILocationService
     string? SearchJsonFile(string jsonFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false);
 
     /// <summary>
+    /// Searches for YAML values in a YAML file using JSONPath queries by converting YAML to JSON.
+    /// </summary>
+    /// <param name="yamlFilePath">The path to the YAML file to search</param>
+    /// <param name="jsonPath">The JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')</param>
+    /// <param name="indented">Whether to format the output as indented JSON</param>
+    /// <param name="showKeyPaths">Whether to return structured results with path, value, and key information</param>
+    /// <returns>A string representation of the search results, or an empty string if no matches are found</returns>
+    string? SearchYamlFile(string yamlFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false);
+
+    /// <summary>
     /// Searches for XML values in an XML file using XPath queries with support for namespaces and structured results.
     /// </summary>
     /// <param name="xmlFilePath">The path to the XML file to search</param>

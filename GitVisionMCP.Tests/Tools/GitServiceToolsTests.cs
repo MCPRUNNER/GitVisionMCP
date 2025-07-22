@@ -410,5 +410,61 @@ namespace GitVisionMCP.Tests.Tools
         }
 
         #endregion
+
+        #region SearchYamlFileAsync Tests
+
+        [Fact]
+        public async Task SearchYamlFileAsync_ValidYamlFile_ReturnsResult()
+        {
+            // Arrange
+            var yamlFilePath = "test.yaml";
+            var jsonPath = "$.application.name";
+            var expectedResult = "\"GitVisionMCP\"";
+
+            _mockLocationService.Setup(m => m.SearchYamlFile(yamlFilePath, jsonPath, true, false))
+                .Returns(expectedResult);
+
+            // Act
+            var result = await _gitServiceTools.SearchYamlFileAsync(yamlFilePath, jsonPath);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+            _mockLocationService.Verify(m => m.SearchYamlFile(yamlFilePath, jsonPath, true, false), Times.Once);
+        }
+
+        [Fact]
+        public async Task SearchYamlFileAsync_EmptyFilePath_ThrowsArgumentException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(
+                async () => await _gitServiceTools.SearchYamlFileAsync("", "$.name"));
+        }
+
+        [Fact]
+        public async Task SearchYamlFileAsync_EmptyJsonPath_ThrowsArgumentException()
+        {
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(
+                async () => await _gitServiceTools.SearchYamlFileAsync("test.yaml", ""));
+        }
+
+        [Fact]
+        public async Task SearchYamlFileAsync_NoResults_ReturnsNoMatchesMessage()
+        {
+            // Arrange
+            var yamlFilePath = "test.yaml";
+            var jsonPath = "$.nonexistent";
+
+            _mockLocationService.Setup(m => m.SearchYamlFile(yamlFilePath, jsonPath, true, false))
+                .Returns(string.Empty);
+
+            // Act
+            var result = await _gitServiceTools.SearchYamlFileAsync(yamlFilePath, jsonPath);
+
+            // Assert
+            Assert.Equal("No matches found", result);
+        }
+
+        #endregion
     }
 }

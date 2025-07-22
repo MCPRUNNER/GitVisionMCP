@@ -1,0 +1,42 @@
+application:
+  name: "GitVisionMCP"
+  version: "1.0.0"
+  environment: "development"
+  
+database:
+  connections:
+    - name: "primary"
+      host: "localhost"
+      port: 5432
+      database: "gitvision"
+      ssl: true
+    - name: "secondary"
+      host: "backup.example.com"
+      port: 5432
+      database: "gitvision_backup"
+      ssl: false
+      
+logging:
+  level: "Information"
+  outputs:
+    - console
+    - file
+  file:
+    path: "./logs/app.log"
+    maxSize: "10MB"
+    
+features:
+  yaml_search: true
+  xml_search: true
+  json_search: true
+  exclude_functionality: true
+  
+users:
+  - id: 1
+    name: "John Doe"
+    email: "john@example.com"
+    roles: ["admin", "user"]
+  - id: 2
+    name: "Jane Smith"
+    email: "jane@example.com"
+    roles: ["user"]

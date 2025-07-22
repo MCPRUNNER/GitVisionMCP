@@ -946,6 +946,152 @@ The `showKeyPaths` parameter is particularly useful when you need to:
 | Nested elements     | `$.config.database.host` | `//config/database/host`    | Navigate nested structure           |
 | All children        | `$.settings.*`           | `/configuration/settings/*` | Get all direct children             |
 
+## 🆕 YAML Search Examples
+
+The YAML search tool provides powerful search capabilities for YAML files using JSONPath queries. YAML content is internally converted to JSON for consistent querying with existing tools.
+
+### Extract Application Configuration
+
+#### Copilot Command:
+
+```bash
+@copilot Search config.yaml for the application name using JSONPath $.application.name
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 17,
+  "method": "tools/call",
+  "params": {
+    "name": "search_yaml_file",
+    "arguments": {
+      "yamlFilePath": "config.yaml",
+      "jsonPath": "$.application.name"
+    }
+  }
+}
+```
+
+**Expected Response:**
+
+```json
+"GitVisionMCP"
+```
+
+### Search Database Configuration
+
+#### Get All Database Hosts
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 18,
+  "method": "tools/call",
+  "params": {
+    "name": "search_yaml_file",
+    "arguments": {
+      "yamlFilePath": "config.yaml",
+      "jsonPath": "$.database.connections[*].host"
+    }
+  }
+}
+```
+
+**Expected Response:**
+
+```json
+["localhost", "backup.example.com"]
+```
+
+### Complex YAML Queries with Filtering
+
+#### Get SSL-Enabled Database Connections
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 19,
+  "method": "tools/call",
+  "params": {
+    "name": "search_yaml_file",
+    "arguments": {
+      "yamlFilePath": "config.yaml",
+      "jsonPath": "$.database.connections[?(@.ssl == true)]"
+    }
+  }
+}
+```
+
+#### Get User Roles with showKeyPaths
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 20,
+  "method": "tools/call",
+  "params": {
+    "name": "search_yaml_file",
+    "arguments": {
+      "yamlFilePath": "config.yaml",
+      "jsonPath": "$.users[*].roles",
+      "showKeyPaths": true
+    }
+  }
+}
+```
+
+**Expected Response:**
+
+```json
+[
+  {
+    "path": "users[0].roles",
+    "value": ["admin", "user"],
+    "key": "roles"
+  },
+  {
+    "path": "users[1].roles",
+    "value": ["user"],
+    "key": "roles"
+  }
+]
+```
+
+### YAML vs JSON vs XML Comparison
+
+| Feature               | YAML Search (JSONPath) | JSON Search (JSONPath) | XML Search (XPath)  |
+| --------------------- | ---------------------- | ---------------------- | ------------------- |
+| File formats          | `.yaml`, `.yml`        | `.json`                | `.xml`              |
+| Query language        | JSONPath               | JSONPath               | XPath               |
+| Array access          | `$.items[0]`           | `$.items[0]`           | `//items[1]`        |
+| Filter conditions     | `$[?(@.enabled)]`      | `$[?(@.enabled)]`      | `[@enabled='true']` |
+| Nested navigation     | `$.config.db.host`     | `$.config.db.host`     | `//config/db/host`  |
+| Wildcard selection    | `$.users[*].name`      | `$.users[*].name`      | `//user/@name`      |
+| showKeyPaths support  | ✅ Yes                 | ✅ Yes                 | ✅ Yes              |
+| Human-readable format | ✅ Yes                 | ❌ No                  | ❌ No               |
+
+### Use Cases for YAML Search
+
+The YAML search tool is particularly useful for:
+
+- **Configuration Management**: Extract settings from Docker Compose, Kubernetes manifests, CI/CD pipelines
+- **Infrastructure as Code**: Query Ansible playbooks, Terraform configurations, Helm charts
+- **Application Config**: Search application.yml, database.yml, and other configuration files
+- **Documentation**: Extract metadata from YAML front matter in documentation files
+- **API Definitions**: Query OpenAPI/Swagger specifications in YAML format
+
+**Expected Response Formats:**
+
+- **showKeyPaths=false**: Direct JSON values (arrays for multiple results)
+- **showKeyPaths=true**: Structured objects with `path`, `value`, and `key` properties
+- **Single results**: Individual values (strings, numbers, objects, arrays)
+- **Multiple results**: JSON arrays of matched values
+- **No matches**: "No matches found" message
+- **Errors**: Descriptive error messages for invalid YAML or malformed JSONPath queries
+
 ### Branch Discovery Tools
 
 #### Get All Branches

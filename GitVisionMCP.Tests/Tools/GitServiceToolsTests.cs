@@ -70,6 +70,7 @@ namespace GitVisionMCP.Tests.Tools
 
             // Setup mock location service
             _mockLocationService.Setup(m => m.GetAllFiles()).Returns(_mockFiles);
+            _mockLocationService.Setup(m => m.GetAllFilesAsync()).ReturnsAsync(_mockFiles);
         }
 
         #region ListWorkspaceFilesAsync Tests
@@ -202,7 +203,7 @@ namespace GitVisionMCP.Tests.Tools
         public async Task ListWorkspaceFilesAsync_HandlesExceptions()
         {
             // Arrange
-            _mockLocationService.Setup(m => m.GetAllFiles()).Throws(new Exception("Test exception"));
+            _mockLocationService.Setup(m => m.GetAllFilesAsync()).ThrowsAsync(new Exception("Test exception"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -349,7 +350,7 @@ namespace GitVisionMCP.Tests.Tools
         public async Task ReadFilteredWorkspaceFilesAsync_HandlesExceptions()
         {
             // Arrange
-            _mockLocationService.Setup(m => m.GetAllFiles()).Throws(new Exception("Test exception"));
+            _mockLocationService.Setup(m => m.GetAllFilesAsync()).ThrowsAsync(new Exception("Test exception"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(

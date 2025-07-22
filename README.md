@@ -67,9 +67,9 @@ This prevents build messages and logging output from interfering with the JSON-R
 
 ## Features
 
-### 🛠️ Complete Tool Suite (15 Tools Available)
+### 🛠️ Complete Tool Suite (23 Tools Available)
 
-This MCP server provides comprehensive git documentation and analysis capabilities through 15 specialized tools:
+This MCP server provides comprehensive git documentation and analysis capabilities through 23 specialized tools:
 
 **📝 Documentation & Analysis (6 tools)**
 
@@ -78,11 +78,14 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - Remote repository integration and synchronization
 - Historical change tracking and statistics
 
-**🔍 Search & Discovery (3 tools)**
+**🔍 Search & Discovery (6 tools)**
 
 - Comprehensive commit search across messages and file contents
 - Intelligent file change detection between commits
 - JSON file search and query capabilities using JSONPath
+- XML file search and query capabilities using XPath
+- Workspace file discovery and content analysis
+- ASP.NET Core controller structure analysis
 
 **🌿 Branch Management (4 tools)**
 
@@ -91,10 +94,44 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - Remote fetch and synchronization operations
 - Multi-branch analysis and reporting
 
-**⚡ Advanced Analysis (2 tools)**
+**⚡ Advanced Analysis (4 tools)**
 
 - Line-by-line diff analysis for specific files
 - Recent commit retrieval with detailed metadata
+- Workspace file listing with advanced filtering
+- Bulk file content reading with size limits
+
+**🚀 Workspace File Operations (3 tools)**
+
+- **Smart File Filtering**: Automatic exclusion of build artifacts, IDE files, and logs
+- **Configurable Exclude Patterns**: Customizable `.gitvision/exclude.json` configuration
+- **Performance Optimized**: Efficient file operations with size and count limits
+
+### 🆕 Exclude Functionality
+
+**New in this version**: Smart file exclusion system for workspace operations!
+
+✅ **Automatic Exclusions**
+
+- Build artifacts (`**/bin/**`, `**/obj/**`, `**/Debug/**`, `**/Release/**`)
+- IDE and editor files (`.vs/**`, `.vscode/**`, `*.cache`)
+- Version control (`.git/**`)
+- Package managers (`node_modules/**`)
+- Log files (`*.log`)
+
+✅ **Configurable Patterns**
+
+- Create `.gitvision/exclude.json` in your workspace root
+- Use glob patterns with wildcards (`*`, `**`, `?`)
+- Case-insensitive pattern matching
+- Automatic configuration loading and caching
+
+✅ **Performance Benefits**
+
+- Faster workspace file operations
+- Reduced memory usage
+- Cleaner file listings
+- Focus on relevant source code files
 
 ### Core Documentation Tools
 
@@ -117,6 +154,13 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - **search_commits_for_string**: 🆕 Search all commits for a specific string and return detailed match information
 - **search_json_file**: 🆕 Search for JSON values in a JSON file using JSONPath queries
 - **search_xml_file**: 🆕 Search for XML values in an XML file using XPath queries
+
+### Workspace File Operations
+
+- **list_workspace_files**: 🆕 List all files in the workspace with advanced filtering options
+- **list_workspace_files_with_cached_data**: 🆕 High-performance file listing using cached data
+- **read_filtered_workspace_files**: 🆕 Read contents of filtered files with size and count limits
+- **analyze_controller**: 🆕 Analyze ASP.NET Core controller structure and generate JSON documentation
 
 ### Commit Search Tool
 
@@ -233,6 +277,65 @@ The **search_xml_file** tool provides powerful XML querying capabilities using X
 | Get first user      | `$.users[0]`           | `//user[1]`              | First user (XPath is 1-indexed) |
 | Filter by condition | `$.users[?(@.active)]` | `//user[@active='true']` | Conditional filtering           |
 | Get nested value    | `$.config.db.host`     | `//config/db/host`       | Nested element access           |
+
+### Workspace File Operations
+
+The workspace file operations provide comprehensive file management capabilities with intelligent filtering and performance optimizations:
+
+#### 🆕 Advanced File Discovery
+
+- **list_workspace_files**: Discover all files in the workspace with advanced filtering
+- **Smart Exclusions**: Automatically exclude build artifacts, IDE files, and dependencies
+- **Multiple Filters**: Filter by file type, path patterns, and modification dates
+- **Performance Optimized**: Efficient file system traversal with exclude patterns
+
+#### 🆕 Bulk Content Analysis
+
+- **read_filtered_workspace_files**: Read multiple file contents with safety limits
+- **Size Limits**: Configurable file size limits (default 1MB, max 10MB per file)
+- **Count Limits**: Configurable file count limits (default 500, max 1000 files)
+- **Binary Detection**: Automatic binary file exclusion
+- **Error Handling**: Graceful handling of missing or corrupted files
+
+#### 🆕 Exclude Configuration
+
+**Location**: `.gitvision/exclude.json` in workspace root
+
+**Default Exclude Patterns**:
+
+```json
+{
+  "excludePatterns": [
+    ".git/**", // Git repository data
+    "node_modules/**", // Node.js dependencies
+    "**/bin/**", // Build output directories
+    "**/obj/**", // Build intermediate files
+    "**/Debug/**", // Debug build artifacts
+    "**/Release/**", // Release build artifacts
+    ".vs/**", // Visual Studio files
+    ".vscode/**", // VS Code files
+    "*.cache", // Cache files
+    "*.log", // Log files
+    "**/.gitvision/**" // GitVision configuration
+  ],
+  "description": "Default exclude patterns for workspace file operations",
+  "version": "1.0.0"
+}
+```
+
+**Glob Pattern Support**:
+
+- `**` - Matches any number of directories (recursive)
+- `*` - Matches any characters except directory separators
+- `?` - Matches any single character
+- Case-insensitive pattern matching
+
+#### 🆕 Controller Analysis
+
+- **analyze_controller**: Parse ASP.NET Core controller files
+- **Structure Analysis**: Extract actions, parameters, return types, and attributes
+- **Documentation Generation**: Create comprehensive JSON documentation
+- **Route Analysis**: Analyze routing patterns and HTTP methods
 
 ### Branch Discovery and Remote Support
 

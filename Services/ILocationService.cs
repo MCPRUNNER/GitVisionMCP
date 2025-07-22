@@ -18,6 +18,19 @@ public interface ILocationService
     /// <returns>A list of file information including relative path and file type</returns>
     List<WorkspaceFileInfo> GetAllFiles();
 
+    /// <summary>
+    /// Gets all files under the workspace root directory with relative paths and file types, excluding files matching exclude patterns
+    /// </summary>
+    /// <returns>A list of file information including relative path and file type, excluding excluded files</returns>
+    Task<List<WorkspaceFileInfo>> GetAllFilesAsync();
+
+    /// <summary>
+    /// Checks if a file path should be excluded based on the exclude patterns
+    /// </summary>
+    /// <param name="relativePath">The relative path to check</param>
+    /// <returns>True if the file should be excluded, false otherwise</returns>
+    Task<bool> IsFileExcludedAsync(string relativePath);
+
 
     /// <summary>
     /// Searches a JSON file for values using JSONPath query with support for wildcards and recursive descent.

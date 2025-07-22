@@ -42,6 +42,37 @@ GitVisionMCP provides specialized MCP prompts for creating release documentation
 - **Code Archaeology**: `"Find all references to deprecated API functions"`
 - **Documentation**: `"Search for 'TODO' comments across the project"`
 
+## 🆕 What's New - YAML Search Tool
+
+**Latest Addition**: Powerful YAML file search functionality that brings JSONPath querying to YAML configuration files:
+
+✅ **YAML Configuration Support**
+
+- Search through YAML files using familiar JSONPath syntax
+- Automatic YAML-to-JSON conversion for seamless querying
+- Support for .yaml and .yml file extensions
+
+✅ **DevOps Integration**
+
+- Query Docker Compose files: `"Extract all service images from docker-compose.yml"`
+- Search Kubernetes manifests: `"Find all container ports in k8s configurations"`
+- Analyze CI/CD pipelines: `"Get all environment variables from GitHub Actions"`
+- Parse Ansible playbooks: `"Extract all task names and their conditions"`
+
+✅ **Infrastructure as Code**
+
+- **Configuration Management**: Query application.yml, database.yml, feature flags
+- **API Documentation**: Search OpenAPI/Swagger YAML specifications
+- **Deployment Configs**: Extract settings from Helm charts and Terraform configurations
+- **Documentation**: Parse YAML front matter from markdown files
+
+✅ **Practical Applications**
+
+- **Configuration Audit**: `"Find all database connections in config.yaml"`
+- **Security Review**: `"Search for exposed ports and sensitive settings"`
+- **Environment Setup**: `"Extract all required environment variables"`
+- **Service Discovery**: `"List all microservices and their dependencies"`
+
 ## ⚠️ Important Setup Note
 
 To ensure clean JSON-RPC communication, the MCP server should be run with:
@@ -67,9 +98,9 @@ This prevents build messages and logging output from interfering with the JSON-R
 
 ## Features
 
-### 🛠️ Complete Tool Suite (23 Tools Available)
+### 🛠️ Complete Tool Suite (24 Tools Available)
 
-This MCP server provides comprehensive git documentation and analysis capabilities through 23 specialized tools:
+This MCP server provides comprehensive git documentation and analysis capabilities through 24 specialized tools:
 
 **📝 Documentation & Analysis (6 tools)**
 
@@ -78,12 +109,13 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - Remote repository integration and synchronization
 - Historical change tracking and statistics
 
-**🔍 Search & Discovery (6 tools)**
+**🔍 Search & Discovery (7 tools)**
 
 - Comprehensive commit search across messages and file contents
 - Intelligent file change detection between commits
 - JSON file search and query capabilities using JSONPath
 - XML file search and query capabilities using XPath
+- **YAML file search and query capabilities using JSONPath** 🆕
 - Workspace file discovery and content analysis
 - ASP.NET Core controller structure analysis
 
@@ -154,6 +186,7 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - **search_commits_for_string**: 🆕 Search all commits for a specific string and return detailed match information
 - **search_json_file**: 🆕 Search for JSON values in a JSON file using JSONPath queries
 - **search_xml_file**: 🆕 Search for XML values in an XML file using XPath queries
+- **search_yaml_file**: 🆕 Search for YAML values in a YAML file using JSONPath queries
 
 ### Workspace File Operations
 
@@ -277,6 +310,54 @@ The **search_xml_file** tool provides powerful XML querying capabilities using X
 | Get first user      | `$.users[0]`           | `//user[1]`              | First user (XPath is 1-indexed) |
 | Filter by condition | `$.users[?(@.active)]` | `//user[@active='true']` | Conditional filtering           |
 | Get nested value    | `$.config.db.host`     | `//config/db/host`       | Nested element access           |
+
+### YAML Search Tool
+
+The **search_yaml_file** tool provides powerful YAML querying capabilities using JSONPath queries by converting YAML to JSON internally:
+
+- **JSONPath queries**: Search YAML files using familiar JSONPath syntax with wildcard support
+- **YAML-to-JSON conversion**: Internally converts YAML to JSON for consistent querying
+- **Structured Results**: Optional `showKeyPaths` parameter returns path context with values
+- **Flexible file access**: Search any YAML file in the workspace (.yaml, .yml extensions)
+- **Formatted output**: Option to return results with or without indentation
+- **Multiple result handling**: Automatically handles single values or arrays of results
+- **Error handling**: Comprehensive error reporting for invalid YAML or malformed JSONPath queries
+
+#### Enhanced YAML Features:
+
+- **Configuration Management**: Query Docker Compose, Kubernetes manifests, CI/CD pipelines
+- **Infrastructure as Code**: Search Ansible playbooks, Terraform configurations, Helm charts
+- **Application Config**: Extract settings from application.yml, database.yml files
+- **API Definitions**: Query OpenAPI/Swagger specifications in YAML format
+- **Documentation**: Extract metadata from YAML front matter
+
+#### YAML Search Examples:
+
+- `$.application.name` - Get application name from configuration
+- `$.database.connections[*].host` - Get all database hosts
+- `$.users[*].roles` - Get all user roles
+- `$.features[?(@.enabled)].name` - Get names of enabled features
+- `$.services.*.image` - Get all Docker service images (wildcard properties)
+
+#### YAML vs JSON vs XML Comparison:
+
+| Feature               | YAML Search (JSONPath) | JSON Search (JSONPath) | XML Search (XPath)  |
+| --------------------- | ---------------------- | ---------------------- | ------------------- |
+| File formats          | `.yaml`, `.yml`        | `.json`                | `.xml`              |
+| Query language        | JSONPath               | JSONPath               | XPath               |
+| Array access          | `$.items[0]`           | `$.items[0]`           | `//items[1]`        |
+| Filter conditions     | `$[?(@.enabled)]`      | `$[?(@.enabled)]`      | `[@enabled='true']` |
+| Nested navigation     | `$.config.db.host`     | `$.config.db.host`     | `//config/db/host`  |
+| Wildcard selection    | `$.users[*].name`      | `$.users[*].name`      | `//user/@name`      |
+| showKeyPaths support  | ✅ Yes                 | ✅ Yes                 | ✅ Yes              |
+| Human-readable format | ✅ Yes                 | ❌ No                  | ❌ No               |
+
+#### YAML Search Results:
+
+- Extracted JSON values matching the JSONPath query (converted from YAML)
+- Formatted output (indented or compact)
+- "No matches found" message when query returns no results
+- Full compatibility with existing JSON search infrastructure
 
 ### Workspace File Operations
 
@@ -514,6 +595,9 @@ Once configured, you can use natural language commands with Copilot:
 - "Find all commits that mention 'bug fix' in messages or code"
 - "Look for 'TODO' comments across the entire commit history"
 - "Search for 'deprecated' functions and show me where they were used"
+- "Search config.yaml for database settings using JSONPath $.database.\*"
+- "Extract all Docker service names from docker-compose.yml"
+- "Find all environment variables in Kubernetes manifests"
 
 **🌿 Branch Analysis:**
 
@@ -957,6 +1041,49 @@ When `showKeyPaths` is enabled, the tool returns structured objects containing:
 - **Documentation**: Generate configuration references with element context
 - **System Integration**: Parse XML configuration files and web service responses
 
+#### search_yaml_file
+
+Searches for YAML values in a YAML file using JSONPath queries with YAML-to-JSON conversion.
+
+**Parameters:**
+
+- `yamlFilePath` (required): Path to the YAML file relative to workspace root
+- `jsonPath` (required): JSONPath query string (e.g., '$.application.name', '$.database.connections[*].host')
+- `indented` (optional): Whether to format the output with indentation (default: true)
+- `showKeyPaths` (optional): Whether to return structured results with path, value, and key information (default: false)
+
+**Returns:** JSON values matching the JSONPath query (converted from YAML), or "No matches found" if the query returns no results
+
+**Enhanced YAML Support:**
+
+- **Configuration Files**: Query Docker Compose, Kubernetes manifests, application.yml
+- **Infrastructure as Code**: Search Ansible playbooks, Helm charts, CI/CD pipelines
+- **API Specifications**: Query OpenAPI/Swagger definitions in YAML format
+- **Documentation**: Extract metadata from YAML front matter
+- **Human-Readable**: Works with the most readable configuration format
+
+**JSONPath Examples for YAML:**
+
+- `$.application.name` - Get application name from config
+- `$.database.connections[*].host` - Get all database hosts
+- `$.users[*].roles` - Get all user role arrays
+- `$.features[?(@.enabled)].name` - Get names of enabled features
+- `$.services.*.image` - Get all Docker service images
+
+**YAML Search Results:**
+
+- Extracted values in JSON format (converted from YAML)
+- Formatted output (indented or compact JSON)
+- Full compatibility with existing JSONPath infrastructure
+- Support for complex YAML structures including arrays, objects, and nested data
+
+**Use Cases:**
+
+- **DevOps Configuration**: Extract settings from Docker Compose, Kubernetes, Ansible
+- **Application Configuration**: Query application.yml, database.yml, config files
+- **Infrastructure Management**: Search Terraform, Helm charts, CI/CD configurations
+- **API Documentation**: Extract information from OpenAPI/Swagger YAML specifications
+
 ### Commit Search Tool
 
 **Search Capabilities:**
@@ -1273,7 +1400,80 @@ Use cases include:
 - **Documentation**: Generate configuration references from JSON files
 - **Data analysis**: Extract specific data points with full context preservation
 
-### 9. Line-by-Line Analysis
+### 9. YAML Configuration Analysis
+
+#### Copilot Command:
+
+```bash
+@copilot Search config.yaml for database configuration using JSONPath $.database.connections[*].host
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 8,
+  "method": "tools/call",
+  "params": {
+    "name": "search_yaml_file",
+    "arguments": {
+      "yamlFilePath": "config.yaml",
+      "jsonPath": "$.database.connections[*].host",
+      "indented": true,
+      "showKeyPaths": false
+    }
+  }
+}
+```
+
+Perfect for extracting configuration values from YAML files. The YAML search supports:
+
+- **Simple property access**: `$.propertyName`
+- **Nested navigation**: `$.level1.level2.property`
+- **Array wildcards**: `$.connections[0].host` or `$.connections[*].port`
+- **Complex queries**: `$.services[?(@.enabled)].name`
+- **Recursive searches**: `$..database` (all database properties at any level)
+- **Structured results**: Enable `showKeyPaths` for path context and metadata
+
+**YAML-specific Use Cases:**
+
+- **DevOps Configuration**: Extract settings from Docker Compose, Kubernetes manifests
+- **Infrastructure as Code**: Query Ansible playbooks, Terraform configurations
+- **CI/CD Pipelines**: Extract job configurations, environment variables, deployment settings
+- **Application Configuration**: Parse application.yml, database.yml, feature flags
+- **API Specifications**: Query OpenAPI/Swagger YAML definitions
+
+Example YAML file structure:
+
+```yaml
+application:
+  name: "MyApp"
+  version: "1.0.0"
+database:
+  connections:
+    - host: "localhost"
+      port: 5432
+      ssl: true
+    - host: "backup.example.com"
+      port: 5432
+      ssl: false
+services:
+  web:
+    image: "nginx:latest"
+    enabled: true
+  api:
+    image: "myapp:v1.0"
+    enabled: true
+```
+
+**Common YAML Queries:**
+
+- `$.application.name` → `"MyApp"`
+- `$.database.connections[*].host` → `["localhost", "backup.example.com"]`
+- `$.services[?(@.enabled)].image` → `["nginx:latest", "myapp:v1.0"]`
+
+### 10. Line-by-Line Analysis
 
 #### Copilot Command:
 

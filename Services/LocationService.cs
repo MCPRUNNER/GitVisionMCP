@@ -6,6 +6,7 @@ using System.Xml.Linq;
 using System.Xml.XPath;
 using System.Text.RegularExpressions;
 using GitVisionMCP.Models;
+using YamlDotNet.Serialization;
 namespace GitVisionMCP.Services;
 
 /// <summary>
@@ -641,6 +642,128 @@ public class LocationService : ILocationService
         var parts = xPath.TrimStart('/').Split('/');
         var lastPart = parts.LastOrDefault()?.Split('@').LastOrDefault()?.Split('[').FirstOrDefault();
         return !string.IsNullOrEmpty(lastPart) ? lastPart : "result";
+    }
+
+    public string? SearchYamlFile(string yamlFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(yamlFilePath))
+            {
+                _logger.LogError("YAML file path cannot be null or empty");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                _logger.LogError("JSONPath cannot be null or empty");
+                return null;
+            }
+
+            // Read the entire content of the YAML file into a string
+            var filePath = Path.Combine(_workspaceRoot, yamlFilePath);
+            var yamlContent = ReadFile(filePath);
+
+            if (string.IsNullOrWhiteSpace(yamlContent))
+            {
+                _logger.LogError("YAML file content is empty or null: {YamlFilePath}", yamlFilePath);
+                return null;
+            }
+
+            // Parse YAML and convert to JSON
+            var deserializer = new DeserializerBuilder().Build();
+            var yamlObject = deserializer.Deserialize(yamlContent);
+
+            var serializer = new SerializerBuilder()
+                .JsonCompatible()
+                .Build();
+            var jsonContent = serializer.Serialize(yamlObject);
+
+            // Parse the JSON string into a JObject
+            JObject jsonObj = JObject.Parse(jsonContent);
+
+            // Use SelectTokens to support wildcards and multiple results
+            IEnumerable<JToken> results = jsonObj.SelectTokens(jsonPath);
+
+            if (!results.Any())
+            {
+                _logger.LogWarning("No matches found for JSONPath: {JsonPath} in YAML file: {YamlFilePath}", jsonPath, yamlFilePath);
+                return string.Empty; // Return an empty string if no matches are found
+            }
+
+            // Handle multiple results
+            var resultsList = results.ToList();
+
+            if (showKeyPaths)
+            {
+                // When preserving keys, create a structured result that shows the path and value
+                var structuredResults = new JArray();
+
+                foreach (var result in resultsList)
+                {
+                    var pathInfo = new JObject();
+                    pathInfo["path"] = result.Path;
+                    pathInfo["value"] = result;
+
+                    // Try to extract a meaningful key name from the path
+                    var pathParts = result.Path.Split('.');
+                    if (pathParts.Length > 0)
+                    {
+                        var lastPart = pathParts.Last().Replace("[", "").Replace("]", "");
+                        if (!string.IsNullOrEmpty(lastPart) && !char.IsDigit(lastPart[0]))
+                        {
+                            pathInfo["key"] = lastPart;
+                        }
+                    }
+
+                    structuredResults.Add(pathInfo);
+                }
+
+                if (structuredResults.Count == 1)
+                {
+                    return JTokenToString(structuredResults[0], indented);
+                }
+                else
+                {
+                    return JTokenToString(structuredResults, indented);
+                }
+            }
+            else
+            {
+                // Format the results based on the count
+                if (resultsList.Count == 1)
+                {
+                    // Single result, format nicely
+                    return JTokenToString(resultsList[0], indented);
+                }
+                else
+                {
+                    // Multiple results, return as array
+                    var array = new JArray(resultsList);
+                    return JTokenToString(array, indented);
+                }
+            }
+        }
+        catch (FileNotFoundException)
+        {
+            _logger.LogError("The YAML file '{YamlFilePath}' was not found", yamlFilePath);
+            return null;
+        }
+        catch (YamlDotNet.Core.YamlException ex)
+        {
+            _logger.LogError(ex, "Invalid YAML format in '{YamlFilePath}'. Details: {Message}", yamlFilePath, ex.Message);
+            return null;
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Error processing YAML conversion to JSON in '{YamlFilePath}'. Details: {Message}", yamlFilePath, ex.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while searching YAML file '{YamlFilePath}': {Message}", yamlFilePath, ex.Message);
+            return null;
+        }
     }
 
     public string? ReadFile(string filePath)

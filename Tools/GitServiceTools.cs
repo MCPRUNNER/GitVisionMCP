@@ -5,6 +5,7 @@ using GitVisionMCP.Models;
 using System.ComponentModel;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
+using YamlDotNet.Core;
 namespace GitVisionMCP.Tools;
 
 /// <summary>
@@ -1251,6 +1252,67 @@ public class GitServiceTools : IGitServiceTools
         {
             _logger.LogError(ex, "Error searching XML file {XmlFilePath}", xmlFilePath);
             throw new InvalidOperationException($"Error searching XML file: {ex.Message}. See inner exception for details.", ex);
+        }
+    }
+
+    [McpServerToolAttribute]
+    [Description("Search for YAML values in a YAML file using JSONPath")]
+    public Task<string?> SearchYamlFileAsync(
+        [Description("Path to the YAML file relative to workspace root")] string yamlFilePath,
+        [Description("JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')")] string jsonPath,
+        [Description("Whether to format the output with indentation (default: true)")] bool? indented = true,
+        [Description("Whether to return structured results with path, value, and key information (default: false)")] bool? showKeyPaths = false)
+    {
+        try
+        {
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(yamlFilePath))
+            {
+                _logger.LogError("YAML file path cannot be null or empty");
+                throw new ArgumentException("YAML file path must be specified", nameof(yamlFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                _logger.LogError("JSONPath cannot be null or empty");
+                throw new ArgumentException("JSONPath must be specified", nameof(jsonPath));
+            }
+
+            _logger.LogInformation("Searching YAML file {YamlFilePath} with JSONPath {JsonPath}, showKeyPaths: {ShowKeyPaths}",
+                yamlFilePath, jsonPath, showKeyPaths ?? false);
+
+            var result = _locationService.SearchYamlFile(yamlFilePath, jsonPath, indented ?? true, showKeyPaths ?? false);
+
+            if (string.IsNullOrEmpty(result))
+            {
+                _logger.LogInformation("No matches found for JSONPath {JsonPath} in YAML file {YamlFilePath}",
+                    jsonPath, yamlFilePath);
+                return Task.FromResult<string?>("No matches found");
+            }
+
+            _logger.LogInformation("Successfully found matches for JSONPath {JsonPath} in YAML file {YamlFilePath}",
+                jsonPath, yamlFilePath);
+            return Task.FromResult<string?>(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid argument for YAML search");
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "YAML file not found: {YamlFilePath}", yamlFilePath);
+            throw new FileNotFoundException($"YAML file not found: {yamlFilePath}. Please check the file path.", ex);
+        }
+        catch (YamlDotNet.Core.YamlException ex)
+        {
+            _logger.LogError(ex, "Invalid YAML format in file {YamlFilePath}", yamlFilePath);
+            throw new InvalidDataException($"Invalid YAML format in file: {yamlFilePath}. Details: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching YAML file {YamlFilePath}", yamlFilePath);
+            throw new InvalidOperationException($"Error searching YAML file: {ex.Message}. See inner exception for details.", ex);
         }
     }
 

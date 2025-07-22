@@ -10,3 +10,9 @@
   - [x] Updated GitServiceTools to use new GetAllFilesAsync() method with exclude filtering
   - [x] Added comprehensive documentation and examples
 - [ ] Implement configuration file saved under `.gitvision/config.json` that allows changing the `maxFiles`, `maxFileSize`, and `applyExclusions` settings, and load it when needed.
+- [x] Implement SearchYamlFile Tool with same capabilities as SearchJsonFile Tool.
+  - [x] Added YamlDotNet package dependency for YAML parsing
+  - [x] Implemented SearchYamlFile method in LocationService with YAML-to-JSON conversion
+  - [x] Added SearchYamlFileAsync MCP tool in GitServiceTools with JSONPath support
+  - [x] Created comprehensive unit tests for YAML search functionality
+  - [x] Verified integration with existing JSON search infrastructure

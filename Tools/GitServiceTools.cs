@@ -905,7 +905,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var allFiles = _locationService.GetAllFiles();
+            var allFiles = await _locationService.GetAllFilesAsync();
             var filteredFiles = allFiles.AsEnumerable();
 
             // Apply file type filter
@@ -1021,13 +1021,13 @@ public class GitServiceTools : IGitServiceTools
         [Description("Filter by full path (contains search)")] string? fullPath = null,
         [Description("Filter by last modified date (ISO format: yyyy-MM-dd)")] string? lastModifiedAfter = null,
         [Description("Filter by last modified date (ISO format: yyyy-MM-dd)")] string? lastModifiedBefore = null,
-        [Description("Maximum number of files to read (default: 50, max: 200)")] int? maxFiles = 50,
+        [Description("Maximum number of files to read (default: 500, max: 1000)")] int? maxFiles = 500,
         [Description("Maximum file size to read in bytes (default: 1MB)")] long? maxFileSize = 1048576)
     {
         try
         {
             // Validate limits to prevent memory issues
-            var fileLimit = Math.Min(maxFiles ?? 50, 200);
+            var fileLimit = Math.Min(maxFiles ?? 500, 1000);
             var sizeLimit = Math.Min(maxFileSize ?? 1048576, 10485760); // Max 10MB per file
 
             _logger.LogInformation("Reading filtered workspace files with limits: {FileLimit} files, {SizeLimit} bytes per file",
@@ -1044,7 +1044,7 @@ public class GitServiceTools : IGitServiceTools
             {
                 try
                 {
-                    var fileInfo = new FileInfo(file.FullPath);
+                    var fileInfo = new FileInfo(file.RelativePath);
 
                     // Create FileContentInfo with basic properties
                     var fileContentInfo = new Models.FileContentInfo
@@ -1101,7 +1101,7 @@ public class GitServiceTools : IGitServiceTools
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Error processing file {FilePath}", file.FullPath);
+                    _logger.LogWarning(ex, "Error processing file FullPath {FilePath} RelativePath {RelativePath}", file.FullPath, file.RelativePath);
                     result.Add(new Models.FileContentInfo
                     {
                         RelativePath = file.RelativePath,

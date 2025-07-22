@@ -231,6 +231,51 @@ Once configured, you can use natural language commands with Copilot:
 @copilot Generate project structure documentation
 ```
 
+### 🆕 Smart File Exclusions
+
+**Automatic Exclusions**: GitVisionMCP automatically excludes common build artifacts and IDE files from workspace operations:
+
+- **Build Artifacts**: `**/bin/**`, `**/obj/**`, `**/Debug/**`, `**/Release/**`
+- **IDE Files**: `.vs/**`, `.vscode/**`, `*.cache`
+- **Dependencies**: `node_modules/**`
+- **Version Control**: `.git/**`
+- **Log Files**: `*.log`
+
+**Custom Exclude Configuration**: Create `.gitvision/exclude.json` in your workspace root:
+
+```json
+{
+  "excludePatterns": [
+    ".git/**",
+    "node_modules/**",
+    "**/bin/**",
+    "**/obj/**",
+    "*.cache",
+    "*.log",
+    "custom/temp/**",
+    "*.tmp"
+  ],
+  "description": "Custom exclude patterns",
+  "version": "1.0.0"
+}
+```
+
+**Benefits of Exclude Functionality**:
+
+```
+@copilot List all source code files (excludes build artifacts automatically)
+@copilot Get project files without IDE clutter
+@copilot Analyze code structure focusing on relevant files only
+@copilot Create clean file listings for documentation
+```
+
+**Performance Improvements**:
+
+- ⚡ **Faster Operations**: Exclude patterns reduce file system traversal time
+- 💾 **Memory Efficient**: Lower memory usage by filtering irrelevant files
+- 🎯 **Focused Results**: Cleaner output focusing on source code and documentation
+- 🚀 **Better Performance**: Optimized caching and pattern matching
+
 ### Advanced Use Cases
 
 #### Release Planning

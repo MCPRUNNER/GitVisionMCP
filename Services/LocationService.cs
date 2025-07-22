@@ -4,6 +4,8 @@ using Newtonsoft.Json.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using System.Text.RegularExpressions;
+using GitVisionMCP.Models;
 namespace GitVisionMCP.Services;
 
 /// <summary>
@@ -51,6 +53,8 @@ public class LocationService : ILocationService
 {
     private readonly ILogger<LocationService> _logger;
     private readonly string _workspaceRoot;
+    private ExcludeConfiguration? _excludeConfiguration;
+    private DateTime _lastExcludeConfigLoad = DateTime.MinValue;
 
     public LocationService(ILogger<LocationService> logger)
     {
@@ -103,6 +107,55 @@ public class LocationService : ILocationService
     /// Gets all files under the workspace root directory with relative paths and file types
     /// </summary>
     /// <returns>A list of file information including relative path and file type</returns>
+    /// <summary>
+    /// Gets all files in the workspace with exclude filtering applied
+    /// </summary>
+    /// <returns>A list of WorkspaceFileInfo objects for all files, excluding those matching exclude patterns</returns>
+    public async Task<List<WorkspaceFileInfo>> GetAllFilesAsync()
+    {
+        var files = new List<WorkspaceFileInfo>();
+
+        try
+        {
+            var workspaceRoot = new DirectoryInfo(_workspaceRoot);
+            var allFiles = workspaceRoot.GetFiles("*", SearchOption.AllDirectories);
+
+            foreach (var file in allFiles)
+            {
+                var relativePath = Path.GetRelativePath(_workspaceRoot, file.FullName);
+
+                // Check if file should be excluded
+                if (await IsFileExcludedAsync(relativePath))
+                {
+                    continue;
+                }
+
+                var fileType = Path.GetExtension(file.Name).ToLowerInvariant();
+
+                files.Add(new WorkspaceFileInfo
+                {
+                    RelativePath = relativePath,
+                    FileType = string.IsNullOrEmpty(fileType) ? "no extension" : fileType.TrimStart('.'),
+                    FullPath = file.FullName,
+                    Size = file.Length,
+                    LastModified = file.LastWriteTime
+                });
+            }
+
+            _logger.LogInformation("Retrieved {FileCount} files from workspace root (after exclusions): {WorkspaceRoot}", files.Count, _workspaceRoot);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving files from workspace root: {WorkspaceRoot}", _workspaceRoot);
+        }
+
+        return files;
+    }
+
+    /// <summary>
+    /// Gets all files in the workspace (synchronous version, does not apply exclude filtering for backward compatibility)
+    /// </summary>
+    /// <returns>A list of WorkspaceFileInfo objects for all files</returns>
     public List<WorkspaceFileInfo> GetAllFiles()
     {
         var files = new List<WorkspaceFileInfo>();
@@ -605,7 +658,7 @@ public class LocationService : ILocationService
 
             if (!File.Exists(filePath))
             {
-                _logger.LogWarning("Prompt file does not exist: {FilePath}", filePath);
+                _logger.LogWarning("ReadFilefile does not exist: {FilePath}", filePath);
                 return null;
             }
 
@@ -618,7 +671,7 @@ public class LocationService : ILocationService
         catch (Exception ex)
         {
 
-            _logger.LogError(ex, "Error reading file: {Filename}", filePath);
+            _logger.LogError(ex, "ReadFile Error reading file: {Filename}", filePath);
 
             return null;
         }
@@ -647,5 +700,100 @@ public class LocationService : ILocationService
         var currentDirectory = Environment.CurrentDirectory;
         _logger.LogInformation("Using current directory as workspace root: {CurrentDirectory}", currentDirectory);
         return currentDirectory;
+    }
+
+    /// <summary>
+    /// Loads the exclude configuration from .gitvision/exclude.json
+    /// </summary>
+    /// <returns>The exclude configuration or null if not found or invalid</returns>
+    private async Task<ExcludeConfiguration?> LoadExcludeConfigurationAsync()
+    {
+        try
+        {
+            var excludeConfigPath = Path.Combine(_workspaceRoot, ".gitvision", "exclude.json");
+
+            if (!File.Exists(excludeConfigPath))
+            {
+                _logger.LogInformation("Exclude configuration file not found at: {ExcludeConfigPath}", excludeConfigPath);
+                return null;
+            }
+
+            var lastWriteTime = File.GetLastWriteTime(excludeConfigPath);
+
+            // Check if we need to reload the configuration
+            if (_excludeConfiguration != null && _lastExcludeConfigLoad >= lastWriteTime)
+            {
+                return _excludeConfiguration;
+            }
+
+            var jsonContent = await File.ReadAllTextAsync(excludeConfigPath);
+            var configuration = JsonConvert.DeserializeObject<ExcludeConfiguration>(jsonContent);
+
+            _excludeConfiguration = configuration;
+            _lastExcludeConfigLoad = lastWriteTime;
+
+            _logger.LogInformation("Loaded exclude configuration with {PatternCount} patterns from: {ExcludeConfigPath}",
+                configuration?.ExcludePatterns?.Count ?? 0, excludeConfigPath);
+
+            return configuration;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading exclude configuration");
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Checks if a file path should be excluded based on the exclude patterns
+    /// </summary>
+    /// <param name="relativePath">The relative path to check</param>
+    /// <returns>True if the file should be excluded, false otherwise</returns>
+    public async Task<bool> IsFileExcludedAsync(string relativePath)
+    {
+        var excludeConfig = await LoadExcludeConfigurationAsync();
+
+        if (excludeConfig?.ExcludePatterns == null || !excludeConfig.ExcludePatterns.Any())
+        {
+            return false;
+        }
+
+        var normalizedPath = relativePath.Replace('\\', '/');
+
+        foreach (var pattern in excludeConfig.ExcludePatterns)
+        {
+            if (IsPathMatchingPattern(normalizedPath, pattern))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Matches a path against a glob pattern
+    /// </summary>
+    /// <param name="path">The path to check</param>
+    /// <param name="pattern">The glob pattern</param>
+    /// <returns>True if the path matches the pattern</returns>
+    private bool IsPathMatchingPattern(string path, string pattern)
+    {
+        // Convert glob pattern to regex
+        var regexPattern = "^" + Regex.Escape(pattern)
+            .Replace("\\*\\*", ".*")  // ** matches any number of directories
+            .Replace("\\*", "[^/]*")  // * matches any characters except directory separator
+            .Replace("\\?", ".")      // ? matches any single character
+            + "$";
+
+        try
+        {
+            return Regex.IsMatch(path, regexPattern, RegexOptions.IgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error matching pattern {Pattern} against path {Path}", pattern, path);
+            return false;
+        }
     }
 }

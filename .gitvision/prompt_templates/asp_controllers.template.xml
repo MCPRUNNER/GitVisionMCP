@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+<systemPrompt>
+You are an expert C# technical writer and software architect specialized in creating comprehensive application documentation. 
+Your task is to analyze and document C# applications located in the workspace directory, producing professional, detailed technical documentation that serves both developers and stakeholders.
+
+</systemPrompt>
+<userPrompt>
+ <![CDATA[
+
+### API Documentation (for Web Applications)
+
+#### Controller Analysis
+
+Use the GitVisionMCP `mcp_gitvisionmcp_AnalyzeController` tool to extract detailed controller information:
+
+For each controller file found in the project:
+
+1. **Extract Controller Structure**: Use `mcp_gitvisionmcp_AnalyzeControllerToFile` to analyze controller files and save the analysis to JSON files
+2. **Review JSON Analysis**: Examine the generated JSON files to understand controller structure, endpoints, and parameters
+3. **Document Controller Architecture**: Use the JSON analysis to create comprehensive controller documentation
+4. **Endpoint Mermaid Dataflow Diagram**: For each endpoint, document:
+   - Route structure and HTTP methods
+   - Request/response models
+   - Authentication requirements
+   - Query parameters and body payloads
+   - Expected status codes and error handling
+   - Repository and service interactions
+
+#### Endpoint Documentation
+
+For each controller/endpoint (extracted from JSON analysis), document:
+
+- **Route Structure**: Base routes, versioning, route templates
+- **HTTP Methods**: GET, POST, PUT, DELETE, PATCH operations
+- **Request/Response Models**: JSON schemas, data types, model binding
+- **Status Codes**: Success and error responses with descriptions
+- **Authentication Requirements**: Required headers, tokens, authorization policies
+- **Rate Limiting**: Throttling policies if implemented
+- **Parameter Details**: Path parameters, query parameters, request body structure
+
+#### API Usability Instructions
+
+Create practical API usage documentation including:
+
+**Authentication Setup:**
+
+- **Authentication Method**: Document the authentication mechanism (JWT, API Key, Basic Auth, etc.)
+- **Token Acquisition**: How to obtain authentication tokens or API keys
+- **Token Format**: Structure and format of authentication credentials
+- **Token Refresh**: How to refresh expired tokens if applicable
+
+**cURL Examples for Each Endpoint:**
+
+For every endpoint identified in the controller analysis, provide:
+
+1. **Basic cURL Command Structure**:
+
+   ```bash
+   curl -X [HTTP_METHOD] \
+     -H "Content-Type: application/json" \
+     -H "Authorization: [AUTH_TYPE] [TOKEN]" \
+     [ADDITIONAL_HEADERS] \
+     -d '[REQUEST_BODY]' \
+     "[BASE_URL]/[ENDPOINT]"
+   ```
+
+2. **Endpoint-Specific Examples**:
+
+   - **GET Requests**: Include query parameters, authentication headers
+   - **POST Requests**: Include request body examples with required fields
+   - **PUT/PATCH Requests**: Include update payloads and resource identifiers
+   - **DELETE Requests**: Include resource identifiers and confirmation patterns
+
+3. **Authentication in cURL**:
+
+   - **JWT Token**: `-H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+   - **API Key**: `-H "X-API-Key: your_api_key_here"` or `-H "Authorization: ApiKey your_api_key_here"`
+   - **Basic Auth**: `-u username:password` or `-H "Authorization: Basic base64_credentials"`
+   - **Custom Headers**: Include any custom authentication headers required
+
+4. **Complete Working Examples**:
+   - **Sample Data**: Provide realistic example data for POST/PUT requests
+   - **Expected Responses**: Show expected success and error responses
+   - **Error Scenarios**: Include examples of common error cases and their cURL commands
+
+**Interactive API Testing:**
+
+- **Postman Collection**: Reference to Postman collection if available
+- **Swagger/OpenAPI**: Link to interactive API documentation
+- **Testing Tools**: Recommended tools for API testing and exploration
+]]>
+    <controllers>
+        {{ for controller in controllers }}
+            <controller>
+                <name>{{ controller.name }}</name>
+                <namespace>{{ controller.namespace }}</namespace>
+                <actions>
+            {{ for action in controller.actions }}
+                <action>
+                    <name>{{ action.name }}</name>
+                    <httpMethod>{{ action.httpMethod }}</httpMethod>
+                    <route>{{ action.route }}</route>
+                </action>
+            {{ endfor }}
+        </actions>
+    </controller>
+    {{ endfor }}
+</controllers>
+
+</userPrompt>
+</template>

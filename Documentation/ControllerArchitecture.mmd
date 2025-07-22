@@ -1,0 +1,15 @@
+```mermaid
+classDiagram
+    class WeatherForecastController {
+        +Get() IEnumerable<WeatherForecast>
+    }
+    
+    class WeatherForecast {
+        +DateTime Date
+        +int TemperatureC
+        +int TemperatureF
+        +string Summary
+    }
+
+    WeatherForecastController --> WeatherForecast : returns
+```

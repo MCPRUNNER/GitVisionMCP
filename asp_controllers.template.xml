@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<controllers>
+{{- for controller in controllers }}
+    <controller>
+        <name>{{ controller.controller_name }}</name>
+        <className>{{ controller.class_name }}</className>
+        <namespace>{{ controller.namespace }}</namespace>
+        <baseClass>{{ controller.base_class }}</baseClass>
+        <isApiController>{{ controller.is_api_controller }}</isApiController>
+        <routePrefix>{{ controller.route_prefix }}</routePrefix>
+        <filePath>{{ controller.file_path }}</filePath>
+        <analyzedAt>{{ controller.analyzed_at }}</analyzedAt>
+        
+        {{- if controller.using_directives && controller.using_directives.size > 0 }}
+        <usingDirectives>
+            {{- for using in controller.using_directives }}
+            <using>{{ using }}</using>
+            {{- end }}
+        </usingDirectives>
+        {{- end }}
+        
+        {{- if controller.interfaces && controller.interfaces.size > 0 }}
+        <interfaces>
+            {{- for interface in controller.interfaces }}
+            <interface>{{ interface }}</interface>
+            {{- end }}
+        </interfaces>
+        {{- end }}
+        
+        {{- if controller.class_attributes && controller.class_attributes.size > 0 }}
+        <classAttributes>
+            {{- for attribute in controller.class_attributes }}
+            <attribute>{{ attribute }}</attribute>
+            {{- end }}
+        </classAttributes>
+        {{- end }}
+        
+        {{- if controller.actions && controller.actions.size > 0 }}
+        <actions>
+            {{- for action in controller.actions }}
+            <action>
+                <name>{{ action.name }}</name>
+                <returnType>{{ action.return_type | html.escape }}</returnType>
+                <accessibility>{{ action.accessibility }}</accessibility>
+                <httpMethod>{{ action.http_method }}</httpMethod>
+                <route>{{ action.route }}</route>
+                <isAsync>{{ action.is_async }}</isAsync>
+                {{- if action.attributes && action.attributes.size > 0 }}
+                <attributes>
+                    {{- for attribute in action.attributes }}
+                    <attribute>{{ attribute }}</attribute>
+                    {{- end }}
+                </attributes>
+                {{- end }}
+                {{- if action.parameters && action.parameters.size > 0 }}
+                <parameters>
+                    {{- for parameter in action.parameters }}
+                    <parameter>
+                        <name>{{ parameter.name }}</name>
+                        <type>{{ parameter.type | html.escape }}</type>
+                        <isOptional>{{ parameter.is_optional }}</isOptional>
+                        {{- if parameter.default_value }}
+                        <defaultValue>{{ parameter.default_value }}</defaultValue>
+                        {{- end }}
+                    </parameter>
+                    {{- end }}
+                </parameters>
+                {{- else }}
+                <parameters></parameters>
+                {{- end }}
+            </action>
+            {{- end }}
+        </actions>
+        {{- end }}
+        
+        {{- if controller.properties && controller.properties.size > 0 }}
+        <properties>
+            {{- for property in controller.properties }}
+            <property>
+                <name>{{ property.name }}</name>
+                <type>{{ property.type | html.escape }}</type>
+                <accessibility>{{ property.accessibility }}</accessibility>
+                <hasGetter>{{ property.has_getter }}</hasGetter>
+                <hasSetter>{{ property.has_setter }}</hasSetter>
+            </property>
+            {{- end }}
+        </properties>
+        {{- else }}
+        <properties></properties>
+        {{- end }}
+    </controller>
+{{- end }}
+</controllers>

@@ -671,7 +671,7 @@ public class LocationService : ILocationService
         catch (Exception ex)
         {
 
-            _logger.LogError(ex, "ReadFile Error reading file: {Filename}", filePath);
+            _logger.LogError(ex, "ReadFile: Error reading file: {Filename}", filePath);
 
             return null;
         }

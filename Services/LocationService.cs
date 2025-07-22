@@ -104,11 +104,7 @@ public class LocationService : ILocationService
         return files;
     }
     /// <summary>
-    /// Gets all files under the workspace root directory with relative paths and file types
-    /// </summary>
-    /// <returns>A list of file information including relative path and file type</returns>
-    /// <summary>
-    /// Gets all files in the workspace with exclude filtering applied
+    /// Gets all files in the workspace with relative paths, file types, and exclude filtering applied.
     /// </summary>
     /// <returns>A list of WorkspaceFileInfo objects for all files, excluding those matching exclude patterns</returns>
     public async Task<List<WorkspaceFileInfo>> GetAllFilesAsync()

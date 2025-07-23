@@ -1256,6 +1256,70 @@ public class GitServiceTools : IGitServiceTools
     }
 
     [McpServerToolAttribute]
+    [Description("Transform an XML file using an XSLT stylesheet")]
+    public Task<string?> TransformXmlWithXsltAsync(
+        [Description("Path to the XML file relative to workspace root")] string xmlFilePath,
+        [Description("Path to the XSLT stylesheet file relative to workspace root")] string xsltFilePath)
+    {
+        try
+        {
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(xmlFilePath))
+            {
+                _logger.LogError("XML file path cannot be null or empty");
+                throw new ArgumentException("XML file path must be specified", nameof(xmlFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(xsltFilePath))
+            {
+                _logger.LogError("XSLT file path cannot be null or empty");
+                throw new ArgumentException("XSLT file path must be specified", nameof(xsltFilePath));
+            }
+
+            _logger.LogInformation("Transforming XML file {XmlFilePath} with XSLT {XsltFilePath}",
+                xmlFilePath, xsltFilePath);
+
+            var result = _locationService.TransformXmlWithXslt(xmlFilePath, xsltFilePath);
+
+            if (string.IsNullOrEmpty(result))
+            {
+                _logger.LogError("XSLT transformation failed for XML file {XmlFilePath} with XSLT {XsltFilePath}",
+                    xmlFilePath, xsltFilePath);
+                return Task.FromResult<string?>("XSLT transformation failed");
+            }
+
+            _logger.LogInformation("Successfully transformed XML file {XmlFilePath} with XSLT {XsltFilePath}",
+                xmlFilePath, xsltFilePath);
+            return Task.FromResult<string?>(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid argument for XSLT transformation");
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "File not found during XSLT transformation");
+            throw new FileNotFoundException($"File not found during XSLT transformation. Please check the file paths. Details: {ex.Message}", ex);
+        }
+        catch (System.Xml.XmlException ex)
+        {
+            _logger.LogError(ex, "Invalid XML format during XSLT transformation");
+            throw new InvalidDataException($"Invalid XML format during XSLT transformation. Details: {ex.Message}", ex);
+        }
+        catch (System.Xml.Xsl.XsltException ex)
+        {
+            _logger.LogError(ex, "XSLT transformation error");
+            throw new InvalidDataException($"XSLT transformation error. Details: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during XSLT transformation");
+            throw new InvalidOperationException($"Error during XSLT transformation: {ex.Message}. See inner exception for details.", ex);
+        }
+    }
+
+    [McpServerToolAttribute]
     [Description("Search for YAML values in a YAML file using JSONPath")]
     public Task<string?> SearchYamlFileAsync(
         [Description("Path to the YAML file relative to workspace root")] string yamlFilePath,

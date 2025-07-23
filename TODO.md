@@ -1,5 +1,7 @@
 # TODO
 
+As of 2025-07-22, the following tasks are pending:
+
 - [x] Update `GitServiceTools.cs` to ensure that the `maxFiles` parameter is set to a maximum of 1000 instead of 200.
 - [x] Ensure that the `maxFiles` parameter in the `ReadFilteredWorkspaceFiles` method is set to 1000, and adjust the description accordingly.
 - [x] Verify that the `maxFileSize` parameter is set to a maximum of 10MB in the `ReadFilteredWorkspaceFiles` method.
@@ -16,3 +18,9 @@
   - [x] Added SearchYamlFileAsync MCP tool in GitServiceTools with JSONPath support
   - [x] Created comprehensive unit tests for YAML search functionality
   - [x] Verified integration with existing JSON search infrastructure
+- [x] Implement XSLT transformation support
+  - [x] Added System.Xml.Xsl using statement for XSLT processing
+  - [x] Implemented TransformXmlWithXslt method in LocationService with XslCompiledTransform
+  - [x] Added TransformXmlWithXsltAsync MCP tool in GitServiceTools with error handling
+  - [x] Created comprehensive unit tests for XSLT functionality with self-contained test files
+  - [x] Verified XML-to-HTML and XML-to-XML transformations work correctly

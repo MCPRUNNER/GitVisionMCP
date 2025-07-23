@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using System.Xml.Xsl;
 using System.Text.RegularExpressions;
 using GitVisionMCP.Models;
 using YamlDotNet.Serialization;
@@ -472,6 +473,89 @@ public class LocationService : ILocationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred while searching XML file '{XmlFilePath}': {Message}", xmlFilePath, ex.Message);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Transforms an XML file using an XSLT stylesheet and returns the transformed result.
+    /// </summary>
+    /// <param name="xmlFilePath">The path to the XML file to transform</param>
+    /// <param name="xsltFilePath">The path to the XSLT stylesheet file</param>
+    /// <returns>The transformed XML as a string, or null if an error occurs</returns>
+    public string? TransformXmlWithXslt(string xmlFilePath, string xsltFilePath)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(xmlFilePath))
+            {
+                _logger.LogError("XML file path cannot be null or empty");
+                return null;
+            }
+
+            if (string.IsNullOrWhiteSpace(xsltFilePath))
+            {
+                _logger.LogError("XSLT file path cannot be null or empty");
+                return null;
+            }
+
+            // Get full paths relative to workspace root
+            var fullXmlPath = Path.Combine(_workspaceRoot, xmlFilePath);
+            var fullXsltPath = Path.Combine(_workspaceRoot, xsltFilePath);
+
+            // Check if XML file exists
+            if (!File.Exists(fullXmlPath))
+            {
+                _logger.LogError("XML file not found: {XmlFilePath}", xmlFilePath);
+                return null;
+            }
+
+            // Check if XSLT file exists
+            if (!File.Exists(fullXsltPath))
+            {
+                _logger.LogError("XSLT file not found: {XsltFilePath}", xsltFilePath);
+                return null;
+            }
+
+            // Load the XSLT stylesheet
+            var xslt = new XslCompiledTransform();
+            xslt.Load(fullXsltPath);
+
+            // Load the XML document
+            var xmlDoc = new XmlDocument();
+            xmlDoc.Load(fullXmlPath);
+
+            // Perform the transformation
+            using var stringWriter = new StringWriter();
+            using var xmlWriter = XmlWriter.Create(stringWriter, xslt.OutputSettings);
+
+            xslt.Transform(xmlDoc, xmlWriter);
+
+            var result = stringWriter.ToString();
+
+            _logger.LogInformation("Successfully transformed XML file '{XmlFilePath}' using XSLT '{XsltFilePath}'",
+                xmlFilePath, xsltFilePath);
+
+            return result;
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "File not found during XSLT transformation: {Message}", ex.Message);
+            return null;
+        }
+        catch (XmlException ex)
+        {
+            _logger.LogError(ex, "Invalid XML format during XSLT transformation. Details: {Message}", ex.Message);
+            return null;
+        }
+        catch (XsltException ex)
+        {
+            _logger.LogError(ex, "XSLT transformation error. Details: {Message}", ex.Message);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred during XSLT transformation: {Message}", ex.Message);
             return null;
         }
     }

@@ -42,7 +42,7 @@ GitVisionMCP provides specialized MCP prompts for creating release documentation
 - **Code Archaeology**: `"Find all references to deprecated API functions"`
 - **Documentation**: `"Search for 'TODO' comments across the project"`
 
-## 🆕 What's New - YAML Search Tool
+## 🆕 What's New - YAML Search & XSLT Transformation Tools
 
 **Latest Addition**: Powerful YAML file search functionality that brings JSONPath querying to YAML configuration files:
 
@@ -98,7 +98,7 @@ This prevents build messages and logging output from interfering with the JSON-R
 
 ## Features
 
-### 🛠️ Complete Tool Suite (24 Tools Available)
+### 🛠️ Complete Tool Suite (25 Tools Available)
 
 This MCP server provides comprehensive git documentation and analysis capabilities through 24 specialized tools:
 
@@ -186,6 +186,7 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - **search_commits_for_string**: 🆕 Search all commits for a specific string and return detailed match information
 - **search_json_file**: 🆕 Search for JSON values in a JSON file using JSONPath queries
 - **search_xml_file**: 🆕 Search for XML values in an XML file using XPath queries
+- **transform_xml_with_xslt**: 🆕 Transform XML files using XSLT stylesheets
 - **search_yaml_file**: 🆕 Search for YAML values in a YAML file using JSONPath queries
 
 ### Workspace File Operations
@@ -358,6 +359,63 @@ The **search_yaml_file** tool provides powerful YAML querying capabilities using
 - Formatted output (indented or compact)
 - "No matches found" message when query returns no results
 - Full compatibility with existing JSON search infrastructure
+
+### XSLT Transformation Tool
+
+The **transform_xml_with_xslt** tool provides powerful XML transformation capabilities using XSLT stylesheets:
+
+- **XSLT 1.0 Support**: Full support for XSLT 1.0 transformations using XslCompiledTransform
+- **Multiple Output Formats**: Transform XML to HTML, XML, text, or any custom format
+- **Error Handling**: Comprehensive error reporting for invalid XML or malformed XSLT
+- **Path Resolution**: Automatic workspace-relative path resolution for both XML and XSLT files
+- **Performance Optimized**: Uses compiled XSLT transformations for efficient processing
+
+#### XSLT Transformation Examples:
+
+- **XML to HTML**: Transform data catalogs into HTML tables
+- **XML to XML**: Restructure XML documents using XSLT templates
+- **Data Extraction**: Extract specific data elements using XSLT filtering
+- **Format Conversion**: Convert between different XML schemas
+
+#### Common Use Cases:
+
+- **Report Generation**: Transform data XML into formatted HTML reports
+- **Configuration Processing**: Convert XML configurations to different formats
+- **Data Migration**: Transform XML data between different schemas
+- **Documentation**: Generate human-readable documentation from XML data
+
+#### Example XSLT Transformation:
+
+```xml
+<!-- Input XML -->
+<catalog>
+    <book id="1">
+        <title>The Great Gatsby</title>
+        <author>F. Scott Fitzgerald</author>
+        <price>12.99</price>
+    </book>
+</catalog>
+
+<!-- XSLT Stylesheet -->
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:template match="/">
+        <html>
+            <body>
+                <h1>Book Catalog</h1>
+                <xsl:for-each select="catalog/book">
+                    <p><xsl:value-of select="title"/> by <xsl:value-of select="author"/></p>
+                </xsl:for-each>
+            </body>
+        </html>
+    </xsl:template>
+</xsl:stylesheet>
+```
+
+#### XSLT Transformation Results:
+
+- Transformed output in the specified format (HTML, XML, text, etc.)
+- Automatic error handling for invalid XML or XSLT syntax
+- Full workspace-relative path support for both input files
 
 ### Workspace File Operations
 
@@ -1041,6 +1099,84 @@ When `showKeyPaths` is enabled, the tool returns structured objects containing:
 - **Documentation**: Generate configuration references with element context
 - **System Integration**: Parse XML configuration files and web service responses
 
+#### transform_xml_with_xslt
+
+Transforms an XML file using an XSLT stylesheet and returns the transformed result.
+
+**Parameters:**
+
+- `xmlFilePath` (required): Path to the XML file relative to workspace root
+- `xsltFilePath` (required): Path to the XSLT stylesheet file relative to workspace root
+
+**Returns:** The transformed XML/HTML/text output as a string, or error message if transformation fails
+
+**XSLT Transformation Features:**
+
+- **XSLT 1.0 Support**: Full compatibility with XSLT 1.0 standard using XslCompiledTransform
+- **Multiple Output Formats**: XML, HTML, text, and custom formats based on xsl:output method
+- **Template Processing**: Support for xsl:template, xsl:for-each, xsl:if, and other XSLT elements
+- **Variable and Parameter Support**: Use xsl:variable and xsl:param for dynamic transformations
+- **Function Library**: Access to XSLT built-in functions like count(), position(), substring()
+- **Namespace Handling**: Proper namespace processing for complex XML documents
+
+**Common Transformation Patterns:**
+
+- **XML to HTML**: Generate web pages, reports, and documentation from XML data
+- **XML to XML**: Restructure, filter, or reformat XML documents
+- **Data Extraction**: Extract specific elements and create summary documents
+- **Format Conversion**: Transform between different XML schemas and formats
+
+**Example Usage:**
+
+```xml
+<!-- books.xml -->
+<catalog>
+    <book id="1">
+        <title>The Great Gatsby</title>
+        <author>F. Scott Fitzgerald</author>
+        <price>12.99</price>
+        <published>1925</published>
+    </book>
+</catalog>
+
+<!-- transform.xslt -->
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output method="html" indent="yes"/>
+    <xsl:template match="/">
+        <html>
+            <body>
+                <h1>Book Catalog</h1>
+                <table border="1">
+                    <tr><th>Title</th><th>Author</th><th>Price</th></tr>
+                    <xsl:for-each select="catalog/book">
+                        <tr>
+                            <td><xsl:value-of select="title"/></td>
+                            <td><xsl:value-of select="author"/></td>
+                            <td>$<xsl:value-of select="price"/></td>
+                        </tr>
+                    </xsl:for-each>
+                </table>
+            </body>
+        </html>
+    </xsl:template>
+</xsl:stylesheet>
+```
+
+**Error Handling:**
+
+- **File Validation**: Checks for existence of both XML and XSLT files
+- **XML Parsing**: Comprehensive error reporting for malformed XML
+- **XSLT Compilation**: Detailed error messages for invalid XSLT syntax
+- **Transformation Errors**: Runtime error handling during template processing
+
+**Use Cases:**
+
+- **Report Generation**: Transform data XML into formatted HTML reports
+- **Documentation**: Generate human-readable documentation from XML configuration
+- **Data Migration**: Convert XML data between different schemas and formats
+- **Web Development**: Generate static HTML pages from XML content management
+- **Configuration Processing**: Transform XML configurations for different environments
+
 #### search_yaml_file
 
 Searches for YAML values in a YAML file using JSONPath queries with YAML-to-JSON conversion.
@@ -1473,7 +1609,79 @@ services:
 - `$.database.connections[*].host` → `["localhost", "backup.example.com"]`
 - `$.services[?(@.enabled)].image` → `["nginx:latest", "myapp:v1.0"]`
 
-### 10. Line-by-Line Analysis
+### 10. XSLT XML Transformation
+
+#### Copilot Command:
+
+```bash
+@copilot Transform books.xml using catalog-to-html.xslt to generate an HTML report
+```
+
+#### JSON-RPC Call:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 9,
+  "method": "tools/call",
+  "params": {
+    "name": "transform_xml_with_xslt",
+    "arguments": {
+      "xmlFilePath": "data/books.xml",
+      "xsltFilePath": "templates/catalog-to-html.xslt"
+    }
+  }
+}
+```
+
+Perfect for transforming XML documents into different formats. The XSLT transformation supports:
+
+- **XML to HTML**: Generate web pages and reports from XML data
+- **XML to XML**: Restructure and reformat XML documents
+- **Data Extraction**: Extract specific elements using XSLT filtering
+- **Multi-format Output**: HTML, XML, text, or custom formats based on XSLT output method
+
+**XSLT-specific Use Cases:**
+
+- **Report Generation**: Transform data catalogs into formatted HTML tables
+- **Documentation**: Generate human-readable docs from XML configuration files
+- **Data Migration**: Convert XML between different schemas and formats
+- **Web Development**: Generate static HTML pages from XML content
+- **Configuration Processing**: Transform XML configs for different environments
+
+Example XSLT transformation:
+
+```xml
+<!-- Input: books.xml -->
+<catalog>
+    <book id="1">
+        <title>The Great Gatsby</title>
+        <author>F. Scott Fitzgerald</author>
+        <price>12.99</price>
+    </book>
+</catalog>
+
+<!-- XSLT: catalog-to-html.xslt -->
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output method="html"/>
+    <xsl:template match="/">
+        <html><body>
+            <h1>Book Catalog</h1>
+            <xsl:for-each select="catalog/book">
+                <p><xsl:value-of select="title"/> by <xsl:value-of select="author"/></p>
+            </xsl:for-each>
+        </body></html>
+    </xsl:template>
+</xsl:stylesheet>
+
+<!-- Output: HTML -->
+<html><body>
+    <h1>Book Catalog</h1>
+    <p>The Great Gatsby by F. Scott Fitzgerald</p>
+</body></html>
+```
+
+### 11. Line-by-Line Analysis
 
 #### Copilot Command:
 

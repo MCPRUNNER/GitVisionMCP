@@ -165,7 +165,7 @@ public class LocationService : ILocationService
 
             foreach (var file in allFiles)
             {
-                var relativePath = Path.GetRelativePath(_workspaceRoot, file.FullName);
+                var relativePath = Path.GetRelativePath(_workspaceRoot, file.Name);
                 var fileType = Path.GetExtension(file.Name).ToLowerInvariant();
 
                 files.Add(new WorkspaceFileInfo
@@ -914,14 +914,14 @@ public class LocationService : ILocationService
         try
         {
             var excludeConfigPath = Path.Combine(_workspaceRoot, ".gitvision", "exclude.json");
-
-            if (!File.Exists(excludeConfigPath))
+            var fullPath = Path.GetFullPath(excludeConfigPath);
+            if (!File.Exists(fullPath))
             {
                 _logger.LogInformation("Exclude configuration file not found at: {ExcludeConfigPath}", excludeConfigPath);
                 return null;
             }
 
-            var lastWriteTime = File.GetLastWriteTime(excludeConfigPath);
+            var lastWriteTime = File.GetLastWriteTime(fullPath);
 
             // Check if we need to reload the configuration
             if (_excludeConfiguration != null && _lastExcludeConfigLoad >= lastWriteTime)
@@ -929,7 +929,7 @@ public class LocationService : ILocationService
                 return _excludeConfiguration;
             }
 
-            var jsonContent = await File.ReadAllTextAsync(excludeConfigPath);
+            var jsonContent = await File.ReadAllTextAsync(fullPath);
             var configuration = JsonConvert.DeserializeObject<ExcludeConfiguration>(jsonContent);
 
             _excludeConfiguration = configuration;

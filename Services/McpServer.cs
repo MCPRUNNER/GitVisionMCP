@@ -1207,7 +1207,7 @@ public class McpServer : IMcpServer
         {
             var fileType = GetArgumentValue<string?>(toolRequest.Arguments, "fileType", null);
             var relativePath = GetArgumentValue<string?>(toolRequest.Arguments, "relativePath", "*");
-            var fullPath = GetArgumentValue<string?>(toolRequest.Arguments, "fullPath", null);
+            var fullPath = GetArgumentValue<string?>(toolRequest.Arguments, "fullPath", "*");
             var lastModifiedAfter = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedAfter", null);
             var lastModifiedBefore = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedBefore", null);
 

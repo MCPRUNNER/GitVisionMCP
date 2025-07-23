@@ -262,8 +262,7 @@ public class LocationService : ILocationService
         {
             var promptsDirectory = Path.Combine(_workspaceRoot, ".github/prompts");
             var filePath = Path.Combine(promptsDirectory, filename);
-
-            if (!File.Exists(filePath))
+            if (string.IsNullOrEmpty(filePath))
             {
                 _logger.LogWarning("Prompt file does not exist: {FilePath}", filePath);
                 return null;
@@ -302,6 +301,16 @@ public class LocationService : ILocationService
 
             // Read the entire content of the JSON file into a string
             var filePath = Path.Combine(_workspaceRoot, jsonFilePath);
+            if (string.IsNullOrEmpty(filePath))
+            {
+                _logger.LogWarning("JSON file does not exist: {FilePath}", filePath);
+                return null;
+            }
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                _logger.LogError("JSONPath cannot be null or empty");
+                return null;
+            }
             var jsonContent = ReadFile(filePath);
 
             if (string.IsNullOrWhiteSpace(jsonContent))
@@ -858,8 +867,8 @@ public class LocationService : ILocationService
         try
         {
 
-
-            if (!File.Exists(filePath))
+            var fullPath = GetFullPath(filePath);
+            if (!File.Exists(fullPath))
             {
                 _logger.LogWarning("ReadFile: file does not exist: {FilePath}", filePath);
                 return null;
@@ -914,8 +923,8 @@ public class LocationService : ILocationService
         try
         {
             var excludeConfigPath = Path.Combine(_workspaceRoot, ".gitvision", "exclude.json");
-            var fullPath = Path.GetFullPath(excludeConfigPath);
-            if (!File.Exists(fullPath))
+            var fullPath = GetFullPath(excludeConfigPath);
+            if (string.IsNullOrEmpty(fullPath))
             {
                 _logger.LogInformation("Exclude configuration file not found at: {ExcludeConfigPath}", excludeConfigPath);
                 return null;
@@ -943,6 +952,35 @@ public class LocationService : ILocationService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error loading exclude configuration");
+            return null;
+        }
+    }
+
+    public string? GetFullPath(string relativePath)
+    {
+        if (string.IsNullOrWhiteSpace(relativePath))
+
+        {
+            _logger.LogError("GetFileFullPath: Filename cannot be null or empty");
+            return null;
+        }
+
+        try
+        {
+
+            var fullPath = Path.GetFullPath(relativePath);
+            if (!File.Exists(relativePath))
+            {
+                _logger.LogInformation("GetFileFullPath: file not found at: {RelativePath}", relativePath);
+                return null;
+            }
+            return fullPath;
+        }
+        catch (Exception ex)
+        {
+
+            _logger.LogError(ex, "GetFileFullPath: Error reading file: {Filename}", relativePath);
+
             return null;
         }
     }

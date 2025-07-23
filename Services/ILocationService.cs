@@ -23,7 +23,13 @@ public interface ILocationService
     /// </summary>
     /// <returns>A list of file information including relative path and file type, excluding excluded files</returns>
     Task<List<WorkspaceFileInfo>> GetAllFilesAsync();
-
+    /// <summary>
+    /// Gets the full path of a file based on its relative path within the workspace root directory.
+    /// This method resolves the relative path in the workspace root to provide the absolute path.
+    /// </summary>
+    /// <param name="relativePath"></param>
+    /// <returns></returns>
+    string? GetFullPath(string relativePath);
     /// <summary>
     /// Checks if a file path should be excluded based on the exclude patterns
     /// </summary>

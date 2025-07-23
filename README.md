@@ -98,24 +98,26 @@ This prevents build messages and logging output from interfering with the JSON-R
 
 ## Features
 
-### 🛠️ Complete Tool Suite (25 Tools Available)
+### 🛠️ Complete Tool Suite (26 Tools Available)
 
-This MCP server provides comprehensive git documentation and analysis capabilities through 24 specialized tools:
+This MCP server provides comprehensive git documentation and analysis capabilities through 26 specialized tools:
 
-**📝 Documentation & Analysis (6 tools)**
+**📝 Documentation & Analysis (7 tools)**
 
 - Documentation generation from git logs
 - Branch and commit comparison with detailed analysis
 - Remote repository integration and synchronization
 - Historical change tracking and statistics
+- AI-powered sampling and analysis capabilities
 
-**🔍 Search & Discovery (7 tools)**
+**🔍 Search & Discovery (8 tools)**
 
 - Comprehensive commit search across messages and file contents
 - Intelligent file change detection between commits
 - JSON file search and query capabilities using JSONPath
 - XML file search and query capabilities using XPath
 - **YAML file search and query capabilities using JSONPath** 🆕
+- **XML transformation capabilities using XSLT** 🆕
 - Workspace file discovery and content analysis
 - ASP.NET Core controller structure analysis
 
@@ -195,6 +197,7 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - **list_workspace_files_with_cached_data**: 🆕 High-performance file listing using cached data
 - **read_filtered_workspace_files**: 🆕 Read contents of filtered files with size and count limits
 - **analyze_controller**: 🆕 Analyze ASP.NET Core controller structure and generate JSON documentation
+- **analyze_controller_to_file**: 🆕 Analyze ASP.NET Core controller and save analysis to a file
 
 ### Commit Search Tool
 
@@ -472,6 +475,7 @@ The workspace file operations provide comprehensive file management capabilities
 #### 🆕 Controller Analysis
 
 - **analyze_controller**: Parse ASP.NET Core controller files
+- **analyze_controller_to_file**: Parse ASP.NET Core controller files and save to workspace
 - **Structure Analysis**: Extract actions, parameters, return types, and attributes
 - **Documentation Generation**: Create comprehensive JSON documentation
 - **Route Analysis**: Analyze routing patterns and HTTP methods

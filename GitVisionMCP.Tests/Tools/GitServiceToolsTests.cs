@@ -230,7 +230,7 @@ namespace GitVisionMCP.Tests.Tools
             {
                 File.WriteAllText(file.FullPath, fileContent);
                 // Setup mock for ReadFile to return the content
-                _mockLocationService.Setup(m => m.ReadFile(file.RelativePath)).Returns(fileContent);
+                _mockLocationService.Setup(m => m.ReadFile(file.FullPath)).Returns(fileContent);
             }
 
             try

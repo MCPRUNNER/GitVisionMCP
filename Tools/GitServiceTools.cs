@@ -1088,7 +1088,7 @@ public class GitServiceTools : IGitServiceTools
                     // Read content if file exists and meets criteria
                     try
                     {
-                        var content = _locationService.ReadFile(file.RelativePath);
+                        var content = _locationService.ReadFile(file.FullPath);
                         // var content = await File.ReadAllTextAsync(file.FullPath);
                         fileContentInfo.Content = content;
                         result.Add(fileContentInfo);

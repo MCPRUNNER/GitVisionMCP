@@ -1381,9 +1381,9 @@ public class GitServiceTools : IGitServiceTools
     }
 
     [McpServerToolAttribute]
-    [Description("Analyzes a C# ASP.NET Core controller file and returns its structure as JSON")]
-    public Task<string?> AnalyzeControllerAsync(
-        [Description("Path to the controller file relative to workspace root")] string filePath)
+    [Description("Deconstruct a C# Service, Repository or Controller file and returns its structure as JSON")]
+    public Task<string?> DeconstructAsync(
+        [Description("Path to the c# file relative to workspace root")] string filePath)
     {
         try
         {
@@ -1394,40 +1394,40 @@ public class GitServiceTools : IGitServiceTools
                 throw new ArgumentException("Controller file path must be specified", nameof(filePath));
             }
 
-            _logger.LogInformation("Analyzing controller file: {FilePath}", filePath);
+            _logger.LogInformation("Deconstructing file: {FilePath}", filePath);
 
-            var result = _deconstructionService.AnalyzeController(filePath);
+            var result = _deconstructionService.Deconstruct(filePath);
 
             if (string.IsNullOrEmpty(result))
             {
-                _logger.LogWarning("Failed to analyze controller file: {FilePath}", filePath);
-                return Task.FromResult<string?>("Failed to analyze controller file");
+                _logger.LogWarning("Failed to Deconstruct file: {FilePath}", filePath);
+                return Task.FromResult<string?>("Failed to Deconstruct file");
             }
 
-            _logger.LogInformation("Successfully analyzed controller file: {FilePath}", filePath);
+            _logger.LogInformation("Successfully Deconstructed ile: {FilePath}", filePath);
             return Task.FromResult<string?>(result);
         }
         catch (ArgumentException ex)
         {
-            _logger.LogError(ex, "Invalid argument for controller analysis");
+            _logger.LogError(ex, "Invalid argument for Deconstruct");
             throw;
         }
         catch (FileNotFoundException ex)
         {
-            _logger.LogError(ex, "Controller file not found: {FilePath}", filePath);
-            throw new FileNotFoundException($"Controller file not found: {filePath}. Please check the file path.", ex);
+            _logger.LogError(ex, "Deconstruct source file not found: {FilePath}", filePath);
+            throw new FileNotFoundException($"Deconstruct file not found: {filePath}. Please check the file path.", ex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error analyzing controller file {FilePath}", filePath);
-            throw new InvalidOperationException($"Error analyzing controller file: {ex.Message}. See inner exception for details.", ex);
+            _logger.LogError(ex, "Error Deconstructing file {FilePath}", filePath);
+            throw new InvalidOperationException($"Error Deconstruct file: {ex.Message}. See inner exception for details.", ex);
         }
     }
 
     [McpServerToolAttribute]
-    [Description("Analyzes a C# ASP.NET Core controller file and saves the structure to a JSON file in the workspace directory")]
-    public Task<string?> AnalyzeControllerToFileAsync(
-        [Description("Path to the controller file relative to workspace root")] string filePath,
+    [Description("Deconstruct a C# Service, Repository or Controller file and saves the structure to a JSON file in the workspace directory")]
+    public Task<string?> DeconstructToJsonAsync(
+        [Description("Path to the source file relative to workspace root")] string filePath,
         [Description("The name of the output JSON file (optional, defaults to controller name + '_analysis.json')")] string? outputFileName = null)
     {
         try
@@ -1435,38 +1435,38 @@ public class GitServiceTools : IGitServiceTools
             // Validate input parameters
             if (string.IsNullOrWhiteSpace(filePath))
             {
-                _logger.LogError("Controller file path cannot be null or empty");
-                throw new ArgumentException("Controller file path must be specified", nameof(filePath));
+                _logger.LogError("Deconstruct file path cannot be null or empty");
+                throw new ArgumentException("Deconstruct file path must be specified", nameof(filePath));
             }
 
-            _logger.LogInformation("Analyzing controller file to save: {FilePath}, Output: {OutputFileName}",
+            _logger.LogInformation("Deconstructing file to save: {FilePath}, Output: {OutputFileName}",
                 filePath, outputFileName ?? "auto-generated");
 
-            var outputPath = _deconstructionService.AnalyzeControllerToFile(filePath, outputFileName);
+            var outputPath = _deconstructionService.DeconstructToFile(filePath, outputFileName);
 
             if (string.IsNullOrEmpty(outputPath))
             {
-                _logger.LogWarning("Failed to analyze and save controller file: {FilePath}", filePath);
-                return Task.FromResult<string?>("Failed to analyze and save controller file");
+                _logger.LogWarning("Failed to Deconstruct and save file: {FilePath}", filePath);
+                return Task.FromResult<string?>("Failed to Deconstruct and save file");
             }
 
-            _logger.LogInformation("Successfully analyzed and saved controller file to: {OutputPath}", outputPath);
-            return Task.FromResult<string?>($"Controller analysis saved to: {outputPath}");
+            _logger.LogInformation("Successfully Deconstruct and saved file to: {OutputPath}", outputPath);
+            return Task.FromResult<string?>($"Deconstruct analysis saved to: {outputPath}");
         }
         catch (ArgumentException ex)
         {
-            _logger.LogError(ex, "Invalid argument for controller analysis to file");
+            _logger.LogError(ex, "Invalid argument for Deconstruct analysis to file");
             throw;
         }
         catch (FileNotFoundException ex)
         {
-            _logger.LogError(ex, "Controller file not found: {FilePath}", filePath);
-            throw new FileNotFoundException($"Controller file not found: {filePath}. Please check the file path.", ex);
+            _logger.LogError(ex, "Deconstruct file not found: {FilePath}", filePath);
+            throw new FileNotFoundException($"Deconstruct file not found: {filePath}. Please check the file path.", ex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error analyzing controller file to file {FilePath}", filePath);
-            throw new InvalidOperationException($"Error analyzing controller file to file: {ex.Message}. See inner exception for details.", ex);
+            _logger.LogError(ex, "Error Deconstruct file to file {FilePath}", filePath);
+            throw new InvalidOperationException($"Error Deconstruct file to file: {ex.Message}. See inner exception for details.", ex);
         }
     }
 

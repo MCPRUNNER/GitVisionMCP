@@ -13,7 +13,7 @@ namespace GitVisionMCP.Services;
 
 
 /// <summary>
-/// Service for deconstructing ASP.NET Core controller files and extracting their structure
+/// Service for deconstructing a C# Service, Repository or Controller file and extracting their structure
 /// </summary>
 public class DeconstructionService : IDeconstructionService
 {
@@ -29,8 +29,8 @@ public class DeconstructionService : IDeconstructionService
     /// <summary>
     /// Deconstructs a C# Repository, Service or Controller and returns its structure as JSON
     /// </summary>
-    /// <param name="filePath">The path to the controller file relative to workspace root</param>
-    /// <returns>JSON string representation of the controller structure</returns>
+    /// <param name="filePath">The path to the source file relative to workspace root</param>
+    /// <returns>JSON string representation of the source structure</returns>
     public string? Deconstruct(string filePath)
     {
         try
@@ -41,23 +41,23 @@ public class DeconstructionService : IDeconstructionService
                 return null;
             }
 
-            // Read the controller file content
-            var fullPath =  _locationService.GetFullPath(filePath);
+            // Read the source file content
+            var fullPath = _locationService.GetFullPath(filePath);
             if (string.IsNullOrWhiteSpace(fullPath) || !File.Exists(fullPath))
             {
-                _logger.LogError("Controller file not found: {FilePath}", filePath);
+                _logger.LogError("Source file not found: {FilePath}", filePath);
                 return null;
             }
             var fileContent = _locationService.ReadFile(fullPath);
 
             if (string.IsNullOrWhiteSpace(fileContent))
             {
-                _logger.LogError("Controller file content is empty or null: {FilePath}", filePath);
+                _logger.LogError("Source file content is empty or null: {FilePath}", filePath);
                 return null;
             }
 
-            // Parse the controller structure
-            var controllerStructure = ParseControllerFile(fileContent, filePath);
+            // Parse the source structure
+            var sourceStructure = ParseSourceFile(fileContent, filePath);
 
             // Convert to JSON
             var jsonSettings = new JsonSerializerSettings
@@ -66,14 +66,14 @@ public class DeconstructionService : IDeconstructionService
                 NullValueHandling = NullValueHandling.Ignore
             };
 
-            var jsonResult = JsonConvert.SerializeObject(controllerStructure, jsonSettings);
+            var jsonResult = JsonConvert.SerializeObject(sourceStructure, jsonSettings);
 
-            _logger.LogInformation("Successfully analyzed controller: {FilePath}", filePath);
+            _logger.LogInformation("Successfully analyzed source: {FilePath}", filePath);
             return jsonResult;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error analyzing controller file: {FilePath}", filePath);
+            _logger.LogError(ex, "Error analyzing source file: {FilePath}", filePath);
             return null;
         }
     }
@@ -94,19 +94,19 @@ public class DeconstructionService : IDeconstructionService
                 return null;
             }
 
-            // Analyze the controller
+            // Analyze the source
             var jsonResult = Deconstruct(filePath);
             if (string.IsNullOrEmpty(jsonResult))
             {
-                _logger.LogError("Failed to analyze controller: {FilePath}", filePath);
+                _logger.LogError("Failed to deconstruct source: {FilePath}", filePath);
                 return null;
             }
 
             // Generate output filename if not provided
             if (string.IsNullOrWhiteSpace(outputFileName))
             {
-                var controllerFileName = Path.GetFileNameWithoutExtension(filePath);
-                outputFileName = $"{controllerFileName}_analysis.json";
+                var sourceFileName = Path.GetFileNameWithoutExtension(filePath);
+                outputFileName = $"{sourceFileName}_analysis.json";
             }
 
             // Ensure .json extension
@@ -129,20 +129,20 @@ public class DeconstructionService : IDeconstructionService
             // Save to file
             File.WriteAllText(outputPath, jsonResult, Encoding.UTF8);
 
-            _logger.LogInformation("Successfully saved controller analysis to: {OutputPath}", outputPath);
+            _logger.LogInformation("Successfully saved source analysis to: {OutputPath}", outputPath);
             return outputPath;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving controller analysis to file: {FilePath}", filePath);
+            _logger.LogError(ex, "Error saving source analysis to file: {FilePath}", filePath);
             return null;
         }
     }
 
     /// <summary>
-    /// Parses the controller file content and extracts structure information
+    /// Parses the source file content and extracts structure information
     /// </summary>
-    private DeconstructorModel ParseControllerFile(string fileContent, string filePath)
+    private DeconstructorModel ParseSourceFile(string fileContent, string filePath)
     {
         var structure = new DeconstructorModel
         {
@@ -248,10 +248,28 @@ public class DeconstructionService : IDeconstructionService
                 structure.ClassName = classMatch.Groups[1].Value.Trim();
                 structure.ClassAttributes = classAttributes;
 
-                // Extract controller name (remove "Controller" suffix if present)
-                structure.ControllerName = structure.ClassName.EndsWith("Controller")
-                    ? structure.ClassName[..^"Controller".Length] // Remove "Controller"
-                    : structure.ClassName;
+                switch (structure.ClassName)
+                {
+                    case string s when s.EndsWith("Controller", StringComparison.OrdinalIgnoreCase):
+                    case string s1 when s1.EndsWith("ControllerBase", StringComparison.OrdinalIgnoreCase):
+                        structure.Name = structure.ClassName[..^"Controller".Length];
+                        structure.ArchitectureModel = "Controller";
+                        break;
+                    case string s when s.EndsWith("Service", StringComparison.OrdinalIgnoreCase):
+                        structure.Name = structure.ClassName[..^"Service".Length];
+                        structure.ArchitectureModel = "Service";
+                        break;
+                    case string s when s.EndsWith("Repository", StringComparison.OrdinalIgnoreCase):
+                        structure.Name = structure.ClassName[..^"Repository".Length];
+                        structure.ArchitectureModel = "Repository";
+                        break;
+                    default:
+                        structure.Name = structure.ClassName;
+                        structure.ArchitectureModel = "Unknown";
+                        break;
+                }
+
+ 
 
                 // Parse base class and interfaces
                 if (classMatch.Groups.Count > 2 && !string.IsNullOrEmpty(classMatch.Groups[2].Value))
@@ -285,7 +303,7 @@ public class DeconstructionService : IDeconstructionService
         {
             // First part is typically the base class
             var firstPart = parts[0];
-            if (firstPart.Contains("Controller") || firstPart.Contains("ControllerBase"))
+            if (firstPart.Contains("Controller") || firstPart.Contains("ControllerBase") || firstPart.Contains("Service") || firstPart.Contains("Repository"))
             {
                 structure.BaseClass = firstPart;
                 structure.Interfaces = parts.Skip(1).ToList();

@@ -11,7 +11,8 @@ namespace GitVisionMCP.Models;
 /// </summary>
 public class DeconstructorModel
 {
-    public string ControllerName { get; set; } = string.Empty;
+    public string ArchitectureModel { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public string ClassName { get; set; } = string.Empty;
     public string Namespace { get; set; } = string.Empty;
     public string BaseClass { get; set; } = string.Empty;

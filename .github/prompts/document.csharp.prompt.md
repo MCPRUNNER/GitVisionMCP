@@ -66,11 +66,11 @@ Generate a high-level overview including:
 
 #### Controller Analysis
 
-Use the GitVisionMCP `AnalyzeControllerToFile` tool to extract detailed controller information:
+Use the GitVisionMCP `DeconstructToFile` tool to extract detailed controller information:
 
 For each controller file found in the project:
 
-1. **Extract Controller Structure**: Use `mcp_gitvisionmcp_AnalyzeControllerToFile` to analyze controller files and save the analysis to JSON files
+1. **Extract Controller Structure**: Use `mcp_gitvisionmcp_DeconstructToFile` to analyze controller files and save the analysis to JSON files
 2. **Review JSON Analysis**: Examine the generated JSON files to understand controller structure, endpoints, and parameters
 3. **Document Controller Architecture**: Use the JSON analysis to create comprehensive controller documentation
 4. **Endpoint Mermaid Dataflow Diagram**: For each endpoint, document:

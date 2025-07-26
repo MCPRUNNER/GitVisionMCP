@@ -189,7 +189,7 @@ public class McpServer : IMcpServer
                                 version = new
                                 {
                                     type = "string",
-                                    description = "The version number of the release (e.g., 1.0.0)"
+                                    description = "The version number of the release (e.g., 1.0.5)"
                                 },
                                 releaseDate = new
                                 {
@@ -206,7 +206,7 @@ public class McpServer : IMcpServer
             ServerInfo = new ServerInfo
             {
                 Name = "GitVisionMCP",
-                Version = "1.0.0"
+                Version = "1.0.5"
             }
         };
 

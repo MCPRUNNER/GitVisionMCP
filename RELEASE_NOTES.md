@@ -1,6 +1,6 @@
 # GitVisionMCP Release Notes
 
-## Version 1.5.0 - Workspace File Exclusion System
+## Version 1.0.5 - Initial Release
 
 **Release Date**: July 22, 2025
 
@@ -96,24 +96,6 @@
 - **Improved**: Comprehensive logging for debugging exclude patterns
 - **Added**: Clear error messages for configuration issues
 
-### 📊 Performance Impact
-
-#### Benchmarks
-
-Typical improvements observed:
-
-| Project Type  | Files Before | Files After | Improvement     |
-| ------------- | ------------ | ----------- | --------------- |
-| .NET Web API  | 2,847 files  | 156 files   | 94.5% reduction |
-| React App     | 45,623 files | 89 files    | 99.8% reduction |
-| Python Django | 5,234 files  | 267 files   | 94.9% reduction |
-
-#### Memory Usage
-
-- **Reduced**: Memory consumption by filtering files before processing
-- **Optimized**: Caching strategy for exclude configuration
-- **Improved**: Garbage collection performance with fewer objects
-
 ### 🔄 Migration Guide
 
 #### Automatic Migration
@@ -161,28 +143,39 @@ Typical improvements observed:
 - **New Categories**: Added workspace file operations section
 - **Enhanced**: All workspace tools now benefit from exclude functionality
 
+### 🛠️ MCP Tool List (v1.0.5)
+
+Below are the MCP tools available in this release, as defined in `GitServiceTools.cs`:
+
+| Tool Name                        | Description                                                                 |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| FetchFromRemote                  | Fetch latest changes from remote repository                                 |
+| GenerateGitDocumentation         | Generate documentation from git logs for the current workspace              |
+| GenerateGitDocumentationToFile   | Generate documentation from git logs and write to a file                    |
+| Sampling                         | Run Sampling chat to process predefined User and System prompts             |
+| CompareBranchesDocumentation     | Generate documentation comparing differences between two branches           |
+| CompareBranchesWithRemote        | Generate documentation comparing differences between two branches (remote)  |
+| CompareCommitsDocumentation      | Generate documentation comparing differences between two commits            |
+| GetRecentCommits                 | Get recent commits from the current repository                              |
+| GetLocalBranches                 | Get list of local branches in the repository                                |
+| GetRemoteBranches                | Get list of remote branches in the repository                               |
+| GetAllBranches                   | Get list of all branches (local and remote) in the repository               |
+| GetCurrentBranch                 | Get the current active branch in the repository                             |
+| GetChangedFilesBetweenCommits    | Get list of files changed between two commits                               |
+| GetCommitDiffInfo                | Get comprehensive diff information between two commits                      |
+| GetDetailedDiffBetweenCommits    | Get detailed diff content between two commits                               |
+| SearchCommitsForString           | Search all commits for a specific string and return commit details          |
+| GetFileLineDiffBetweenCommits    | Get line-by-line file diff between two commits                              |
+| ListWorkspaceFiles               | List all files in the workspace with optional filtering                     |
+| ListWorkspaceFilesWithCachedData | List workspace files with optional filtering using cached data              |
+| ReadFilteredWorkspaceFiles       | Read contents of all files from filtered workspace results                  |
+| SearchJsonFile                   | Search for JSON values in a JSON file using JSONPath                        |
+| SearchXmlFile                    | Search for XML values in an XML file using XPath                            |
+| TransformXmlWithXslt             | Transform an XML file using an XSLT stylesheet                              |
+| SearchYamlFile                   | Search for YAML values in a YAML file using JSONPath                        |
+| Deconstruct                      | Deconstruct a C# Service, Repository or Controller file (JSON output)       |
+| DeconstructToJson                | Deconstruct a C# Service, Repository or Controller file (save to JSON file) |
+
+See [EXAMPLES.md](Documentation/EXAMPLES.md) and [DECONSTRUCTION_SERVICE.md](Documentation/DECONSTRUCTION_SERVICE.md) for usage details and JSON-RPC examples.
+
 ---
-
-## Previous Releases
-
-### Version 1.4.1 - VS Code Integration Fixes
-
-**Release Date**: July 20, 2025
-
-#### Key Fixes
-
-- **Fixed**: Console logging interference with JSON-RPC protocol
-- **Enhanced**: XML attribute search support with proper XPath evaluation
-- **Improved**: Error handling for all XPath result types
-
-#### Technical Changes
-
-- Added `builder.Logging.ClearProviders()` to disable console output
-- All logging redirected to file-only when using stdio transport
-- Eliminates "Failed to parse message" warnings in VS Code
-
----
-
-_For detailed technical documentation, see [Documentation/](Documentation/) directory._
-_For usage examples, see [EXAMPLES.md](Documentation/EXAMPLES.md)._
-_For exclude functionality details, see [EXCLUDE_FUNCTIONALITY.md](Documentation/EXCLUDE_FUNCTIONALITY.md)._

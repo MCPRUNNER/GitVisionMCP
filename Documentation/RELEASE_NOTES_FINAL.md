@@ -1,10 +1,10 @@
-# GitVisionMCP v1.0.0 Release Notes
+# GitVisionMCP v1.0.5 Release Notes
 
 **Release Date:** July 6, 2025
 
 ## Summary of Changes
 
-GitVisionMCP v1.0.0 is the first official release of our Model Context Protocol (MCP) server for git repository documentation. This release introduces a comprehensive set of tools for generating documentation from git history, comparing branches and commits, and providing insights into repository changes. The server is designed to work seamlessly with VS Code as a Copilot Agent.
+GitVisionMCP v1.0.5 is the fifth official release of our Model Context Protocol (MCP) server for git repository documentation. This release introduces a comprehensive set of tools for generating documentation from git history, comparing branches and commits, and providing insights into repository changes. The server is designed to work seamlessly with VS Code as a Copilot Agent.
 
 Key highlights of this release:
 
@@ -169,6 +169,7 @@ None - this is the first official release.
 
 For more information, please refer to:
 
-- [README.md](README.md) - General usage information
-- [SETUP.md](SETUP.md) - Detailed setup instructions
-- [DOCKER.md](DOCKER.md) - Docker-specific guidance
+### See Also
+
+- [DECONSTRUCTION_SERVICE.md](DECONSTRUCTION_SERVICE.md) — Details and examples for deconstruction tools
+- [EXAMPLES.md](EXAMPLES.md) — Usage examples for all MCP tools

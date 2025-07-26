@@ -85,7 +85,8 @@ public class ActionParameter
 
 ### Smart Detection
 
-- **Controller Name Extraction** - Automatically removes "Controller" suffix
+**Controller Name Extraction** - Automatically removes "Controller" suffix
+
 - **HTTP Method Detection** - Parses `[HttpGet]`, `[HttpPost]`, etc.
 - **Route Template Parsing** - Extracts route information from attributes
 - **Async Method Recognition** - Detects `async` methods
@@ -186,16 +187,25 @@ public class ProductsController : ControllerBase
 
 ## 🔌 MCP Integration
 
-The service is now available as an MCP tool:
+The service is now available as MCP tools:
 
-### Tool Definition
+### Tool Definitions
 
-- **Name**: `analyze_controller`
-- **Description**: "Analyzes a C# ASP.NET Core controller file and returns its structure as JSON"
-- **Parameters**:
-  - `filePath` (required): Path to controller file relative to workspace root
+- **Name**: `deconstruct`
+
+  - **Description**: "Deconstruct a C# Service, Repository or Controller file and returns its structure as JSON"
+  - **Parameters**:
+    - `filePath` (required): Path to C# file relative to workspace root
+
+- **Name**: `deconstruct_to_json`
+  - **Description**: "Deconstruct a C# Service, Repository or Controller file and saves the structure to a JSON file in the workspace directory"
+  - **Parameters**:
+    - `filePath` (required): Path to C# file or directory relative to workspace root
+    - `outputFileName` (optional): Name of the output JSON file
 
 ### Usage via MCP Client
+
+#### Deconstruct a Single File
 
 ```json
 {
@@ -203,9 +213,43 @@ The service is now available as an MCP tool:
   "id": 1,
   "method": "tools/call",
   "params": {
-    "name": "analyze_controller",
+    "name": "deconstruct",
     "arguments": {
       "filePath": "SampleController.cs"
+    }
+  }
+}
+```
+
+#### Deconstruct and Save to JSON File
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "deconstruct_to_json",
+    "arguments": {
+      "filePath": "SampleController.cs",
+      "outputFileName": "docs/controller-analysis.json"
+    }
+  }
+}
+```
+
+#### Deconstruct All Files in a Directory
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "deconstruct_to_json",
+    "arguments": {
+      "filePath": "Controllers/",
+      "outputFileName": "docs/controllers.json"
     }
   }
 }

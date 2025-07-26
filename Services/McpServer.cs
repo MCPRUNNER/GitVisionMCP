@@ -189,7 +189,7 @@ public class McpServer : IMcpServer
                                 version = new
                                 {
                                     type = "string",
-                                    description = "The version number of the release (e.g., 1.0.0)"
+                                    description = "The version number of the release (e.g., 1.0.5)"
                                 },
                                 releaseDate = new
                                 {
@@ -206,7 +206,7 @@ public class McpServer : IMcpServer
             ServerInfo = new ServerInfo
             {
                 Name = "GitVisionMCP",
-                Version = "1.0.0"
+                Version = "1.0.5"
             }
         };
 
@@ -1400,7 +1400,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var result = await _gitServiceTools.AnalyzeControllerAsync(filePath);
+            var result = await _gitServiceTools.DeconstructAsync(filePath);
 
             return new CallToolResponse
             {
@@ -1409,7 +1409,7 @@ public class McpServer : IMcpServer
         }
         catch (ArgumentException ex)
         {
-            _logger.LogError(ex, "Invalid arguments for AnalyzeController");
+            _logger.LogError(ex, "Invalid arguments for Deconstruct");
             return new CallToolResponse
             {
                 IsError = true,
@@ -1452,7 +1452,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var result = await _gitServiceTools.AnalyzeControllerToFileAsync(filePath, outputFileName);
+            var result = await _gitServiceTools.DeconstructToJsonAsync(filePath, outputFileName);
 
             return new CallToolResponse
             {
@@ -1461,7 +1461,7 @@ public class McpServer : IMcpServer
         }
         catch (ArgumentException ex)
         {
-            _logger.LogError(ex, "Invalid arguments for AnalyzeControllerToFile");
+            _logger.LogError(ex, "Invalid arguments for DeconstructToFile");
             return new CallToolResponse
             {
                 IsError = true,

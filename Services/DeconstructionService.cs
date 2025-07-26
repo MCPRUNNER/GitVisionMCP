@@ -1,93 +1,19 @@
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
+using GitVisionMCP.Models;
 using System.Text.RegularExpressions;
 
 namespace GitVisionMCP.Services;
 
-/// <summary>
-/// Represents a controller action method
-/// </summary>
-public class ControllerAction
-{
-    public string Name { get; set; } = string.Empty;
-    public string ReturnType { get; set; } = string.Empty;
-    public string Accessibility { get; set; } = string.Empty;
-    public List<string> Attributes { get; set; } = new();
-    public List<ActionParameter> Parameters { get; set; } = new();
-    public string HttpMethod { get; set; } = string.Empty;
-    public string Route { get; set; } = string.Empty;
-    public bool IsAsync
-    {
-        get; set;
-    }
-}
+
+
+
+
+
 
 /// <summary>
-/// Represents an action method parameter
-/// </summary>
-public class ActionParameter
-{
-    public string Name { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
-    public List<string> Attributes { get; set; } = new();
-    public bool HasDefaultValue
-    {
-        get; set;
-    }
-    public string? DefaultValue
-    {
-        get; set;
-    }
-}
-
-/// <summary>
-/// Represents a controller property
-/// </summary>
-public class ControllerProperty
-{
-    public string Name { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
-    public string Accessibility { get; set; } = string.Empty;
-    public List<string> Attributes { get; set; } = new();
-    public bool HasGetter
-    {
-        get; set;
-    }
-    public bool HasSetter
-    {
-        get; set;
-    }
-}
-
-/// <summary>
-/// Represents the complete structure of a controller
-/// </summary>
-public class ControllerStructure
-{
-    public string ControllerName { get; set; } = string.Empty;
-    public string ClassName { get; set; } = string.Empty;
-    public string Namespace { get; set; } = string.Empty;
-    public string BaseClass { get; set; } = string.Empty;
-    public List<string> Interfaces { get; set; } = new();
-    public List<string> UsingDirectives { get; set; } = new();
-    public List<string> ClassAttributes { get; set; } = new();
-    public List<ControllerAction> Actions { get; set; } = new();
-    public List<ControllerProperty> Properties { get; set; } = new();
-    public string RoutePrefix { get; set; } = string.Empty;
-    public bool IsApiController
-    {
-        get; set;
-    }
-    public string FilePath { get; set; } = string.Empty;
-    public DateTime AnalyzedAt
-    {
-        get; set;
-    }
-}
-
-/// <summary>
-/// Service for deconstructing ASP.NET Core controller files and extracting their structure
+/// Service for deconstructing a C# Service, Repository or Controller file and extracting their structure
 /// </summary>
 public class DeconstructionService : IDeconstructionService
 {
@@ -101,11 +27,11 @@ public class DeconstructionService : IDeconstructionService
     }
 
     /// <summary>
-    /// Analyzes a C# ASP.NET Core controller file and returns its structure as JSON
+    /// Deconstructs a C# Repository, Service or Controller and returns its structure as JSON
     /// </summary>
-    /// <param name="filePath">The path to the controller file relative to workspace root</param>
-    /// <returns>JSON string representation of the controller structure</returns>
-    public string? AnalyzeController(string filePath)
+    /// <param name="filePath">The path to the source file relative to workspace root</param>
+    /// <returns>JSON string representation of the source structure</returns>
+    public string? Deconstruct(string filePath)
     {
         try
         {
@@ -115,18 +41,23 @@ public class DeconstructionService : IDeconstructionService
                 return null;
             }
 
-            // Read the controller file content
-            var fullPath = Path.Combine(_locationService.GetWorkspaceRoot(), filePath);
+            // Read the source file content
+            var fullPath = _locationService.GetFullPath(filePath);
+            if (string.IsNullOrWhiteSpace(fullPath) || !File.Exists(fullPath))
+            {
+                _logger.LogError("Source file not found: {FilePath}", filePath);
+                return null;
+            }
             var fileContent = _locationService.ReadFile(fullPath);
 
             if (string.IsNullOrWhiteSpace(fileContent))
             {
-                _logger.LogError("Controller file content is empty or null: {FilePath}", filePath);
+                _logger.LogError("Source file content is empty or null: {FilePath}", filePath);
                 return null;
             }
 
-            // Parse the controller structure
-            var controllerStructure = ParseControllerFile(fileContent, filePath);
+            // Parse the source structure
+            var sourceStructure = ParseSourceFile(fileContent, filePath);
 
             // Convert to JSON
             var jsonSettings = new JsonSerializerSettings
@@ -135,25 +66,25 @@ public class DeconstructionService : IDeconstructionService
                 NullValueHandling = NullValueHandling.Ignore
             };
 
-            var jsonResult = JsonConvert.SerializeObject(controllerStructure, jsonSettings);
+            var jsonResult = JsonConvert.SerializeObject(sourceStructure, jsonSettings);
 
-            _logger.LogInformation("Successfully analyzed controller: {FilePath}", filePath);
+            _logger.LogInformation("Successfully analyzed source: {FilePath}", filePath);
             return jsonResult;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error analyzing controller file: {FilePath}", filePath);
+            _logger.LogError(ex, "Error analyzing source file: {FilePath}", filePath);
             return null;
         }
     }
 
     /// <summary>
-    /// Analyzes a C# ASP.NET Core controller file and saves the structure to a JSON file in the workspace directory
+    /// Deconstructs a C# Repository, Service or Controller and saves the structure to a JSON file in the workspace directory
     /// </summary>
     /// <param name="filePath">The path to the controller file relative to workspace root</param>
     /// <param name="outputFileName">The name of the output JSON file (optional, defaults to controller name + '_analysis.json')</param>
     /// <returns>The full path to the saved JSON file, or null if the operation failed</returns>
-    public string? AnalyzeControllerToFile(string filePath, string? outputFileName = null)
+    public string? DeconstructToFile(string filePath, string? outputFileName = null)
     {
         try
         {
@@ -163,19 +94,19 @@ public class DeconstructionService : IDeconstructionService
                 return null;
             }
 
-            // Analyze the controller
-            var jsonResult = AnalyzeController(filePath);
+            // Analyze the source
+            var jsonResult = Deconstruct(filePath);
             if (string.IsNullOrEmpty(jsonResult))
             {
-                _logger.LogError("Failed to analyze controller: {FilePath}", filePath);
+                _logger.LogError("Failed to deconstruct source: {FilePath}", filePath);
                 return null;
             }
 
             // Generate output filename if not provided
             if (string.IsNullOrWhiteSpace(outputFileName))
             {
-                var controllerFileName = Path.GetFileNameWithoutExtension(filePath);
-                outputFileName = $"{controllerFileName}_analysis.json";
+                var sourceFileName = Path.GetFileNameWithoutExtension(filePath);
+                outputFileName = $"{sourceFileName}_analysis.json";
             }
 
             // Ensure .json extension
@@ -198,22 +129,22 @@ public class DeconstructionService : IDeconstructionService
             // Save to file
             File.WriteAllText(outputPath, jsonResult, Encoding.UTF8);
 
-            _logger.LogInformation("Successfully saved controller analysis to: {OutputPath}", outputPath);
+            _logger.LogInformation("Successfully saved source analysis to: {OutputPath}", outputPath);
             return outputPath;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving controller analysis to file: {FilePath}", filePath);
+            _logger.LogError(ex, "Error saving source analysis to file: {FilePath}", filePath);
             return null;
         }
     }
 
     /// <summary>
-    /// Parses the controller file content and extracts structure information
+    /// Parses the source file content and extracts structure information
     /// </summary>
-    private ControllerStructure ParseControllerFile(string fileContent, string filePath)
+    private DeconstructorModel ParseSourceFile(string fileContent, string filePath)
     {
-        var structure = new ControllerStructure
+        var structure = new DeconstructorModel
         {
             FilePath = filePath,
             AnalyzedAt = DateTime.UtcNow
@@ -278,7 +209,7 @@ public class DeconstructionService : IDeconstructionService
     /// <summary>
     /// Extracts class information including name, base class, interfaces, and attributes
     /// </summary>
-    private void ExtractClassInformation(string[] lines, ControllerStructure structure)
+    private void ExtractClassInformation(string[] lines, DeconstructorModel structure)
     {
         var classRegex = new Regex(@"^\s*(?:public|internal|private|protected)?\s*(?:abstract|sealed)?\s*class\s+(\w+)(?:\s*:\s*(.+?))?\s*{?", RegexOptions.Multiline);
         var attributeRegex = new Regex(@"^\s*\[(.+?)\]", RegexOptions.Multiline);
@@ -317,10 +248,28 @@ public class DeconstructionService : IDeconstructionService
                 structure.ClassName = classMatch.Groups[1].Value.Trim();
                 structure.ClassAttributes = classAttributes;
 
-                // Extract controller name (remove "Controller" suffix if present)
-                structure.ControllerName = structure.ClassName.EndsWith("Controller")
-                    ? structure.ClassName[..^"Controller".Length] // Remove "Controller"
-                    : structure.ClassName;
+                switch (structure.ClassName)
+                {
+                    case string s when s.EndsWith("Controller", StringComparison.OrdinalIgnoreCase):
+                    case string s1 when s1.EndsWith("ControllerBase", StringComparison.OrdinalIgnoreCase):
+                        structure.Name = structure.ClassName[..^"Controller".Length];
+                        structure.ArchitectureModel = "Controller";
+                        break;
+                    case string s when s.EndsWith("Service", StringComparison.OrdinalIgnoreCase):
+                        structure.Name = structure.ClassName[..^"Service".Length];
+                        structure.ArchitectureModel = "Service";
+                        break;
+                    case string s when s.EndsWith("Repository", StringComparison.OrdinalIgnoreCase):
+                        structure.Name = structure.ClassName[..^"Repository".Length];
+                        structure.ArchitectureModel = "Repository";
+                        break;
+                    default:
+                        structure.Name = structure.ClassName;
+                        structure.ArchitectureModel = "Unknown";
+                        break;
+                }
+
+ 
 
                 // Parse base class and interfaces
                 if (classMatch.Groups.Count > 2 && !string.IsNullOrEmpty(classMatch.Groups[2].Value))
@@ -346,7 +295,7 @@ public class DeconstructionService : IDeconstructionService
     /// <summary>
     /// Parses inheritance information (base class and interfaces)
     /// </summary>
-    private void ParseInheritance(string inheritance, ControllerStructure structure)
+    private void ParseInheritance(string inheritance, DeconstructorModel structure)
     {
         var parts = inheritance.Split(',').Select(p => p.Trim()).ToList();
 
@@ -354,7 +303,7 @@ public class DeconstructionService : IDeconstructionService
         {
             // First part is typically the base class
             var firstPart = parts[0];
-            if (firstPart.Contains("Controller") || firstPart.Contains("ControllerBase"))
+            if (firstPart.Contains("Controller") || firstPart.Contains("ControllerBase") || firstPart.Contains("Service") || firstPart.Contains("Repository"))
             {
                 structure.BaseClass = firstPart;
                 structure.Interfaces = parts.Skip(1).ToList();
@@ -370,7 +319,7 @@ public class DeconstructionService : IDeconstructionService
     /// <summary>
     /// Extracts controller actions and properties from the file content
     /// </summary>
-    private void ExtractActionsAndProperties(string fileContent, ControllerStructure structure)
+    private void ExtractActionsAndProperties(string fileContent, DeconstructorModel structure)
     {
         // Method pattern for public methods (potential actions)
         var methodRegex = new Regex(@"^\s*(?:\[.*?\]\s*)*\s*(public|protected|private|internal)\s+(?:(async)\s+)?(?:(virtual|override|new)\s+)?(\w+(?:<[^>]+>)?(?:\[\])?)\s+(\w+)\s*\((.*?)\)\s*{?",
@@ -427,11 +376,11 @@ public class DeconstructionService : IDeconstructionService
     }
 
     /// <summary>
-    /// Parses a method into a ControllerAction
+    /// Parses a method into a DeconstructorActionModel
     /// </summary>
-    private ControllerAction ParseAction(Match methodMatch, List<string> attributes)
+    private DeconstructorActionModel ParseAction(Match methodMatch, List<string> attributes)
     {
-        var action = new ControllerAction
+        var action = new DeconstructorActionModel
         {
             Accessibility = methodMatch.Groups[1].Value,
             IsAsync = !string.IsNullOrEmpty(methodMatch.Groups[2].Value),
@@ -464,7 +413,7 @@ public class DeconstructionService : IDeconstructionService
     /// <summary>
     /// Determines if a method is likely a controller action
     /// </summary>
-    private bool IsControllerAction(ControllerAction action)
+    private bool IsControllerAction(DeconstructorActionModel action)
     {
         // Public methods in controllers are typically actions
         return action.Accessibility == "public" &&
@@ -500,9 +449,9 @@ public class DeconstructionService : IDeconstructionService
     /// <summary>
     /// Parses method parameters
     /// </summary>
-    private List<ActionParameter> ParseParameters(string parametersString)
+    private List<DeconstructionActionParameterModel> ParseParameters(string parametersString)
     {
-        var parameters = new List<ActionParameter>();
+        var parameters = new List<DeconstructionActionParameterModel>();
 
         if (string.IsNullOrWhiteSpace(parametersString))
         {
@@ -527,7 +476,7 @@ public class DeconstructionService : IDeconstructionService
     /// <summary>
     /// Parses a single parameter
     /// </summary>
-    private ActionParameter? ParseSingleParameter(string paramString)
+    private DeconstructionActionParameterModel? ParseSingleParameter(string paramString)
     {
         if (string.IsNullOrWhiteSpace(paramString))
         {
@@ -543,7 +492,7 @@ public class DeconstructionService : IDeconstructionService
             return null;
         }
 
-        var parameter = new ActionParameter
+        var parameter = new DeconstructionActionParameterModel
         {
             Type = match.Groups[1].Value,
             Name = match.Groups[2].Value,
@@ -564,9 +513,9 @@ public class DeconstructionService : IDeconstructionService
     /// <summary>
     /// Parses a property
     /// </summary>
-    private ControllerProperty ParseProperty(Match propertyMatch, List<string> attributes)
+    private DeconstructorPropertyModel ParseProperty(Match propertyMatch, List<string> attributes)
     {
-        var property = new ControllerProperty
+        var property = new DeconstructorPropertyModel
         {
             Accessibility = propertyMatch.Groups[1].Value,
             Type = propertyMatch.Groups[2].Value,

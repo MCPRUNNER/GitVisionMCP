@@ -1,3 +1,90 @@
+#
+
+# MCP Deconstruction Tools
+
+#
+
+## Controller/Service/Repository Deconstruction
+
+These tools allow you to analyze the structure of C# files (controllers, services, repositories) and output their architecture as JSON for documentation, code review, or integration.
+
+### Copilot Command Examples
+
+```
+@copilot Deconstruct the file Services/GitService.cs and show its structure
+@copilot Analyze all controllers in the Controllers directory and save to docs/controllers.json
+@copilot Save the architecture of Services/DeconstructionService.cs to docs/deconstruction.json
+```
+
+### JSON-RPC Examples
+
+#### Deconstruct a C# File
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 30,
+  "method": "tools/call",
+  "params": {
+    "name": "deconstruct",
+    "arguments": {
+      "filePath": "Services/GitService.cs"
+    }
+  }
+}
+```
+
+#### Deconstruct and Save to JSON File
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 31,
+  "method": "tools/call",
+  "params": {
+    "name": "deconstruct_to_json",
+    "arguments": {
+      "filePath": "Services/DeconstructionService.cs",
+      "outputFileName": "docs/deconstruction.json"
+    }
+  }
+}
+```
+
+#### Analyze All Controllers in a Directory
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 32,
+  "method": "tools/call",
+  "params": {
+    "name": "deconstruct_to_json",
+    "arguments": {
+      "filePath": "Controllers/",
+      "outputFileName": "docs/controllers.json"
+    }
+  }
+}
+```
+
+### Output
+
+The output is a JSON object describing the class architecture, including:
+
+- Class name, namespace, base class, interfaces
+- Using directives
+- Attributes
+- Actions (methods) and their parameters
+- Properties
+- File path and analysis timestamp
+
+### Use Cases
+
+- Automated documentation generation
+- Code review and architecture analysis
+- Integration with other tools and reporting
+
 # MCP Integration Examples
 
 This document shows comprehensive examples of how to integrate and use the GitVisionMCP server with VS Code and Copilot, including **advanced commit search capabilities** and remote branch features.

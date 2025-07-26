@@ -28,9 +28,11 @@ var logDirectory = Environment.GetEnvironmentVariable("GIT_APP_LOG_DIRECTORY") ?
 Directory.CreateDirectory(logDirectory);
 var logFilePattern = Path.Combine(logDirectory, "gitvisionmcp-.log");
 
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
+
     .WriteTo.File(logFilePattern,
         shared: true,
         rollingInterval: RollingInterval.Day,
@@ -42,6 +44,7 @@ Log.Logger = new LoggerConfiguration()
 
 // Add Serilog to logging providers
 builder.Logging.ClearProviders(); // Clear default providers including console
+
 builder.Logging.AddSerilog(Log.Logger);
 
 // Determine transport type from environment variable

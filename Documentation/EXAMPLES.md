@@ -68,6 +68,25 @@ These tools allow you to analyze the structure of C# files (controllers, service
 }
 ```
 
+#### Search CSV File (🆕)
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 33,
+  "method": "tools/call",
+  "params": {
+    "name": "search_csv_file",
+    "arguments": {
+      "csvFilePath": "test-data.csv",
+      "jsonPath": "$.users[*].email",
+      "hasHeaderRecord": true,
+      "ignoreBlankLines": true
+    }
+  }
+}
+```
+
 ### Output
 
 The output is a JSON object describing the class architecture, including:

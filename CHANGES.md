@@ -1,5 +1,75 @@
 # GitVisionMCP Release Notes
 
+## Version 1.0.6 - CSV Search & Documentation Enhancements
+
+**Release Date**: July 27, 2025
+
+### 🆕 Major Features
+
+#### SearchCsvFile Tool
+
+**New Feature**: Advanced CSV file querying using JSONPath
+
+- **Flexible Extraction**: Query CSV files with JSONPath for targeted data retrieval
+- **Integration**: Available via MCP Server and VS Code Copilot Agent
+- **Performance**: Optimized for large CSV files and fast search
+- **Use Case**: Ideal for server inventories, logs, and tabular data analysis
+
+**Benefits**:
+
+- 🔎 **Instant filtering** of CSV data for analytics and reporting
+- 🚀 **Fast results** even on large datasets
+- 🧩 **Seamless integration** with other workspace tools
+
+### 🔧 Technical Implementation
+
+- **Added**: `SearchCsvFile` tool to `GitServiceTools.cs`
+- **Enhanced**: Tool table and documentation to include CSV search
+- **Improved**: Automated documentation generation and tool discoverability
+
+### 📚 Documentation
+
+- **Updated [README.md](README.md)**: Added SearchCsvFile usage and examples
+- **Updated [RELEASE_DOCUMENT.md](RELEASE_DOCUMENT.md)**: Refactored to include new tool and architecture
+
+### 🛠️ MCP Tool List (v1.0.6)
+
+Below are the MCP tools available in this release, as defined in `GitServiceTools.cs`:
+
+| Tool Name                        | Description                                                                 |
+| -------------------------------- | --------------------------------------------------------------------------- |
+| FetchFromRemote                  | Fetch latest changes from remote repository                                 |
+| GenerateGitDocumentation         | Generate documentation from git logs for the current workspace              |
+| GenerateGitDocumentationToFile   | Generate documentation from git logs and write to a file                    |
+| CompareBranchesDocumentation     | Generate documentation comparing differences between two branches           |
+| CompareBranchesWithRemote        | Generate documentation comparing differences between two branches (remote)  |
+| CompareCommitsDocumentation      | Generate documentation comparing differences between two commits            |
+| GetRecentCommits                 | Get recent commits from the current repository                              |
+| GetLocalBranches                 | Get list of local branches in the repository                                |
+| GetRemoteBranches                | Get list of remote branches in the repository                               |
+| GetAllBranches                   | Get list of all branches (local and remote) in the repository               |
+| GetCurrentBranch                 | Get the current active branch in the repository                             |
+| GetChangedFilesBetweenCommits    | Get list of files changed between two commits                               |
+| GetCommitDiffInfo                | Get comprehensive diff information between two commits                      |
+| GetDetailedDiffBetweenCommits    | Get detailed diff content between two commits                               |
+| SearchCommitsForString           | Search all commits for a specific string and return commit details          |
+| GetFileLineDiffBetweenCommits    | Get line-by-line file diff between two commits                              |
+| ListWorkspaceFiles               | List all files in the workspace with optional filtering                     |
+| ListWorkspaceFilesWithCachedData | List workspace files with optional filtering using cached data              |
+| ReadFilteredWorkspaceFiles       | Read contents of all files from filtered workspace results                  |
+| SearchJsonFile                   | Search for JSON values in a JSON file using JSONPath                        |
+| SearchCsvFile                    | Search for CSV values in a CSV file using JSONPath queries                  |
+| SearchXmlFile                    | Search for XML values in an XML file using XPath                            |
+| TransformXmlWithXslt             | Transform an XML file using an XSLT stylesheet                              |
+| SearchYamlFile                   | Search for YAML values in a YAML file using JSONPath                        |
+| Deconstruct                      | Deconstruct a C# Service, Repository or Controller file (JSON output)       |
+| DeconstructToJson                | Deconstruct a C# Service, Repository or Controller file (save to JSON file) |
+| SamplingLLM                      | Run Sampling chat to process predefined User and System prompts             |
+
+See [EXAMPLES.md](Documentation/EXAMPLES.md) and [DECONSTRUCTION_SERVICE.md](Documentation/DECONSTRUCTION_SERVICE.md) for usage details and JSON-RPC examples.
+
+---
+
 ## Version 1.0.5 - Initial Release
 
 **Release Date**: July 22, 2025
@@ -169,6 +239,7 @@ Below are the MCP tools available in this release, as defined in `GitServiceTool
 | ListWorkspaceFilesWithCachedData | List workspace files with optional filtering using cached data              |
 | ReadFilteredWorkspaceFiles       | Read contents of all files from filtered workspace results                  |
 | SearchJsonFile                   | Search for JSON values in a JSON file using JSONPath                        |
+| SearchCsvFile                    | Search for CSV values in a CSV file using JSONPath queries                  |
 | SearchXmlFile                    | Search for XML values in an XML file using XPath                            |
 | TransformXmlWithXslt             | Transform an XML file using an XSLT stylesheet                              |
 | SearchYamlFile                   | Search for YAML values in a YAML file using JSONPath                        |

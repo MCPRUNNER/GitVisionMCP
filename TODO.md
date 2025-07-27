@@ -24,4 +24,12 @@ As of 2025-07-26, the following tasks are pending:
   - [x] Created comprehensive unit tests for XSLT functionality with self-contained test files
   - [x] Verified XML-to-HTML and XML-to-XML transformations work correctly
 - [x] Update Analyzers and Deconstructors to include Service, Repositories, and Controllers.
+- [x] Implement CSV search functionality in SearchCsvFile Tool.
+- [x] Implemented SearchCsvFile Tool with JSONPath support
+  - [x] Added CsvHelper package dependency for CSV parsing
+  - [x] Implemented SearchCsvFile method in LocationService with CSV-to-JSON conversion
+  - [x] Added SearchCsvFileAsync MCP tool in GitServiceTools with JSONPath support
+  - [x] Created comprehensive unit tests for CSV search functionality
+  - [x] Verified integration with existing JSON search infrastructure
 - [ ] Implement configuration file saved under `.gitvision/config.json` that allows changing the `maxFiles`, `maxFileSize`, and `applyExclusions` settings, and load it when needed.
+- [ ] Add Unit Tests for `SearchCsvFile` Tool.

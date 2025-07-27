@@ -152,7 +152,6 @@ Below are the MCP tools available in this release, as defined in `GitServiceTool
 | FetchFromRemote                  | Fetch latest changes from remote repository                                 |
 | GenerateGitDocumentation         | Generate documentation from git logs for the current workspace              |
 | GenerateGitDocumentationToFile   | Generate documentation from git logs and write to a file                    |
-| Sampling                         | Run Sampling chat to process predefined User and System prompts             |
 | CompareBranchesDocumentation     | Generate documentation comparing differences between two branches           |
 | CompareBranchesWithRemote        | Generate documentation comparing differences between two branches (remote)  |
 | CompareCommitsDocumentation      | Generate documentation comparing differences between two commits            |

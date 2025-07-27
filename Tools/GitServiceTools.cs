@@ -182,37 +182,37 @@ public class GitServiceTools : IGitServiceTools
             return $"Error generating documentation: {ex.Message}. Please check the logs for more details.";
         }
     }
-
-    [McpServerTool(Name = "Sampling"), Description("Run Sampling chat to process predefined User and System prompts")]
-    public async Task<string> SamplingLLM(
-           ModelContextProtocol.Server.IMcpServer thisServer,
-           CancellationToken cancellationToken,
-           [Description("User Prompt")] string user_prompt = "Sampling_USR.md",
-           [Description("System Prompt")] string system_prompt = "Sampling_SYS.md",
-           [Description("Model")] string model = "gpt-4.1",
-           [Description("Maximum number of tokens to generate")] int maxTokens = 1000)
-    {
-        // Create messages list with system prompt and user message
-        var sysPrompt = _locationService.GetGitHubPromptFileContent(system_prompt);
-        var userPrompt = _locationService.GetGitHubPromptFileContent(user_prompt);
-        var messages = new List<ChatMessage>
+    /*
+        [McpServerTool(Name = "Sampling"), Description("Run Sampling chat to process predefined User and System prompts")]
+        public async Task<string> SamplingLLM(
+               ModelContextProtocol.Server.IMcpServer thisServer,
+               CancellationToken cancellationToken,
+               [Description("User Prompt")] string user_prompt = "Sampling_USR.md",
+               [Description("System Prompt")] string system_prompt = "Sampling_SYS.md",
+               [Description("Model")] string model = "gpt-4.1",
+               [Description("Maximum number of tokens to generate")] int maxTokens = 1000)
         {
-            new(ChatRole.System, sysPrompt ?? "Default system prompt"),
-            new(ChatRole.User, userPrompt ?? "Default user prompt")
-        };
+            // Create messages list with system prompt and user message
+            var sysPrompt = _locationService.GetGitHubPromptFileContent(system_prompt);
+            var userPrompt = _locationService.GetGitHubPromptFileContent(user_prompt);
+            var messages = new List<ChatMessage>
+            {
+                new(ChatRole.System, sysPrompt ?? "Default system prompt"),
+                new(ChatRole.User, userPrompt ?? "Default user prompt")
+            };
 
-        var options = new ChatOptions
-        {
-            MaxOutputTokens = maxTokens,
-            Temperature = 0.7f,
-            ModelId = model, // Specify the model to use
-        };
+            var options = new ChatOptions
+            {
+                MaxOutputTokens = maxTokens,
+                Temperature = 0.7f,
+                ModelId = model, // Specify the model to use
+            };
 
-        var samplingResponse = await thisServer.AsSamplingChatClient().GetResponseAsync(messages, options, cancellationToken);
-        //  return "LLM sampling result: " + prompt; //return $"LLM sampling result: {samplingResponse}";
-        return $"LLM sampling result: {samplingResponse}";
-    }
-
+            var samplingResponse = await thisServer.AsSamplingChatClient().GetResponseAsync(messages, options, cancellationToken);
+            //  return "LLM sampling result: " + prompt; //return $"LLM sampling result: {samplingResponse}";
+            return $"LLM sampling result: {samplingResponse}";
+        }
+    */
 
 
     [McpServerToolAttribute]

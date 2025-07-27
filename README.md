@@ -1,4 +1,190 @@
-# GitVisionMCP
+# GitVisionMCP 1.0.6
+
+Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documentation
+
+---
+
+## 🚀 Features & Tools
+
+| Tool Name                             | Description                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------- |
+| generate_git_documentation            | Generate documentation from git logs for the current workspace            |
+| generate_git_documentation_to_file    | Generate documentation from git logs and write to a file                  |
+| compare_branches_documentation        | Generate documentation comparing differences between two local branches   |
+| compare_branches_with_remote          | Compare branches with full remote support (GitHub, GitLab, etc.)          |
+| compare_commits_documentation         | Generate documentation comparing differences between two commits          |
+| get_recent_commits                    | Get recent commits with detailed information                              |
+| get_changed_files_between_commits     | List files changed between two commits                                    |
+| get_detailed_diff_between_commits     | Get detailed diff content between commits                                 |
+| get_commit_diff_info                  | Get comprehensive diff statistics and file changes                        |
+| get_file_line_diff_between_commits    | Get line-by-line diff for a specific file between two commits             |
+| search_commits_for_string             | Search all commits for a specific string and return detailed match info   |
+| search_json_file                      | Search for JSON values in a JSON file using JSONPath queries              |
+| search_xml_file                       | Search for XML values in an XML file using XPath queries                  |
+| transform_xml_with_xslt               | Transform XML files using XSLT stylesheets                                |
+| search_yaml_file                      | Search for YAML values in a YAML file using JSONPath queries              |
+| SearchCsvFile                         | Search for CSV values in a CSV file using JSONPath queries                |
+| list_workspace_files                  | List all files in the workspace with advanced filtering options           |
+| list_workspace_files_with_cached_data | High-performance file listing using cached data                           |
+| read_filtered_workspace_files         | Read contents of filtered files with size and count limits                |
+| analyze_controller                    | Analyze ASP.NET Core controller structure and generate JSON documentation |
+| analyze_controller_to_file            | Analyze ASP.NET Core controller and save analysis to a file               |
+| get_local_branches                    | List all local branches in the repository                                 |
+| get_remote_branches                   | List all remote branches in the repository                                |
+| get_all_branches                      | List both local and remote branches                                       |
+| fetch_from_remote                     | Fetch latest changes from remote repository                               |
+
+---
+
+## 🔥 Key Capabilities
+
+- **Automated Documentation Generation**: Create comprehensive documentation from git logs
+- **Commit & Branch Search**: Search across all commits and branches for specific strings
+- **Historical Analysis**: Analyze changes between commits with line-by-line precision
+- **Remote Support**: Full support for remote repositories and branch comparison
+- **Precision Tools**: Get exact file changes, line diffs, and comprehensive statistics
+- **Workspace File Operations**: Smart file filtering, configurable exclude patterns, and performance optimization
+
+---
+
+## 🆕 SearchCsvFile Tool
+
+**SearchCsvFile** enables automated searching of CSV files using JSONPath queries. It converts CSV to a JSON array of row objects for powerful, automated queries.
+
+**Usage:**
+
+```
+SearchCsvFile(csvFilePath, jsonPath, hasHeaderRecord = true, ignoreBlankLines = true)
+```
+
+- `csvFilePath`: Path to the CSV file relative to the workspace root.
+- `jsonPath`: JSONPath query string (e.g., `$[*].ServerName`, `$[*].UptimeHours`, `$` for all rows).
+- `hasHeaderRecord`: Whether the CSV has a header row (default: true).
+- `ignoreBlankLines`: Whether to ignore blank lines (default: true).
+
+**Example:**
+
+```
+SearchCsvFile("test.csv", "$[*].ServerName")
+SearchCsvFile("test.csv", "$[*].UptimeHours")
+SearchCsvFile("test.csv", "$")
+```
+
+**Output:**
+
+- JSON array of results matching your query.
+- Example: `["Server-1", "Server-2", ...]` or `[ { "ServerName": "Server-1", "UptimeHours": "123" }, ... ]`
+
+**Notes:**
+
+- Uses CsvHelper for robust CSV parsing.
+- JSONPath queries must match the structure of the converted JSON array.
+- Works with any CSV file with or without headers.
+
+---
+
+## 📝 Automated Usage Examples
+
+### Documentation Generation
+
+```
+@copilot Generate documentation from the last 20 commits
+@copilot Create a release summary comparing main with release/v2.0
+@copilot Generate project history and save to docs/changelog.md
+```
+
+### Search & Discovery
+
+```
+@copilot Search all commits for 'authentication' and show me the results
+@copilot Find all commits that mention 'bug fix' in messages or code
+@copilot Search config.yaml for database settings using JSONPath $.database.*
+@copilot Extract all Docker service names from docker-compose.yml
+@copilot Find all environment variables in Kubernetes manifests
+@copilot SearchCsvFile("test.csv", "$[*].ServerName")
+```
+
+### Branch Analysis
+
+```
+@copilot Compare my feature branch with origin/main and save to analysis.md
+@copilot Show me what files changed between these two commits
+@copilot List all remote branches in this repository
+@copilot Fetch latest changes from origin and compare branches
+```
+
+### Advanced Analysis
+
+```
+@copilot Get line-by-line diff for Services/GitService.cs between two commits
+@copilot Show me recent commits with detailed change information
+```
+
+---
+
+## ⚡ Automated Setup
+
+### Prerequisites
+
+- .NET 9.0 SDK
+- Git repository in the workspace
+- VS Code with Copilot
+- Access to remote repositories (for remote branch features)
+
+### Build & Run
+
+```powershell
+dotnet restore; dotnet build --configuration Release
+$env:DOTNET_ENVIRONMENT="Production"; dotnet run --no-build --verbosity quiet
+```
+
+### VS Code MCP Configuration
+
+```json
+{
+  "servers": {
+    "GitVisionMCP": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP\\GitVisionMCP.csproj",
+        "--no-build",
+        "--verbosity",
+        "quiet"
+      ],
+      "env": {
+        "DOTNET_ENVIRONMENT": "Production",
+        "GIT_REPOSITORY_DIRECTORY": "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 🧠 MCP Prompts & Automation
+
+GitVisionMCP provides specialized MCP prompts for creating release documentation and automating repository analysis.
+
+**Example Prompts:**
+
+```
+@copilot Using the release_document prompt, create release notes for our project.
+@copilot Using the release_document_with_version prompt with version 2.0.0 and release date 2025-07-10, create release notes.
+```
+
+---
+
+## 📚 Further Reading
+
+- [EXAMPLES.md](Documentation/EXAMPLES.md)
+- [DECONSTRUCTION_SERVICE.md](Documentation/DECONSTRUCTION_SERVICE.md)
+- [EXCLUDE_FUNCTIONALITY.md](Documentation/EXCLUDE_FUNCTIONALITY.md)
+
+---
 
 A comprehensive Model Context Protocol (MCP) Server that provides advanced git analysis and documentation tools, including powerful commit search capabilities. Designed to be used as a Copilot Agent in VS Code for comprehensive repository analysis and documentation generation.
 

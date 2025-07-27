@@ -136,19 +136,32 @@ public interface IGitServiceTools
     /// <param name="indented">Whether to format the output with indentation (default: true)</param>
     /// <param name="showKeyPaths">Whether to return structured results with path, value, and key information (default: false)</param>
     /// <returns>XML search result or null if not found</returns>
+
     Task<string?> SearchXmlFileAsync(string xmlFilePath, string xPath, bool? indented = true, bool? showKeyPaths = false);
 
     /// <summary>
-    /// Analyzes a C# ASP.NET Core controller file and returns its structure as JSON
+    /// Search for CSV values in a CSV file using JSONPath queries by converting CSV to JSON
     /// </summary>
-    /// <param name="filePath">Path to the controller file relative to workspace root</param>
-    /// <returns>JSON representation of the controller structure</returns>
+    /// <param name="csvFilePath">Path to the CSV file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')</param>
+    /// <param name="hasHeaderRecord">Whether the CSV has a header record (default: true)</param>
+    /// <param name="ignoreBlankLines">Whether to ignore blank lines (default: true)</param>
+    /// <returns>CSV search result or null if not found</returns>
+
+    Task<string?> SearchCsvFileAsync(string csvFilePath, string jsonPath, bool? hasHeaderRecord = true, bool? ignoreBlankLines = true);
+
+    /// <summary>
+    /// Deconstruct a C# Controller, Service or Repository and returns its structure as JSON
+    /// </summary>
+    /// <param name="filePath">Path to the source code file relative to workspace root</param>
+    /// <returns>JSON representation of the source code structure</returns>
+
     Task<string?> DeconstructAsync(string filePath);
 
     /// <summary>
-    /// Analyzes a C# ASP.NET Core controller file and saves the structure to a JSON file in the workspace directory
+    /// Deconstruct a C# Controller, Service or Repository file and saves the structure to a JSON file in the workspace directory
     /// </summary>
-    /// <param name="filePath">Path to the controller file relative to workspace root</param>
+    /// <param name="filePath">Path to the source code file relative to workspace root</param>
     /// <param name="outputFileName">The name of the output JSON file (optional, defaults to controller name + '_analysis.json')</param>
     /// <returns>Success message with the output file path</returns>
     Task<string?> DeconstructToJsonAsync(string filePath, string? outputFileName = null);

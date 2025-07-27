@@ -1318,6 +1318,67 @@ public class GitServiceTools : IGitServiceTools
             throw new InvalidOperationException($"Error during XSLT transformation: {ex.Message}. See inner exception for details.", ex);
         }
     }
+    // string? SearchCsvFile(string csvFilePath, string jsonPath, bool hasHeaderRecord = true, bool ignoreBlankLines = true)
+    [McpServerToolAttribute]
+    [Description("Search for CSV values in a CSV file using JSONPath")]
+    public Task<string?> SearchCsvFileAsync(
+        [Description("Path to the CSV file relative to workspace root")] string csvFilePath,
+        [Description("JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')")] string jsonPath,
+        [Description("Whether the CSV has headers (default: true)")] bool? hasHeaderRecord = true,
+        [Description("Whether to ignore blank lines (default: false)")] bool? ignoreBlankLines = true)
+    {
+        try
+        {
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(csvFilePath))
+            {
+                _logger.LogError("CSV file path cannot be null or empty");
+                throw new ArgumentException("CSV file path must be specified", nameof(csvFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                _logger.LogError("JSONPath cannot be null or empty");
+                throw new ArgumentException("JSONPath must be specified", nameof(jsonPath));
+            }
+
+            _logger.LogInformation("Searching CSV file {CsvFilePath} with JSONPath {JsonPath}, hasHeaderRecord: {HasHeaderRecord}, ignoreBlankLines: {IgnoreBlankLines}",
+                csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
+
+            var result = _locationService.SearchCsvFile(csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
+
+            if (string.IsNullOrEmpty(result))
+            {
+                _logger.LogInformation("No matches found for JSONPath {JsonPath} in CSV file {CsvFilePath}",
+                    jsonPath, csvFilePath);
+                return Task.FromResult<string?>("No matches found");
+            }
+
+            _logger.LogInformation("Successfully found matches for JSONPath {JsonPath} in CSV file {CsvFilePath}",
+                jsonPath, csvFilePath);
+            return Task.FromResult<string?>(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid argument for CSV search");
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "CSV file not found: {CsvFilePath}", csvFilePath);
+            throw new FileNotFoundException($"CSV file not found: {csvFilePath}. Please check the file path.", ex);
+        }
+        catch (Newtonsoft.Json.JsonException ex)
+        {
+            _logger.LogError(ex, "Invalid JSON format in file {JsonFilePath}", csvFilePath);
+            throw new InvalidDataException($"Invalid JSON format in file: {csvFilePath}. Details: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching CSV file {CsvFilePath}", csvFilePath);
+            throw new InvalidOperationException($"Error searching CSV file: {ex.Message}. See inner exception for details.", ex);
+        }
+    }
 
     [McpServerToolAttribute]
     [Description("Search for YAML values in a YAML file using JSONPath")]

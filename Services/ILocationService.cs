@@ -19,6 +19,22 @@ public interface ILocationService
     List<WorkspaceFileInfo> GetAllFiles();
 
     /// <summary>
+    /// Searches a CSV file for values using JSONPath query with support for wildcards and structured
+    /// results.
+    /// /// </summary>
+    /// <param name="csvFilePath">The path to the CSV file to search</param>
+    /// <param name="jsonPath">The JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')</param>
+    /// <param name="hasHeaderRecord">Indicates if the CSV file has a header record</param>
+    /// <param name="ignoreBlankLines">Indicates if blank lines should be ignored</param>
+    /// <returns>A string representation of the search results, or an empty string if no matches are found</returns>
+    /// <remarks>
+    /// This method supports searching CSV files using JSONPath queries, allowing for flexible
+    /// searching of CSV data.
+    /// It can handle CSV files with or without header records and can ignore blank lines.
+    /// The results can be formatted as structured JSON with key paths, values, and keys.
+    string? SearchCsvFile(string csvFilePath, string jsonPath, bool hasHeaderRecord = true, bool ignoreBlankLines = true);
+
+    /// <summary>
     /// Gets all files under the workspace root directory with relative paths and file types, excluding files matching exclude patterns
     /// </summary>
     /// <returns>A list of file information including relative path and file type, excluding excluded files</returns>

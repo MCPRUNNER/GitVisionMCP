@@ -169,6 +169,7 @@ Below are the MCP tools available in this release, as defined in `GitServiceTool
 | ListWorkspaceFilesWithCachedData | List workspace files with optional filtering using cached data              |
 | ReadFilteredWorkspaceFiles       | Read contents of all files from filtered workspace results                  |
 | SearchJsonFile                   | Search for JSON values in a JSON file using JSONPath                        |
+| SearchCsvFile                    | Search for CSV values in a CSV file using JSONPath queries                  |
 | SearchXmlFile                    | Search for XML values in an XML file using XPath                            |
 | TransformXmlWithXslt             | Transform an XML file using an XSLT stylesheet                              |
 | SearchYamlFile                   | Search for YAML values in a YAML file using JSONPath                        |

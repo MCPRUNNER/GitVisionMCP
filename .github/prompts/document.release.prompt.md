@@ -17,6 +17,7 @@ Your task is to:
 1. Incluide a table of MCP tools available in this release, as defined in `Tools/GitServiceTools.cs`:
 1. Create a well-structured release document with the following sections:
 
+   - Title GitVisionMCP ([Application Version]) Release Documentation
    - Version and Release Date
    - Summary of Changes
    - New Features (detailed descriptions)

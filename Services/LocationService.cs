@@ -8,6 +8,11 @@ using System.Xml.Xsl;
 using System.Text.RegularExpressions;
 using GitVisionMCP.Models;
 using YamlDotNet.Serialization;
+
+using CsvHelper;
+using CsvHelper.Configuration;
+using System.Globalization;
+
 namespace GitVisionMCP.Services;
 
 /// <summary>
@@ -52,6 +57,15 @@ public class WorkspaceFileInfo
 /// Implementation of location service that checks for GIT_REPOSITORY_DIRECTORY environment variable
 /// </summary>
 public class LocationService : ILocationService
+/// <summary>
+/// Searches for CSV values in a CSV file using JSONPath queries by converting CSV to JSON using CsvHelper.
+/// </summary>
+/// <param name="csvFilePath">Path to the CSV file relative to workspace root</param>
+/// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
+/// <param name="hasHeaderRecord">Whether the CSV has a header record (default: true)</param>
+/// <param name="ignoreBlankLines">Whether to ignore blank lines (default: true)</param>
+/// <returns>CSV search result or null if not found</returns>
+
 {
     private readonly ILogger<LocationService> _logger;
     private readonly string _workspaceRoot;
@@ -300,7 +314,8 @@ public class LocationService : ILocationService
             }
 
             // Read the entire content of the JSON file into a string
-            var filePath = Path.Combine(_workspaceRoot, jsonFilePath);
+            var filePath = GetFullPath(jsonFilePath);
+
             if (string.IsNullOrEmpty(filePath))
             {
                 _logger.LogWarning("JSON file does not exist: {FilePath}", filePath);
@@ -400,6 +415,78 @@ public class LocationService : ILocationService
             return null;
         }
     }
+
+     public string? SearchCsvFile(string csvFilePath, string jsonPath, bool hasHeaderRecord = true, bool ignoreBlankLines = true)
+{
+    if (!ValidateInputs(csvFilePath, jsonPath)) return null;
+
+    var fullCsvPath = GetFullPath(csvFilePath);
+    if (string.IsNullOrEmpty(fullCsvPath))
+    {
+        _logger.LogWarning("CSV file does not exist: {CsvFilePath}", csvFilePath);
+        return null;
+    }
+
+    try
+    {
+        var records = ReadCsvRecords(fullCsvPath, hasHeaderRecord, ignoreBlankLines);
+        if (records == null || !records.Any())
+        {
+            _logger.LogWarning("No records found in CSV file: {CsvFilePath}", csvFilePath);
+            return null;
+        }
+
+        var json = JsonConvert.SerializeObject(records, Newtonsoft.Json.Formatting.None);
+        var jsonArray = JArray.Parse(json);
+
+        var results = jsonArray.SelectTokens(jsonPath).ToList();
+        if (!results.Any())
+        {
+            _logger.LogWarning("No matches found for JSONPath: {JsonPath} in CSV file: {CsvFilePath}", jsonPath, csvFilePath);
+            return string.Empty;
+        }
+
+        return results.Count == 1
+            ? results[0].ToString(Newtonsoft.Json.Formatting.Indented)
+            : new JArray(results).ToString(Newtonsoft.Json.Formatting.Indented);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error searching CSV file: {CsvFilePath}", csvFilePath);
+        return null;
+    }
+}
+
+private bool ValidateInputs(string csvFilePath, string jsonPath)
+{
+    if (string.IsNullOrWhiteSpace(csvFilePath))
+    {
+        _logger.LogError("CSV file path cannot be null or empty");
+        return false;
+    }
+
+    if (string.IsNullOrWhiteSpace(jsonPath))
+    {
+        _logger.LogError("JSONPath cannot be null or empty");
+        return false;
+    }
+
+    return true;
+}
+
+private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, bool ignoreBlankLines)
+{
+    var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+    {
+        HasHeaderRecord = hasHeaderRecord,
+        IgnoreBlankLines = ignoreBlankLines,
+        TrimOptions = TrimOptions.Trim
+    };
+
+    using var reader = new StreamReader(fullCsvPath);
+    using var csv = new CsvReader(reader, config);
+    return csv.GetRecords<dynamic>().ToList();
+}
 
     /// <summary>
     /// Searches for XML values in an XML file using XPath queries with support for namespaces and structured results.
@@ -750,7 +837,12 @@ public class LocationService : ILocationService
             }
 
             // Read the entire content of the YAML file into a string
-            var filePath = Path.Combine(_workspaceRoot, yamlFilePath);
+            var filePath = GetFullPath(yamlFilePath);
+            if (string.IsNullOrEmpty(filePath))
+            {
+                _logger.LogWarning("YAML file does not exist: {YamlFilePath}", yamlFilePath);
+                return null;
+            }
             var yamlContent = ReadFile(filePath);
 
             if (string.IsNullOrWhiteSpace(yamlContent))

@@ -17,23 +17,18 @@ This release includes improvements to MCP tool coverage, enhanced documentation 
 
 ## New Features
 
-- **Deconstruction Tools:**
+- Deconstruct C# Service, Repository, or Controller files and output their structure as JSON.
+- Save deconstruction analysis directly to a JSON file in the workspace.
 
-  - Deconstruct C# Service, Repository, or Controller files and output their structure as JSON.
-  - Save deconstruction analysis directly to a JSON file in the workspace.
+- Compare branches and commits, generating documentation in markdown, HTML, or text formats.
+- Support for remote branch comparison with optional fetch.
 
-- **Branch and Commit Comparison:**
+- List and filter workspace files by type, path, and modification date.
+- Read contents of filtered files, with binary and size checks.
 
-  - Compare branches and commits, generating documentation in markdown, HTML, or text formats.
-  - Support for remote branch comparison with optional fetch.
+- **Search for CSV values in a CSV file using JSONPath queries for advanced data extraction and filtering.**
 
-- **Workspace File Analysis:**
-
-  - List and filter workspace files by type, path, and modification date.
-  - Read contents of filtered files, with binary and size checks.
-
-- **Sampling LLM Integration:**
-  - Run sampling chat using predefined user and system prompts.
+- Run sampling chat using predefined user and system prompts.
 
 ---
 
@@ -116,6 +111,7 @@ This release includes improvements to MCP tool coverage, enhanced documentation 
 | SearchXmlFileAsync                    | Search for XML values in an XML file using XPath                              |
 | TransformXmlWithXsltAsync             | Transform an XML file using an XSLT stylesheet                                |
 | SearchYamlFileAsync                   | Search for YAML values in a YAML file using JSONPath                          |
+| SearchCsvFileAsync                    | Search for CSV values in a CSV file using JSONPath                            |
 | DeconstructAsync                      | Deconstruct a C# Service, Repository or Controller file as JSON               |
 | DeconstructToJsonAsync                | Deconstruct a C# file and save structure to a JSON file                       |
 | SamplingLLM                           | Run Sampling chat to process predefined User and System prompts               |

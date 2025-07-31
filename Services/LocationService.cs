@@ -8,6 +8,7 @@ using System.Xml.Xsl;
 using System.Text.RegularExpressions;
 using GitVisionMCP.Models;
 using YamlDotNet.Serialization;
+using ClosedXML.Excel;
 
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -111,7 +112,7 @@ public class LocationService : ILocationService
                 if (result is XElement element)
                 {
                     path = GetXElementPath(element);
-                    value = element.ToString(indented ? SaveOptions.None : SaveOptions.DisableFormatting);
+                    value = element.ToString(indented ? System.Xml.Linq.SaveOptions.None : System.Xml.Linq.SaveOptions.DisableFormatting);
                     key = element.Name.LocalName;
                 }
                 else if (result is XAttribute attribute)
@@ -159,7 +160,7 @@ public class LocationService : ILocationService
 
                 if (result is XElement element)
                 {
-                    return element.ToString(indented ? SaveOptions.None : SaveOptions.DisableFormatting);
+                    return element.ToString(indented ? System.Xml.Linq.SaveOptions.None : System.Xml.Linq.SaveOptions.DisableFormatting);
                 }
                 else if (result is XAttribute attribute)
                 {
@@ -179,7 +180,7 @@ public class LocationService : ILocationService
                 {
                     if (result is XElement element)
                     {
-                        resultArray.Add(element.ToString(SaveOptions.DisableFormatting));
+                        resultArray.Add(element.ToString(System.Xml.Linq.SaveOptions.DisableFormatting));
                     }
                     else if (result is XAttribute attribute)
                     {
@@ -1193,5 +1194,65 @@ public class LocationService : ILocationService
 
         return false;
     }
+    /// <summary>
+    /// Searches for values in an Excel file (.xlsx) using JSONPath queries by converting worksheet data to JSON.
+    /// Processes all worksheets and returns results for each.
+    /// </summary>
+    /// <param name="excelFilePath">Path to the Excel file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
+    /// <returns>JSON search result or null if not found</returns>
+    public string? SearchExcelFile(string excelFilePath, string jsonPath)
+    {
+        if (!ValidateInputs(excelFilePath, jsonPath)) return null;
 
+        var fullExcelPath = GetFullPath(excelFilePath);
+        if (string.IsNullOrEmpty(fullExcelPath))
+        {
+            _logger.LogWarning("Excel file does not exist: {ExcelFilePath}", excelFilePath);
+            return null;
+        }
+
+        try
+        {
+            using var workbook = new XLWorkbook(fullExcelPath);
+            var worksheetResults = new JObject();
+
+            foreach (var worksheet in workbook.Worksheets)
+            {
+                var rows = new List<Dictionary<string, object>>();
+                var firstRow = worksheet.FirstRowUsed();
+                if (firstRow == null) continue;
+
+                var headerRow = firstRow.RowUsed();
+                var headers = headerRow.Cells().Select(c => c.GetString()).ToList();
+
+                foreach (var dataRow in worksheet.RowsUsed().Skip(1))
+                {
+                    var rowDict = new Dictionary<string, object>();
+                    var cells = dataRow.Cells().ToList();
+                    for (int i = 0; i < headers.Count && i < cells.Count; i++)
+                    {
+                        rowDict[headers[i]] = cells[i].Value;
+                    }
+                    rows.Add(rowDict);
+                }
+
+                // Convert rows to JSON and apply JSONPath
+                var jsonContent = JsonConvert.SerializeObject(rows, Newtonsoft.Json.Formatting.None);
+                var tokens = ExtractJTokens(jsonContent, jsonPath);
+                worksheetResults[worksheet.Name] = tokens != null && tokens.Any()
+                    ? (tokens.Count() == 1 ? tokens.First() : new JArray(tokens))
+                    : new JArray();
+            }
+
+            return worksheetResults.HasValues
+                ? worksheetResults.ToString(Newtonsoft.Json.Formatting.Indented)
+                : string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching Excel file: {ExcelFilePath}", excelFilePath);
+            return null;
+        }
+    }
 }

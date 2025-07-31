@@ -117,7 +117,14 @@ public interface IGitServiceTools
     /// Read contents of all files from filtered workspace results
     /// </summary>
     Task<List<Models.FileContentInfo>> ReadFilteredWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null, int? maxFiles = 50, long? maxFileSize = 1048576);
-
+    /// <summary>
+    /// Search for values in an Excel (.xlsx) file using JSONPath queries by converting worksheet data to JSON.
+    /// Processes all worksheets and returns results for each.
+    /// </summary>
+    /// <param name="excelFilePath">Path to the Excel file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
+    /// <returns>JSON search result or null if not found</returns>
+    Task<string?> SearchExcelFileAsync(string excelFilePath, string jsonPath);
     /// <summary>
     /// Search for JSON values in a JSON file using JSONPath
     /// </summary>

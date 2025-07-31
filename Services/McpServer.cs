@@ -484,6 +484,40 @@ public class McpServer : IMcpServer
             },
             new Tool
             {
+                Name = "search_csv_file",
+                Description = "Search for values in a CSV file using a query",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        csvFilePath = new { type = "string", description = "Path to the CSV file relative to workspace root" },
+                        jsonPath = new { type = "string", description = "JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')" },
+                        hasHeaderRecord = new { type = "boolean", description = "Whether the CSV has a header record (default: true)" },
+                        ignoreBlankLines = new { type = "boolean", description = "Whether to ignore blank lines (default: true)" }
+                    },
+                    required = new[] { "csvFilePath", "jsonPath" }
+                }
+            },
+            new Tool
+            {
+                Name = "search_yaml_file",
+                Description = "Search for values in a YAML file using a query",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        yamlFilePath = new { type = "string", description = "Path to the YAML file relative to workspace root" },
+                        jsonPath = new { type = "string", description = "JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')" },
+                        indented = new { type = "boolean", description = "Whether the YAML output should be indented (default: true)" },
+                        showKeyPaths = new { type = "boolean", description = "Whether to show key paths in the output (default: false)" }
+                    },
+                    required = new[] { "yamlFilePath", "jsonPath" }
+                }
+            },
+            new Tool
+            {
                 Name = "search_xml_file",
                 Description = "Search for XML values in an XML file using XPath",
                 InputSchema = new
@@ -501,28 +535,28 @@ public class McpServer : IMcpServer
             },
             new Tool
             {
-                Name = "analyze_controller",
-                Description = "Analyzes a C# ASP.NET Core controller file and returns its structure as JSON",
+                Name = "deconstruct_to_json",
+                Description = "Deconstructs a C# ASP.NET Service, Controller or repository file and returns its structure as JSON",
                 InputSchema = new
                 {
                     type = "object",
                     properties = new
                     {
-                        filePath = new { type = "string", description = "Path to the controller file relative to workspace root" }
+                        filePath = new { type = "string", description = "Path to the Service, Controller or repository file relative to workspace root" }
                     },
                     required = new[] { "filePath" }
                 }
             },
             new Tool
             {
-                Name = "analyze_controller_to_file",
-                Description = "Analyzes a C# ASP.NET Core controller file and saves the structure to a JSON file in the workspace directory",
+                Name = "deconstruct_to_file",
+                Description = "Deconstructs a C# ASP.NET Service, Controller or repository file and saves the structure to a JSON file in the workspace directory",
                 InputSchema = new
                 {
                     type = "object",
                     properties = new
                     {
-                        filePath = new { type = "string", description = "Path to the controller file relative to workspace root" },
+                        filePath = new { type = "string", description = "Path to the Service, Controller or repository file relative to workspace root" },
                         outputFileName = new { type = "string", description = "The name of the output JSON file (optional, defaults to controller name + '_analysis.json')" }
                     },
                     required = new[] { "filePath" }

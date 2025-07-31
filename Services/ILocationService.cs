@@ -36,6 +36,15 @@ public interface ILocationService
     string? SearchCsvFile(string csvFilePath, string jsonPath, bool hasHeaderRecord = true, bool ignoreBlankLines = true);
 
     /// <summary>
+    /// Searches for values in an Excel file (.xlsx) using JSONPath queries by converting worksheet data to JSON.
+    /// Processes all worksheets and returns results for each.
+    /// </summary>
+    /// <param name="excelFilePath">Path to the Excel file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
+    /// <returns>JSON search result or null if not found</returns>
+    string? SearchExcelFile(string excelFilePath, string jsonPath);
+
+    /// <summary>
     /// Gets all files under the workspace root directory with relative paths and file types, excluding files matching exclude patterns
     /// </summary>
     /// <returns>A list of file information including relative path and file type, excluding excluded files</returns>

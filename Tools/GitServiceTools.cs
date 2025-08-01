@@ -1345,6 +1345,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Searching CSV file {CsvFilePath} with JSONPath {JsonPath}, hasHeaderRecord: {HasHeaderRecord}, ignoreBlankLines: {IgnoreBlankLines}",
                 csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
 
+            // Use LocationService for the actual file searching functionality
             var result = _locationService.SearchCsvFile(csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
 
             if (string.IsNullOrEmpty(result))
@@ -1410,6 +1411,7 @@ public class GitServiceTools : IGitServiceTools
 
             _logger.LogInformation("Searching Excel file {ExcelFilePath} with JSONPath {JsonPath}", excelFilePath, jsonPath);
 
+            // Use LocationService for the actual file searching functionality
             var result = _locationService.SearchExcelFile(excelFilePath, jsonPath);
 
             if (string.IsNullOrEmpty(result))

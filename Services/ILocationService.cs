@@ -122,4 +122,11 @@ public interface ILocationService
     /// <param name="filename">The name of the file to read from the Prompts directory</param>
     /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
     string? GetGitHubPromptFileContent(string filename);
+
+    /// <summary>
+    /// Gets the value of an environment variable by name and returns it as an object.
+    /// </summary>
+    /// <param name="variableName">The name of the environment variable</param>
+    /// <returns>The value of the environment variable as an object, or null if not set</returns>
+    object? GetEnvironmentVariableValue(string variableName);
 }

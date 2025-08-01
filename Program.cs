@@ -48,8 +48,22 @@ builder.Logging.ClearProviders(); // Clear default providers including console
 builder.Logging.AddSerilog(Log.Logger);
 
 // Determine transport type from environment variable
-var transportType = Environment.GetEnvironmentVariable("GITVISION_MCP_TRANSPORT") ?? "Stdio";
-
+var transportType = Environment.GetEnvironmentVariable("GITVISION_MCP_TRANSPORT") ?? "unset";
+Log.Information($"Getting transport type: {transportType.ToLowerInvariant()}");
+switch (transportType.ToLowerInvariant())
+{
+    case "http":
+        Log.Information($"Matched http transport type: {transportType}");
+        break;
+    case "stdio":
+        Log.Information($"Matched stdio transport type: {transportType}");
+        break;
+    default:
+        Log.Warning($"Unknown transport type '{transportType}' specified. Defaulting to Stdio transport.");
+        transportType = "Stdio";
+        break;
+}
+Log.Information($"Using transport type: {transportType}");
 // Add MCP services based on transport type
 if (transportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
 {
@@ -138,14 +152,19 @@ if (!transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
 }
 
 // Run the application
-app.Lifetime.ApplicationStarted.Register(() => Log.Information("GitVision MCP Server started"));
+app.Lifetime.ApplicationStarted.Register(() => Log.Information("GitVision MCP Server application started"));
+app.Lifetime.ApplicationStopping.Register(() => Log.Information("GitVision MCP Server application stopping"));
+app.Lifetime.ApplicationStopped.Register(() => Log.Information("GitVision MCP Server application stopped"));
 
 if (transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
 {
+    Log.Information("Configuring to run with Stdio transport.");
     // In stdio mode, we only want to use the MCP server transport
     try
     {
+        Log.Information("Attempting to retrieve IMcpServer service.");
         var mcpServer = app.Services.GetRequiredService<ModelContextProtocol.Server.IMcpServer>();
+        Log.Information("Successfully retrieved IMcpServer service.");
 
         // Register shutdown handlers
         var cancellationTokenSource = new CancellationTokenSource();
@@ -173,7 +192,9 @@ if (transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
             });
         }
 
+        Log.Information("Starting MCP server run loop.");
         await mcpServer.RunAsync(cancellationTokenSource.Token);
+        Log.Information("MCP server run loop finished.");
     }
     catch (Exception ex)
     {

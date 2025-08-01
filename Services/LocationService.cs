@@ -45,6 +45,22 @@ public class LocationService : ILocationService
     }
 
     /// <summary>
+    /// Gets the value of an environment variable by name and returns it as an object.
+    /// </summary>
+    /// <param name="variableName">The name of the environment variable</param>
+    /// <returns>The value of the environment variable as an object, or null if not set</returns>
+    public object? GetEnvironmentVariableValue(string variableName)
+    {
+        if (string.IsNullOrWhiteSpace(variableName))
+        {
+            _logger.LogError("Environment variable name cannot be null or empty");
+            return null;
+        }
+        var value = Environment.GetEnvironmentVariable(variableName);
+        return value != null ? (object)value : null;
+    }
+
+    /// <summary>
     /// Reads a file from the workspace root directory
     /// </summary>
     /// <param name="fullCsvPath">The full path to the CSV file</param>
@@ -342,8 +358,8 @@ public class LocationService : ILocationService
                 return new List<JToken>();
             }
 
-            JObject jsonObj = JObject.Parse(jsonContent);
-            return jsonObj.SelectTokens(jsonPath).ToList();
+            JToken jsonToken = JToken.Parse(jsonContent);
+            return jsonToken.SelectTokens(jsonPath).ToList();
         }
         catch (Exception ex)
         {
@@ -360,13 +376,7 @@ public class LocationService : ILocationService
     /// <returns>A collection of JToken objects matching the JSONPath query</returns>
     private IEnumerable<JToken> ExtractJTokens(List<object> records, string jsonPath)
     {
-        /*
 
-            var json = JsonConvert.SerializeObject(records, Newtonsoft.Json.Formatting.None);
-            var jsonArray = JArray.Parse(json);
-
-            var results = jsonArray.SelectTokens(jsonPath).ToList();
-        */
 
         var jsonContent = JsonConvert.SerializeObject(records, Newtonsoft.Json.Formatting.None);
         if (string.IsNullOrWhiteSpace(jsonContent))
@@ -1215,7 +1225,8 @@ public class LocationService : ILocationService
         try
         {
             using var workbook = new XLWorkbook(fullExcelPath);
-            var worksheetResults = new JObject();
+            // Build a JSON object mapping each sheet name to its full row array
+            var workbookJson = new JObject();
 
             foreach (var worksheet in workbook.Worksheets)
             {
@@ -1225,29 +1236,40 @@ public class LocationService : ILocationService
 
                 var headerRow = firstRow.RowUsed();
                 var headers = headerRow.Cells().Select(c => c.GetString()).ToList();
+                var headerCells = headerRow.Cells().ToList();
+
+                // Map header index to column letter
+                var headerLetters = headerCells.Select(c => c.Address.ColumnLetter).ToList();
 
                 foreach (var dataRow in worksheet.RowsUsed().Skip(1))
                 {
                     var rowDict = new Dictionary<string, object>();
                     var cells = dataRow.Cells().ToList();
-                    for (int i = 0; i < headers.Count && i < cells.Count; i++)
+                    for (var i = 0; i < headers.Count && i < cells.Count; i++)
                     {
-                        rowDict[headers[i]] = cells[i].Value;
+                        var value = cells[i].GetString();
+                        rowDict[headers[i]] = value;
+                        // Only add column letter if it does not conflict with a header name
+                        if (!headers.Contains(headerLetters[i]))
+                        {
+                            rowDict[headerLetters[i]] = value;
+                        }
                     }
                     rows.Add(rowDict);
                 }
 
-                // Convert rows to JSON and apply JSONPath
-                var jsonContent = JsonConvert.SerializeObject(rows, Newtonsoft.Json.Formatting.None);
-                var tokens = ExtractJTokens(jsonContent, jsonPath);
-                worksheetResults[worksheet.Name] = tokens != null && tokens.Any()
-                    ? (tokens.Count() == 1 ? tokens.First() : new JArray(tokens))
-                    : new JArray();
+                // Add full sheet array under its name
+                workbookJson[worksheet.Name] = JArray.FromObject(rows);
             }
 
-            return worksheetResults.HasValues
-                ? worksheetResults.ToString(Newtonsoft.Json.Formatting.Indented)
-                : string.Empty;
+            // Apply JSONPath query against the entire workbook JSON
+            var fullJson = workbookJson.ToString(Newtonsoft.Json.Formatting.None);
+            var matchedTokens = ExtractJTokens(fullJson, jsonPath);
+            var resultToken = (matchedTokens != null && matchedTokens.Any())
+                ? (matchedTokens.Count() == 1 ? matchedTokens.First() : new JArray(matchedTokens))
+                : new JArray();
+
+            return resultToken.ToString(Newtonsoft.Json.Formatting.Indented);
         }
         catch (Exception ex)
         {

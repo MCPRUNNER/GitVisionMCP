@@ -7,7 +7,10 @@
       "launchBrowser": false,
       "applicationUrl": "http://localhost:5250",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "GIT_REPOSITORY_DIRECTORY": "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP",
+        "GITVISION_MCP_TRANSPORT": "http",
+        "GIT_APP_LOG_DIRECTORY": "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP\\logs"
       }
     },
     "https": {

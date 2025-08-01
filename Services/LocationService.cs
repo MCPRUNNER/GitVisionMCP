@@ -8,49 +8,15 @@ using System.Xml.Xsl;
 using System.Text.RegularExpressions;
 using GitVisionMCP.Models;
 using YamlDotNet.Serialization;
+using ClosedXML.Excel;
 
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
+using Microsoft.AspNetCore.Http;
 
 namespace GitVisionMCP.Services;
 
-/// <summary>
-/// Represents file information with relative path and metadata
-/// </summary>
-public class WorkspaceFileInfo
-{
-    /// <summary>
-    /// Gets or sets the relative path from the workspace root
-    /// </summary>
-    public string RelativePath { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the file type (extension without the dot)
-    /// </summary>
-    public string FileType { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the full path to the file
-    /// </summary>
-    public string FullPath { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Gets or sets the file size in bytes
-    /// </summary>
-    public long Size
-    {
-        get; set;
-    }
-
-    /// <summary>
-    /// Gets or sets the last modified date
-    /// </summary>
-    public DateTime LastModified
-    {
-        get; set;
-    }
-}
 
 
 /// <summary>
@@ -76,6 +42,401 @@ public class LocationService : ILocationService
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _workspaceRoot = DetermineWorkspaceRoot();
+    }
+
+    /// <summary>
+    /// Gets the value of an environment variable by name and returns it as an object.
+    /// </summary>
+    /// <param name="variableName">The name of the environment variable</param>
+    /// <returns>The value of the environment variable as an object, or null if not set</returns>
+    public object? GetEnvironmentVariableValue(string variableName)
+    {
+        if (string.IsNullOrWhiteSpace(variableName))
+        {
+            _logger.LogError("Environment variable name cannot be null or empty");
+            return null;
+        }
+        var value = Environment.GetEnvironmentVariable(variableName);
+        return value != null ? (object)value : null;
+    }
+
+    /// <summary>
+    /// Reads a file from the workspace root directory
+    /// </summary>
+    /// <param name="fullCsvPath">The full path to the CSV file</param>
+    /// <param name="hasHeaderRecord">Whether the CSV has a header record</param>
+    /// <param name="ignoreBlankLines">Whether to ignore blank lines</param>
+    /// <returns>A list of dynamic objects representing the CSV records</returns>
+    private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, bool ignoreBlankLines)
+    {
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            HasHeaderRecord = hasHeaderRecord,
+            IgnoreBlankLines = ignoreBlankLines,
+            TrimOptions = TrimOptions.Trim
+        };
+
+        using var reader = new StreamReader(fullCsvPath);
+        using var csv = new CsvReader(reader, config);
+        return csv.GetRecords<dynamic>().ToList();
+    }
+
+    /// <summary>
+    /// Matches a path against a glob pattern
+    /// </summary>
+    /// <param name="path">The path to check</param>
+    /// <param name="pattern">The glob pattern</param>
+    /// <returns>True if the path matches the pattern</returns>
+    private bool IsPathMatchingPattern(string path, string pattern)
+    {
+        // Convert glob pattern to regex
+        var regexPattern = "^" + Regex.Escape(pattern)
+            .Replace("\\*\\*", ".*")  // ** matches any number of directories
+            .Replace("\\*", "[^/]*")  // * matches any characters except directory separator
+            .Replace("\\?", ".")      // ? matches any single character
+            + "$";
+
+        try
+        {
+            return Regex.IsMatch(path, regexPattern, RegexOptions.IgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error matching pattern {Pattern} against path {Path}", pattern, path);
+            return false;
+        }
+    }
+    /// <summary>
+    /// Formats XML search results into the appropriate output format
+    /// </summary>
+    private string FormatXmlResults(List<object> results, bool indented, bool showKeyPaths, string xPath)
+    {
+        if (showKeyPaths)
+        {
+            // When preserving keys, create a structured result that shows the path and value
+            var structuredResults = new JArray();
+
+            for (var i = 0; i < results.Count; i++)
+            {
+                var result = results[i];
+                var pathInfo = new JObject();
+
+                string path;
+                string value;
+                string key;
+
+                if (result is XElement element)
+                {
+                    path = GetXElementPath(element);
+                    value = element.ToString(indented ? System.Xml.Linq.SaveOptions.None : System.Xml.Linq.SaveOptions.DisableFormatting);
+                    key = element.Name.LocalName;
+                }
+                else if (result is XAttribute attribute)
+                {
+                    path = GetXAttributePath(attribute);
+                    value = attribute.Value;
+                    key = attribute.Name.LocalName;
+                }
+                else if (result is XText text)
+                {
+                    path = GetXTextPath(text);
+                    value = text.Value;
+                    key = "text";
+                }
+                else
+                {
+                    path = $"{xPath}[{i}]";
+                    value = result.ToString() ?? "";
+                    key = ExtractKeyFromXPath(xPath);
+                }
+
+                pathInfo["path"] = path;
+                pathInfo["value"] = value;
+                pathInfo["key"] = key;
+
+                structuredResults.Add(pathInfo);
+            }
+
+            if (structuredResults.Count == 1)
+            {
+                return structuredResults[0].ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
+            }
+            else
+            {
+                return structuredResults.ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
+            }
+        }
+        else
+        {
+            // Original behavior - return values only
+            if (results.Count == 1)
+            {
+                // Single result - return as-is
+                var result = results[0];
+
+                if (result is XElement element)
+                {
+                    return element.ToString(indented ? System.Xml.Linq.SaveOptions.None : System.Xml.Linq.SaveOptions.DisableFormatting);
+                }
+                else if (result is XAttribute attribute)
+                {
+                    return attribute.Value;
+                }
+                else
+                {
+                    return result.ToString() ?? "";
+                }
+            }
+            else
+            {
+                // Multiple results - return as JSON array for consistency
+                var resultArray = new JArray();
+
+                foreach (var result in results)
+                {
+                    if (result is XElement element)
+                    {
+                        resultArray.Add(element.ToString(System.Xml.Linq.SaveOptions.DisableFormatting));
+                    }
+                    else if (result is XAttribute attribute)
+                    {
+                        resultArray.Add(attribute.Value);
+                    }
+                    else
+                    {
+                        resultArray.Add(result.ToString());
+                    }
+                }
+
+                return resultArray.ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets the XPath for an XElement
+    /// </summary>
+    private string GetXElementPath(XElement element)
+    {
+        var path = new List<string>();
+        var current = element;
+
+        while (current != null)
+        {
+            var index = current.ElementsBeforeSelf(current.Name).Count();
+            var name = current.Name.LocalName;
+
+            if (index > 0)
+            {
+                path.Insert(0, $"{name}[{index + 1}]");
+            }
+            else
+            {
+                path.Insert(0, name);
+            }
+
+            current = current.Parent;
+        }
+
+        return "/" + string.Join("/", path);
+    }
+
+    /// <summary>
+    /// Gets the XPath for an XAttribute
+    /// </summary>
+    private string GetXAttributePath(XAttribute attribute)
+    {
+        var elementPath = GetXElementPath(attribute.Parent ?? throw new InvalidOperationException("Attribute has no parent element"));
+        return $"{elementPath}/@{attribute.Name.LocalName}";
+    }
+
+    /// <summary>
+    /// Gets the XPath for an XText node
+    /// </summary>
+    private string GetXTextPath(XText text)
+    {
+        var elementPath = GetXElementPath(text.Parent ?? throw new InvalidOperationException("Text node has no parent element"));
+        return $"{elementPath}/text()";
+    }
+
+    /// <summary>
+    /// Extracts a meaningful key name from an XPath expression
+    /// </summary>
+    private string ExtractKeyFromXPath(string xPath)
+    {
+        // Remove leading slashes and extract the last meaningful part
+        var parts = xPath.TrimStart('/').Split('/');
+        var lastPart = parts.LastOrDefault()?.Split('@').LastOrDefault()?.Split('[').FirstOrDefault();
+        return !string.IsNullOrEmpty(lastPart) ? lastPart : "result";
+    }
+    /// <summary>
+    /// Determines the workspace root directory by checking environment variable first
+    /// </summary>
+    /// <returns>The workspace root directory path</returns>
+    private string DetermineWorkspaceRoot()
+    {
+        var gitRepositoryDirectory = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
+
+        if (!string.IsNullOrWhiteSpace(gitRepositoryDirectory))
+        {
+            if (Directory.Exists(gitRepositoryDirectory))
+            {
+                _logger.LogInformation("Using GIT_REPOSITORY_DIRECTORY environment variable: {GitRepositoryDirectory}", gitRepositoryDirectory);
+                return gitRepositoryDirectory;
+            }
+            else
+            {
+                _logger.LogWarning("GIT_REPOSITORY_DIRECTORY environment variable is set but directory does not exist: {GitRepositoryDirectory}. Falling back to current directory.", gitRepositoryDirectory);
+            }
+        }
+
+        var currentDirectory = Environment.CurrentDirectory;
+        _logger.LogInformation("Using current directory as workspace root: {CurrentDirectory}", currentDirectory);
+        return currentDirectory;
+    }
+
+    /// <summary>
+    /// Loads the exclude configuration from .gitvision/exclude.json
+    /// </summary>
+    /// <returns>The exclude configuration or null if not found or invalid</returns>
+    private async Task<ExcludeConfiguration?> LoadExcludeConfigurationAsync()
+    {
+        try
+        {
+            var excludeConfigPath = Path.Combine(_workspaceRoot, ".gitvision", "exclude.json");
+            var fullPath = GetFullPath(excludeConfigPath);
+            if (string.IsNullOrEmpty(fullPath))
+            {
+                _logger.LogInformation("Exclude configuration file not found at: {ExcludeConfigPath}", excludeConfigPath);
+                return null;
+            }
+
+            var lastWriteTime = File.GetLastWriteTime(fullPath);
+
+            // Check if we need to reload the configuration
+            if (_excludeConfiguration != null && _lastExcludeConfigLoad >= lastWriteTime)
+            {
+                return _excludeConfiguration;
+            }
+
+            var jsonContent = await File.ReadAllTextAsync(fullPath);
+            var configuration = JsonConvert.DeserializeObject<ExcludeConfiguration>(jsonContent);
+
+            _excludeConfiguration = configuration;
+            _lastExcludeConfigLoad = lastWriteTime;
+
+            _logger.LogInformation("Loaded exclude configuration with {PatternCount} patterns from: {ExcludeConfigPath}",
+                configuration?.ExcludePatterns?.Count ?? 0, excludeConfigPath);
+
+            return configuration;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading exclude configuration");
+            return null;
+        }
+    }
+    /// <summary>
+    /// Extracts JSON tokens from a JSON string using a JSONPath query
+    /// </summary>
+    /// <param name="jsonContent">The JSON content as a string</param>
+    /// <param name="jsonPath">The JSONPath query string</param>
+    /// <returns>A collection of JToken objects matching the JSONPath query</returns>
+    private IEnumerable<JToken> ExtractJTokens(string jsonContent, string jsonPath)
+    {
+        try
+        {
+
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                _logger.LogError("JSON Path cannot be null or empty");
+                return Enumerable.Empty<JToken>();
+            }
+            if (string.IsNullOrWhiteSpace(jsonContent))
+            {
+                _logger.LogError("JSON content is empty or null: {JsonContent}", jsonContent);
+                return new List<JToken>();
+            }
+
+            JToken jsonToken = JToken.Parse(jsonContent);
+            return jsonToken.SelectTokens(jsonPath).ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching JSON file: {JsonContent}", jsonContent);
+            return new List<JToken>();
+        }
+    }
+
+    /// <summary>
+    /// Extracts JSON tokens from a list of records using a JSONPath query
+    /// </summary>
+    /// <param name="records">The list of records to search</param>
+    /// <param name="jsonPath">The JSONPath query string</param>
+    /// <returns>A collection of JToken objects matching the JSONPath query</returns>
+    private IEnumerable<JToken> ExtractJTokens(List<object> records, string jsonPath)
+    {
+
+
+        var jsonContent = JsonConvert.SerializeObject(records, Newtonsoft.Json.Formatting.None);
+        if (string.IsNullOrWhiteSpace(jsonContent))
+        {
+            _logger.LogError("JSON content is empty or null: {JsonContent}", jsonContent);
+            return new List<JToken>();
+        }
+        var jsonArray = JArray.Parse(jsonContent);
+
+        if (string.IsNullOrWhiteSpace(jsonPath))
+        {
+            _logger.LogError("JSON Path cannot be null or empty");
+            return new List<JToken>();
+        }
+        var results = jsonArray.SelectTokens(jsonPath).ToList();
+        if (results == null || !results.Any())
+        {
+            _logger.LogWarning("No matches found for JSONPath: {JsonPath} in content", jsonPath);
+            return new List<JToken>();
+        }
+
+        return results;
+    }
+
+
+    /// <summary>
+    /// Converts a JToken to a string with optional indentation
+    /// </summary>
+    /// <param name="token">The JToken to convert</param>
+    /// <param name="indented">Whether to indent the output (default: false)</param>
+    /// <returns>The string representation of the JToken</returns>
+    private string JTokenToString(JToken token, bool indented = false)
+    {
+        if (token == null)
+        {
+            return string.Empty;
+        }
+
+        // Use the ToString method with a Formatting option. [1, 2]
+        Newtonsoft.Json.Formatting formatting = indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None;
+        return token.ToString(formatting);
+    }
+
+    /// <summary>
+    /// 
+    private bool ValidateInputs(string csvFilePath, string jsonPath)
+    {
+        if (string.IsNullOrWhiteSpace(csvFilePath))
+        {
+            _logger.LogError("CSV file path cannot be null or empty");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(jsonPath))
+        {
+            _logger.LogError("JSONPath cannot be null or empty");
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -292,17 +653,7 @@ public class LocationService : ILocationService
             return null;
         }
     }
-    private string JTokenToString(JToken token, bool indented = false)
-    {
-        if (token == null)
-        {
-            return string.Empty;
-        }
 
-        // Use the ToString method with a Formatting option. [1, 2]
-        Newtonsoft.Json.Formatting formatting = indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None;
-        return token.ToString(formatting);
-    }
     public string? SearchJsonFile(string jsonFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false)
     {
         try
@@ -335,12 +686,8 @@ public class LocationService : ILocationService
             }
 
             // Parse the JSON string into a JObject
-            JObject jsonObj = JObject.Parse(jsonContent);
-
-            // Use SelectTokens to support wildcards and multiple results
-            IEnumerable<JToken> results = jsonObj.SelectTokens(jsonPath);
-
-            if (!results.Any())
+            IEnumerable<JToken> results = ExtractJTokens(jsonContent, jsonPath);
+            if (results == null || !results.Any())
             {
                 _logger.LogWarning("No matches found for JSONPath: {JsonPath} in file: {JsonFilePath}", jsonPath, jsonFilePath);
                 return string.Empty; // Return an empty string if no matches are found
@@ -416,77 +763,58 @@ public class LocationService : ILocationService
         }
     }
 
-     public string? SearchCsvFile(string csvFilePath, string jsonPath, bool hasHeaderRecord = true, bool ignoreBlankLines = true)
-{
-    if (!ValidateInputs(csvFilePath, jsonPath)) return null;
 
-    var fullCsvPath = GetFullPath(csvFilePath);
-    if (string.IsNullOrEmpty(fullCsvPath))
+    public string? SearchCsvFile(string csvFilePath, string jsonPath, bool hasHeaderRecord = true, bool ignoreBlankLines = true)
     {
-        _logger.LogWarning("CSV file does not exist: {CsvFilePath}", csvFilePath);
-        return null;
-    }
+        if (!ValidateInputs(csvFilePath, jsonPath)) return null;
 
-    try
-    {
-        var records = ReadCsvRecords(fullCsvPath, hasHeaderRecord, ignoreBlankLines);
-        if (records == null || !records.Any())
+        var fullCsvPath = GetFullPath(csvFilePath);
+        if (string.IsNullOrEmpty(fullCsvPath))
         {
-            _logger.LogWarning("No records found in CSV file: {CsvFilePath}", csvFilePath);
+            _logger.LogWarning("CSV file does not exist: {CsvFilePath}", csvFilePath);
             return null;
         }
 
-        var json = JsonConvert.SerializeObject(records, Newtonsoft.Json.Formatting.None);
-        var jsonArray = JArray.Parse(json);
-
-        var results = jsonArray.SelectTokens(jsonPath).ToList();
-        if (!results.Any())
+        try
         {
-            _logger.LogWarning("No matches found for JSONPath: {JsonPath} in CSV file: {CsvFilePath}", jsonPath, csvFilePath);
-            return string.Empty;
+            var records = ReadCsvRecords(fullCsvPath, hasHeaderRecord, ignoreBlankLines);
+            if (records == null || !records.Any())
+            {
+                _logger.LogWarning("No records found in CSV file: {CsvFilePath}", csvFilePath);
+                return null;
+            }
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                _logger.LogError("JSONPath cannot be null or empty");
+                return null;
+            }
+            IEnumerable<JToken> tokens = ExtractJTokens(records, jsonPath);
+            if (tokens == null || !tokens.Any())
+            {
+                _logger.LogWarning("No matches found for JSONPath: {JsonPath} in CSV file: {CsvFilePath}", jsonPath, csvFilePath);
+                return string.Empty; // Return an empty string if no matches are found
+            }
+            var results = tokens.ToList();
+            if (!results.Any())
+            {
+                _logger.LogWarning("No matches found for JSONPath: {JsonPath} in CSV file: {CsvFilePath}", jsonPath, csvFilePath);
+                return string.Empty;
+            }
+
+            return results.Count == 1
+                ? results[0].ToString(Newtonsoft.Json.Formatting.Indented)
+                : new JArray(results).ToString(Newtonsoft.Json.Formatting.Indented);
         }
-
-        return results.Count == 1
-            ? results[0].ToString(Newtonsoft.Json.Formatting.Indented)
-            : new JArray(results).ToString(Newtonsoft.Json.Formatting.Indented);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error searching CSV file: {CsvFilePath}", csvFilePath);
-        return null;
-    }
-}
-
-private bool ValidateInputs(string csvFilePath, string jsonPath)
-{
-    if (string.IsNullOrWhiteSpace(csvFilePath))
-    {
-        _logger.LogError("CSV file path cannot be null or empty");
-        return false;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching CSV file: {CsvFilePath}", csvFilePath);
+            return null;
+        }
     }
 
-    if (string.IsNullOrWhiteSpace(jsonPath))
-    {
-        _logger.LogError("JSONPath cannot be null or empty");
-        return false;
-    }
 
-    return true;
-}
 
-private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, bool ignoreBlankLines)
-{
-    var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-    {
-        HasHeaderRecord = hasHeaderRecord,
-        IgnoreBlankLines = ignoreBlankLines,
-        TrimOptions = TrimOptions.Trim
-    };
 
-    using var reader = new StreamReader(fullCsvPath);
-    using var csv = new CsvReader(reader, config);
-    return csv.GetRecords<dynamic>().ToList();
-}
 
     /// <summary>
     /// Searches for XML values in an XML file using XPath queries with support for namespaces and structured results.
@@ -656,169 +984,7 @@ private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, b
         }
     }
 
-    /// <summary>
-    /// Formats XML search results into the appropriate output format
-    /// </summary>
-    private string FormatXmlResults(List<object> results, bool indented, bool showKeyPaths, string xPath)
-    {
-        if (showKeyPaths)
-        {
-            // When preserving keys, create a structured result that shows the path and value
-            var structuredResults = new JArray();
 
-            for (var i = 0; i < results.Count; i++)
-            {
-                var result = results[i];
-                var pathInfo = new JObject();
-
-                string path;
-                string value;
-                string key;
-
-                if (result is XElement element)
-                {
-                    path = GetXElementPath(element);
-                    value = element.ToString(indented ? SaveOptions.None : SaveOptions.DisableFormatting);
-                    key = element.Name.LocalName;
-                }
-                else if (result is XAttribute attribute)
-                {
-                    path = GetXAttributePath(attribute);
-                    value = attribute.Value;
-                    key = attribute.Name.LocalName;
-                }
-                else if (result is XText text)
-                {
-                    path = GetXTextPath(text);
-                    value = text.Value;
-                    key = "text";
-                }
-                else
-                {
-                    path = $"{xPath}[{i}]";
-                    value = result.ToString() ?? "";
-                    key = ExtractKeyFromXPath(xPath);
-                }
-
-                pathInfo["path"] = path;
-                pathInfo["value"] = value;
-                pathInfo["key"] = key;
-
-                structuredResults.Add(pathInfo);
-            }
-
-            if (structuredResults.Count == 1)
-            {
-                return structuredResults[0].ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
-            }
-            else
-            {
-                return structuredResults.ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
-            }
-        }
-        else
-        {
-            // Original behavior - return values only
-            if (results.Count == 1)
-            {
-                // Single result - return as-is
-                var result = results[0];
-
-                if (result is XElement element)
-                {
-                    return element.ToString(indented ? SaveOptions.None : SaveOptions.DisableFormatting);
-                }
-                else if (result is XAttribute attribute)
-                {
-                    return attribute.Value;
-                }
-                else
-                {
-                    return result.ToString() ?? "";
-                }
-            }
-            else
-            {
-                // Multiple results - return as JSON array for consistency
-                var resultArray = new JArray();
-
-                foreach (var result in results)
-                {
-                    if (result is XElement element)
-                    {
-                        resultArray.Add(element.ToString(SaveOptions.DisableFormatting));
-                    }
-                    else if (result is XAttribute attribute)
-                    {
-                        resultArray.Add(attribute.Value);
-                    }
-                    else
-                    {
-                        resultArray.Add(result.ToString());
-                    }
-                }
-
-                return resultArray.ToString(indented ? Newtonsoft.Json.Formatting.Indented : Newtonsoft.Json.Formatting.None);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Gets the XPath for an XElement
-    /// </summary>
-    private string GetXElementPath(XElement element)
-    {
-        var path = new List<string>();
-        var current = element;
-
-        while (current != null)
-        {
-            var index = current.ElementsBeforeSelf(current.Name).Count();
-            var name = current.Name.LocalName;
-
-            if (index > 0)
-            {
-                path.Insert(0, $"{name}[{index + 1}]");
-            }
-            else
-            {
-                path.Insert(0, name);
-            }
-
-            current = current.Parent;
-        }
-
-        return "/" + string.Join("/", path);
-    }
-
-    /// <summary>
-    /// Gets the XPath for an XAttribute
-    /// </summary>
-    private string GetXAttributePath(XAttribute attribute)
-    {
-        var elementPath = GetXElementPath(attribute.Parent ?? throw new InvalidOperationException("Attribute has no parent element"));
-        return $"{elementPath}/@{attribute.Name.LocalName}";
-    }
-
-    /// <summary>
-    /// Gets the XPath for an XText node
-    /// </summary>
-    private string GetXTextPath(XText text)
-    {
-        var elementPath = GetXElementPath(text.Parent ?? throw new InvalidOperationException("Text node has no parent element"));
-        return $"{elementPath}/text()";
-    }
-
-    /// <summary>
-    /// Extracts a meaningful key name from an XPath expression
-    /// </summary>
-    private string ExtractKeyFromXPath(string xPath)
-    {
-        // Remove leading slashes and extract the last meaningful part
-        var parts = xPath.TrimStart('/').Split('/');
-        var lastPart = parts.LastOrDefault()?.Split('@').LastOrDefault()?.Split('[').FirstOrDefault();
-        return !string.IsNullOrEmpty(lastPart) ? lastPart : "result";
-    }
 
     public string? SearchYamlFile(string yamlFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false)
     {
@@ -860,13 +1026,14 @@ private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, b
                 .Build();
             var jsonContent = serializer.Serialize(yamlObject);
 
-            // Parse the JSON string into a JObject
-            JObject jsonObj = JObject.Parse(jsonContent);
+            if (string.IsNullOrWhiteSpace(jsonContent))
+            {
+                _logger.LogError("Failed to convert YAML content to JSON: {YamlFilePath}", yamlFilePath);
+                return null;
+            }
+            var results = ExtractJTokens(jsonContent, jsonPath);
 
-            // Use SelectTokens to support wildcards and multiple results
-            IEnumerable<JToken> results = jsonObj.SelectTokens(jsonPath);
-
-            if (!results.Any())
+            if (results == null || !results.Any())
             {
                 _logger.LogWarning("No matches found for JSONPath: {JsonPath} in YAML file: {YamlFilePath}", jsonPath, yamlFilePath);
                 return string.Empty; // Return an empty string if no matches are found
@@ -980,73 +1147,7 @@ private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, b
             return null;
         }
     }
-    /// <summary>
-    /// Determines the workspace root directory by checking environment variable first
-    /// </summary>
-    /// <returns>The workspace root directory path</returns>
-    private string DetermineWorkspaceRoot()
-    {
-        var gitRepositoryDirectory = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
 
-        if (!string.IsNullOrWhiteSpace(gitRepositoryDirectory))
-        {
-            if (Directory.Exists(gitRepositoryDirectory))
-            {
-                _logger.LogInformation("Using GIT_REPOSITORY_DIRECTORY environment variable: {GitRepositoryDirectory}", gitRepositoryDirectory);
-                return gitRepositoryDirectory;
-            }
-            else
-            {
-                _logger.LogWarning("GIT_REPOSITORY_DIRECTORY environment variable is set but directory does not exist: {GitRepositoryDirectory}. Falling back to current directory.", gitRepositoryDirectory);
-            }
-        }
-
-        var currentDirectory = Environment.CurrentDirectory;
-        _logger.LogInformation("Using current directory as workspace root: {CurrentDirectory}", currentDirectory);
-        return currentDirectory;
-    }
-
-    /// <summary>
-    /// Loads the exclude configuration from .gitvision/exclude.json
-    /// </summary>
-    /// <returns>The exclude configuration or null if not found or invalid</returns>
-    private async Task<ExcludeConfiguration?> LoadExcludeConfigurationAsync()
-    {
-        try
-        {
-            var excludeConfigPath = Path.Combine(_workspaceRoot, ".gitvision", "exclude.json");
-            var fullPath = GetFullPath(excludeConfigPath);
-            if (string.IsNullOrEmpty(fullPath))
-            {
-                _logger.LogInformation("Exclude configuration file not found at: {ExcludeConfigPath}", excludeConfigPath);
-                return null;
-            }
-
-            var lastWriteTime = File.GetLastWriteTime(fullPath);
-
-            // Check if we need to reload the configuration
-            if (_excludeConfiguration != null && _lastExcludeConfigLoad >= lastWriteTime)
-            {
-                return _excludeConfiguration;
-            }
-
-            var jsonContent = await File.ReadAllTextAsync(fullPath);
-            var configuration = JsonConvert.DeserializeObject<ExcludeConfiguration>(jsonContent);
-
-            _excludeConfiguration = configuration;
-            _lastExcludeConfigLoad = lastWriteTime;
-
-            _logger.LogInformation("Loaded exclude configuration with {PatternCount} patterns from: {ExcludeConfigPath}",
-                configuration?.ExcludePatterns?.Count ?? 0, excludeConfigPath);
-
-            return configuration;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error loading exclude configuration");
-            return null;
-        }
-    }
 
     public string? GetFullPath(string relativePath)
     {
@@ -1103,30 +1204,77 @@ private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, b
 
         return false;
     }
-
     /// <summary>
-    /// Matches a path against a glob pattern
+    /// Searches for values in an Excel file (.xlsx) using JSONPath queries by converting worksheet data to JSON.
+    /// Processes all worksheets and returns results for each.
     /// </summary>
-    /// <param name="path">The path to check</param>
-    /// <param name="pattern">The glob pattern</param>
-    /// <returns>True if the path matches the pattern</returns>
-    private bool IsPathMatchingPattern(string path, string pattern)
+    /// <param name="excelFilePath">Path to the Excel file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
+    /// <returns>JSON search result or null if not found</returns>
+    public string? SearchExcelFile(string excelFilePath, string jsonPath)
     {
-        // Convert glob pattern to regex
-        var regexPattern = "^" + Regex.Escape(pattern)
-            .Replace("\\*\\*", ".*")  // ** matches any number of directories
-            .Replace("\\*", "[^/]*")  // * matches any characters except directory separator
-            .Replace("\\?", ".")      // ? matches any single character
-            + "$";
+        if (!ValidateInputs(excelFilePath, jsonPath)) return null;
+
+        var fullExcelPath = GetFullPath(excelFilePath);
+        if (string.IsNullOrEmpty(fullExcelPath))
+        {
+            _logger.LogWarning("Excel file does not exist: {ExcelFilePath}", excelFilePath);
+            return null;
+        }
 
         try
         {
-            return Regex.IsMatch(path, regexPattern, RegexOptions.IgnoreCase);
+            using var workbook = new XLWorkbook(fullExcelPath);
+            // Build a JSON object mapping each sheet name to its full row array
+            var workbookJson = new JObject();
+
+            foreach (var worksheet in workbook.Worksheets)
+            {
+                var rows = new List<Dictionary<string, object>>();
+                var firstRow = worksheet.FirstRowUsed();
+                if (firstRow == null) continue;
+
+                var headerRow = firstRow.RowUsed();
+                var headers = headerRow.Cells().Select(c => c.GetString()).ToList();
+                var headerCells = headerRow.Cells().ToList();
+
+                // Map header index to column letter
+                var headerLetters = headerCells.Select(c => c.Address.ColumnLetter).ToList();
+
+                foreach (var dataRow in worksheet.RowsUsed().Skip(1))
+                {
+                    var rowDict = new Dictionary<string, object>();
+                    var cells = dataRow.Cells().ToList();
+                    for (var i = 0; i < headers.Count && i < cells.Count; i++)
+                    {
+                        var value = cells[i].GetString();
+                        rowDict[headers[i]] = value;
+                        // Only add column letter if it does not conflict with a header name
+                        if (!headers.Contains(headerLetters[i]))
+                        {
+                            rowDict[headerLetters[i]] = value;
+                        }
+                    }
+                    rows.Add(rowDict);
+                }
+
+                // Add full sheet array under its name
+                workbookJson[worksheet.Name] = JArray.FromObject(rows);
+            }
+
+            // Apply JSONPath query against the entire workbook JSON
+            var fullJson = workbookJson.ToString(Newtonsoft.Json.Formatting.None);
+            var matchedTokens = ExtractJTokens(fullJson, jsonPath);
+            var resultToken = (matchedTokens != null && matchedTokens.Any())
+                ? (matchedTokens.Count() == 1 ? matchedTokens.First() : new JArray(matchedTokens))
+                : new JArray();
+
+            return resultToken.ToString(Newtonsoft.Json.Formatting.Indented);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Error matching pattern {Pattern} against path {Path}", pattern, path);
-            return false;
+            _logger.LogError(ex, "Error searching Excel file: {ExcelFilePath}", excelFilePath);
+            return null;
         }
     }
 }

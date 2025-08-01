@@ -93,7 +93,7 @@ public interface IGitServiceTools
     /// <summary>
     /// List all files in the workspace with optional filtering
     /// </summary>
-    Task<List<Services.WorkspaceFileInfo>> ListWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null);
+    Task<List<WorkspaceFileInfo>> ListWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null);
 
     /// <summary>
     /// List workspace files with optional filtering using pre-fetched file data to improve performance
@@ -105,8 +105,8 @@ public interface IGitServiceTools
     /// <param name="lastModifiedAfter">Filter by last modified date (ISO format: yyyy-MM-dd)</param>
     /// <param name="lastModifiedBefore">Filter by last modified date (ISO format: yyyy-MM-dd)</param>
     /// <returns>A filtered list of workspace files</returns>
-    Task<List<Services.WorkspaceFileInfo>> ListWorkspaceFilesWithCachedDataAsync(
-        List<Services.WorkspaceFileInfo> cachedFiles,
+    Task<List<WorkspaceFileInfo>> ListWorkspaceFilesWithCachedDataAsync(
+        List<WorkspaceFileInfo> cachedFiles,
         string? fileType = null,
         string? relativePath = null,
         string? fullPath = null,
@@ -117,7 +117,14 @@ public interface IGitServiceTools
     /// Read contents of all files from filtered workspace results
     /// </summary>
     Task<List<Models.FileContentInfo>> ReadFilteredWorkspaceFilesAsync(string? fileType = null, string? relativePath = null, string? fullPath = null, string? lastModifiedAfter = null, string? lastModifiedBefore = null, int? maxFiles = 50, long? maxFileSize = 1048576);
-
+    /// <summary>
+    /// Search for values in an Excel (.xlsx) file using JSONPath queries by converting worksheet data to JSON.
+    /// Processes all worksheets and returns results for each.
+    /// </summary>
+    /// <param name="excelFilePath">Path to the Excel file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
+    /// <returns>JSON search result or null if not found</returns>
+    Task<string?> SearchExcelFileAsync(string excelFilePath, string jsonPath);
     /// <summary>
     /// Search for JSON values in a JSON file using JSONPath
     /// </summary>

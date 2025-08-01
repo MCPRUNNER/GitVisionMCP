@@ -1345,6 +1345,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Searching CSV file {CsvFilePath} with JSONPath {JsonPath}, hasHeaderRecord: {HasHeaderRecord}, ignoreBlankLines: {IgnoreBlankLines}",
                 csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
 
+            // Use LocationService for the actual file searching functionality
             var result = _locationService.SearchCsvFile(csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
 
             if (string.IsNullOrEmpty(result))
@@ -1380,6 +1381,69 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
+    /// <summary>
+    /// Search for values in an Excel (.xlsx) file using JSONPath.
+    /// Processes all worksheets and returns results for each.
+    /// </summary>
+    /// <param name="excelFilePath">Path to the Excel file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
+    /// <returns>JSON search result or error message</returns>
+    [McpServerToolAttribute]
+    [Description("Search for values in an Excel (.xlsx) file using JSONPath. Processes all worksheets and returns results for each.")]
+    public Task<string?> SearchExcelFileAsync(
+        [Description("Path to the Excel file relative to workspace root")] string excelFilePath,
+        [Description("JSONPath query string (e.g., '$[*].ServerName')")] string jsonPath)
+    {
+        try
+        {
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(excelFilePath))
+            {
+                _logger.LogError("Excel file path cannot be null or empty");
+                throw new ArgumentException("Excel file path must be specified", nameof(excelFilePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonPath))
+            {
+                _logger.LogError("JSONPath cannot be null or empty");
+                throw new ArgumentException("JSONPath must be specified", nameof(jsonPath));
+            }
+
+            _logger.LogInformation("Searching Excel file {ExcelFilePath} with JSONPath {JsonPath}", excelFilePath, jsonPath);
+
+            // Use LocationService for the actual file searching functionality
+            var result = _locationService.SearchExcelFile(excelFilePath, jsonPath);
+
+            if (string.IsNullOrEmpty(result))
+            {
+                _logger.LogInformation("No matches found for JSONPath {JsonPath} in Excel file {ExcelFilePath}", jsonPath, excelFilePath);
+                return Task.FromResult<string?>("No matches found");
+            }
+
+            _logger.LogInformation("Successfully found matches for JSONPath {JsonPath} in Excel file {ExcelFilePath}", jsonPath, excelFilePath);
+            return Task.FromResult<string?>(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid argument for Excel search");
+            throw;
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "Excel file not found: {ExcelFilePath}", excelFilePath);
+            throw new FileNotFoundException($"Excel file not found: {excelFilePath}. Please check the file path.", ex);
+        }
+        catch (Newtonsoft.Json.JsonException ex)
+        {
+            _logger.LogError(ex, "Invalid JSON format in Excel file {ExcelFilePath}", excelFilePath);
+            throw new InvalidDataException($"Invalid JSON format in Excel file: {excelFilePath}. Details: {ex.Message}", ex);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching Excel file {ExcelFilePath}", excelFilePath);
+            throw new InvalidOperationException($"Error searching Excel file: {ex.Message}. See inner exception for details.", ex);
+        }
+    }
     [McpServerToolAttribute]
     [Description("Search for YAML values in a YAML file using JSONPath")]
     public Task<string?> SearchYamlFileAsync(

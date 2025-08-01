@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using GitVisionMCP.Models;
 namespace GitVisionMCP.Services;
 
 public interface ILocationService
@@ -33,6 +34,15 @@ public interface ILocationService
     /// It can handle CSV files with or without header records and can ignore blank lines.
     /// The results can be formatted as structured JSON with key paths, values, and keys.
     string? SearchCsvFile(string csvFilePath, string jsonPath, bool hasHeaderRecord = true, bool ignoreBlankLines = true);
+
+    /// <summary>
+    /// Searches for values in an Excel file (.xlsx) using JSONPath queries by converting worksheet data to JSON.
+    /// Processes all worksheets and returns results for each.
+    /// </summary>
+    /// <param name="excelFilePath">Path to the Excel file relative to workspace root</param>
+    /// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
+    /// <returns>JSON search result or null if not found</returns>
+    string? SearchExcelFile(string excelFilePath, string jsonPath);
 
     /// <summary>
     /// Gets all files under the workspace root directory with relative paths and file types, excluding files matching exclude patterns
@@ -112,4 +122,11 @@ public interface ILocationService
     /// <param name="filename">The name of the file to read from the Prompts directory</param>
     /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
     string? GetGitHubPromptFileContent(string filename);
+
+    /// <summary>
+    /// Gets the value of an environment variable by name and returns it as an object.
+    /// </summary>
+    /// <param name="variableName">The name of the environment variable</param>
+    /// <returns>The value of the environment variable as an object, or null if not set</returns>
+    object? GetEnvironmentVariableValue(string variableName);
 }

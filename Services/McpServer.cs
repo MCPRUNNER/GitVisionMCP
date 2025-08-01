@@ -1,12 +1,18 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using GitVisionMCP.Models;
-using GitVisionMCP.Services;
-using GitVisionMCP.Tools;
-using GitVisionMCP.Prompts;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
+using System.Threading.Tasks;
+using GitVisionMCP.Models; // For CallToolRequest, CallToolResponse, ToolContent, etc.
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using GitVisionMCP.Services;
+using GitVisionMCP.Tools;
+using GitVisionMCP.Prompts;
 
 namespace GitVisionMCP.Services;
 
@@ -484,6 +490,40 @@ public class McpServer : IMcpServer
             },
             new Tool
             {
+                Name = "search_csv_file",
+                Description = "Search for values in a CSV file using a query",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        csvFilePath = new { type = "string", description = "Path to the CSV file relative to workspace root" },
+                        jsonPath = new { type = "string", description = "JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')" },
+                        hasHeaderRecord = new { type = "boolean", description = "Whether the CSV has a header record (default: true)" },
+                        ignoreBlankLines = new { type = "boolean", description = "Whether to ignore blank lines (default: true)" }
+                    },
+                    required = new[] { "csvFilePath", "jsonPath" }
+                }
+            },
+            new Tool
+            {
+                Name = "search_yaml_file",
+                Description = "Search for values in a YAML file using a query",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        yamlFilePath = new { type = "string", description = "Path to the YAML file relative to workspace root" },
+                        jsonPath = new { type = "string", description = "JSONPath query string (e.g., '$.users[*].name', '$.configuration.apiKey')" },
+                        indented = new { type = "boolean", description = "Whether the YAML output should be indented (default: true)" },
+                        showKeyPaths = new { type = "boolean", description = "Whether to show key paths in the output (default: false)" }
+                    },
+                    required = new[] { "yamlFilePath", "jsonPath" }
+                }
+            },
+            new Tool
+            {
                 Name = "search_xml_file",
                 Description = "Search for XML values in an XML file using XPath",
                 InputSchema = new
@@ -501,28 +541,28 @@ public class McpServer : IMcpServer
             },
             new Tool
             {
-                Name = "analyze_controller",
-                Description = "Analyzes a C# ASP.NET Core controller file and returns its structure as JSON",
+                Name = "deconstruct_to_json",
+                Description = "Deconstructs a C# ASP.NET Service, Controller or repository file and returns its structure as JSON",
                 InputSchema = new
                 {
                     type = "object",
                     properties = new
                     {
-                        filePath = new { type = "string", description = "Path to the controller file relative to workspace root" }
+                        filePath = new { type = "string", description = "Path to the Service, Controller or repository file relative to workspace root" }
                     },
                     required = new[] { "filePath" }
                 }
             },
             new Tool
             {
-                Name = "analyze_controller_to_file",
-                Description = "Analyzes a C# ASP.NET Core controller file and saves the structure to a JSON file in the workspace directory",
+                Name = "deconstruct_to_file",
+                Description = "Deconstructs a C# ASP.NET Service, Controller or repository file and saves the structure to a JSON file in the workspace directory",
                 InputSchema = new
                 {
                     type = "object",
                     properties = new
                     {
-                        filePath = new { type = "string", description = "Path to the controller file relative to workspace root" },
+                        filePath = new { type = "string", description = "Path to the Service, Controller or repository file relative to workspace root" },
                         outputFileName = new { type = "string", description = "The name of the output JSON file (optional, defaults to controller name + '_analysis.json')" }
                     },
                     required = new[] { "filePath" }
@@ -576,9 +616,12 @@ public class McpServer : IMcpServer
             "search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
             "list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
             "search_json_file" => await HandleSearchJsonFileAsync(toolRequest),
+            "search_csv_file" => await HandleSearchCsvFileAsync(toolRequest),
+            "search_excel_file" => await HandleSearchExcelFileAsync(toolRequest),
+            "search_yaml_file" => await HandleSearchYamlFileAsync(toolRequest),
             "search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
-            "analyze_controller" => await HandleAnalyzeControllerAsync(toolRequest),
-            "analyze_controller_to_file" => await HandleAnalyzeControllerToFileAsync(toolRequest),
+            "deconstruct_to_json" => await HandleDeconstructSourceAsync(toolRequest),
+            "deconstruct_to_file" => await HandleDeconstructSourceToFileAsync(toolRequest),
             _ => new CallToolResponse
             {
                 IsError = true,
@@ -1259,6 +1302,88 @@ public class McpServer : IMcpServer
         }
     }
 
+    private async Task<CallToolResponse> HandleSearchCsvFileAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var csvFilePath = GetArgumentValue<string>(toolRequest.Arguments, "csvFilePath", "");
+            var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
+            var hasHeaderRecord = GetArgumentValue<bool>(toolRequest.Arguments, "hasHeaderRecord", true);
+            var ignoreBlankLines = GetArgumentValue<bool>(toolRequest.Arguments, "ignoreBlankLines", true);
+
+            if (string.IsNullOrEmpty(csvFilePath) || string.IsNullOrEmpty(jsonPath))
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "csvFilePath and jsonPath arguments are required" } }
+                };
+            }
+
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            // Make path relative to workspace if not absolute
+            if (!Path.IsPathRooted(csvFilePath))
+            {
+                csvFilePath = Path.Combine(workspaceRoot, csvFilePath);
+            }
+
+            var result = await _gitServiceTools.SearchCsvFileAsync(csvFilePath, jsonPath, hasHeaderRecord, ignoreBlankLines);
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = result ?? "No results found" } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching CSV file");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error: {ex.Message}" } }
+            };
+        }
+    }
+
+    private async Task<CallToolResponse> HandleSearchExcelFileAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var excelFilePath = GetArgumentValue<string>(toolRequest.Arguments, "excelFilePath", "");
+            var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
+
+            if (string.IsNullOrEmpty(excelFilePath) || string.IsNullOrEmpty(jsonPath))
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "excelFilePath and jsonPath arguments are required" } }
+                };
+            }
+
+            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            // Make path relative to workspace if not absolute
+            if (!Path.IsPathRooted(excelFilePath))
+            {
+                excelFilePath = Path.Combine(workspaceRoot, excelFilePath);
+            }
+
+            var result = await _gitServiceTools.SearchExcelFileAsync(excelFilePath, jsonPath);
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = result ?? "No results found" } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching Excel file");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error: {ex.Message}" } }
+            };
+        }
+    }
+
     private async Task<CallToolResponse> HandleSearchJsonFileAsync(CallToolRequest toolRequest)
     {
         try
@@ -1385,7 +1510,51 @@ public class McpServer : IMcpServer
         }
     }
 
-    private async Task<CallToolResponse> HandleAnalyzeControllerAsync(CallToolRequest toolRequest)
+    private Task<CallToolResponse> HandleSearchYamlFileAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var yamlFilePath = GetArgumentValue<string>(toolRequest.Arguments, "yamlFilePath", "");
+            var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
+            var indented = GetArgumentValue<bool>(toolRequest.Arguments, "indented", true);
+            var showKeyPaths = GetArgumentValue<bool>(toolRequest.Arguments, "showKeyPaths", false);
+
+            if (string.IsNullOrEmpty(yamlFilePath) || string.IsNullOrEmpty(jsonPath))
+            {
+                return Task.FromResult(new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "yamlFilePath and jsonPath arguments are required" } }
+                });
+            }
+
+            var result = _locationService.SearchYamlFile(yamlFilePath, jsonPath, indented, showKeyPaths);
+            if (result == null)
+            {
+                return Task.FromResult(new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "No results found or error searching YAML file." } }
+                });
+            }
+
+            return Task.FromResult(new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = result } }
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching YAML file");
+            return Task.FromResult(new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error: {ex.Message}" } }
+            });
+        }
+    }
+
+    private async Task<CallToolResponse> HandleDeconstructSourceAsync(CallToolRequest toolRequest)
     {
         try
         {
@@ -1404,7 +1573,7 @@ public class McpServer : IMcpServer
 
             return new CallToolResponse
             {
-                Content = new[] { new ToolContent { Type = "text", Text = result ?? "Failed to analyze controller" } }
+                Content = new[] { new ToolContent { Type = "text", Text = result ?? "Failed to deconstruct source" } }
             };
         }
         catch (ArgumentException ex)
@@ -1431,12 +1600,12 @@ public class McpServer : IMcpServer
             return new CallToolResponse
             {
                 IsError = true,
-                Content = new[] { new ToolContent { Type = "text", Text = $"Error analyzing controller: {ex.Message}" } }
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error deconstructing source: {ex.Message}" } }
             };
         }
     }
 
-    private async Task<CallToolResponse> HandleAnalyzeControllerToFileAsync(CallToolRequest toolRequest)
+    private async Task<CallToolResponse> HandleDeconstructSourceToFileAsync(CallToolRequest toolRequest)
     {
         try
         {
@@ -1456,7 +1625,7 @@ public class McpServer : IMcpServer
 
             return new CallToolResponse
             {
-                Content = new[] { new ToolContent { Type = "text", Text = result ?? "Failed to analyze and save controller" } }
+                Content = new[] { new ToolContent { Type = "text", Text = result ?? "Failed to deconstruct and save json" } }
             };
         }
         catch (ArgumentException ex)
@@ -1470,7 +1639,7 @@ public class McpServer : IMcpServer
         }
         catch (FileNotFoundException ex)
         {
-            _logger.LogError(ex, "Controller file not found");
+            _logger.LogError(ex, "Source file not found");
             return new CallToolResponse
             {
                 IsError = true,
@@ -1479,11 +1648,11 @@ public class McpServer : IMcpServer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error analyzing controller to file");
+            _logger.LogError(ex, "Error deconstructing source to file");
             return new CallToolResponse
             {
                 IsError = true,
-                Content = new[] { new ToolContent { Type = "text", Text = $"Error analyzing controller to file: {ex.Message}" } }
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error deconstructing source to file: {ex.Message}" } }
             };
         }
     }

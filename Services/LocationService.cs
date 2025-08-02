@@ -421,7 +421,11 @@ public class LocationService : ILocationService
     }
 
     /// <summary>
-    /// 
+    /// Validates the input parameters for the CSV to JSON conversion
+    /// </summary>
+    /// <param name="csvFilePath"></param>
+    /// <param name="jsonPath"></param>
+    /// <returns></returns>
     private bool ValidateInputs(string csvFilePath, string jsonPath)
     {
         if (string.IsNullOrWhiteSpace(csvFilePath))
@@ -813,8 +817,25 @@ public class LocationService : ILocationService
     }
 
 
-
-
+    /// <summary>
+    /// Extracts version information from a project file (e.g., .csproj) using XPath.
+    /// </summary>
+    /// <param name="projectFile"></param>
+    /// <returns></returns>
+    public string? GetAppVersion(string projectFile)
+    {
+        try
+        {
+           
+            var version = SearchXmlFile(projectFile, "/Project/PropertyGroup/Version/text()");
+            return version;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting application version");
+            return "Unknown Version";
+        }
+    }
 
     /// <summary>
     /// Searches for XML values in an XML file using XPath queries with support for namespaces and structured results.

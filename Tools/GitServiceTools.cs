@@ -66,7 +66,7 @@ public class GitServiceTools : IGitServiceTools
                 commitCount, outputFormat);
 
             var commits = await _gitService.GetGitLogsAsync(repoPath, commitCount);
-            return await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            return await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
         }
         catch (DirectoryNotFoundException ex)
         {
@@ -146,7 +146,7 @@ public class GitServiceTools : IGitServiceTools
                 filePath, commitCount);
 
             var commits = await _gitService.GetGitLogsAsync(repoPath, commitCount);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
@@ -262,7 +262,7 @@ public class GitServiceTools : IGitServiceTools
                 return $"No differences found between branches {branch1} and {branch2}";
             }
 
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
@@ -358,7 +358,7 @@ public class GitServiceTools : IGitServiceTools
                 return $"No differences found between branches {branch1} and {branch2}";
             }
 
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
@@ -447,7 +447,7 @@ public class GitServiceTools : IGitServiceTools
                 return $"No differences found between commits {commit1} and {commit2}";
             }
 
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 

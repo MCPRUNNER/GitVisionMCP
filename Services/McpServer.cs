@@ -167,7 +167,7 @@ public class McpServer : IMcpServer
     private async Task<JsonRpcResponse> HandleInitializeAsync(JsonRpcRequest request)
     {
         _logger.LogDebug("Handling initialize request");
-
+        var appVersion = _locationService.GetAppVersion("GitVisionMCP.csproj");
         var initResponse = new InitializeResponse
         {
             ProtocolVersion = "2024-11-05",
@@ -212,7 +212,7 @@ public class McpServer : IMcpServer
             ServerInfo = new ServerInfo
             {
                 Name = "GitVisionMCP",
-                Version = "1.0.5"
+                Version = appVersion ?? "0.0.0"
             }
         };
 
@@ -645,7 +645,7 @@ public class McpServer : IMcpServer
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
             var commits = await _gitService.GetGitLogsAsync(workspaceRoot, maxCommits);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             return new CallToolResponse
             {
@@ -688,7 +688,7 @@ public class McpServer : IMcpServer
             }
 
             var commits = await _gitService.GetGitLogsAsync(workspaceRoot, maxCommits);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
             return new CallToolResponse
@@ -732,14 +732,20 @@ public class McpServer : IMcpServer
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
             // Make path relative to workspace if not absolute
-            if (!Path.IsPathRooted(filePath))
+            var fullPath = _locationService.GetFullPath(filePath);
+            if (string.IsNullOrEmpty(fullPath))
             {
-                filePath = Path.Combine(workspaceRoot, filePath);
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "Invalid file path" } }
+                };
             }
 
+
             var commits = await _gitService.GetGitLogsBetweenBranchesAsync(workspaceRoot, branch1, branch2);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
-            var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
+            var success = await _gitService.WriteDocumentationToFileAsync(documentation, fullPath);
 
             return new CallToolResponse
             {
@@ -781,22 +787,29 @@ public class McpServer : IMcpServer
             var workspaceRoot = _locationService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
+ 
+
             // Make path relative to workspace if not absolute
-            if (!Path.IsPathRooted(filePath))
+            var fullPath = _locationService.GetFullPath(filePath);
+            if (string.IsNullOrEmpty(fullPath))
             {
-                filePath = Path.Combine(workspaceRoot, filePath);
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "Invalid file path" } }
+                };
             }
 
             var commits = await _gitService.GetGitLogsBetweenCommitsAsync(workspaceRoot, commit1, commit2);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
-            var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
+            var success = await _gitService.WriteDocumentationToFileAsync(documentation, fullPath);
 
             return new CallToolResponse
             {
                 Content = new[] { new ToolContent
                 {
                     Type = "text",
-                    Text = success ? $"Commit comparison documentation successfully written to {filePath}" : "Failed to write documentation to file"
+                    Text = success ? $"Commit comparison documentation successfully written to {fullPath}" : "Failed to write documentation to file"
                 } }
             };
         }
@@ -1123,7 +1136,7 @@ public class McpServer : IMcpServer
             }
 
             var commits = await _gitService.GetGitLogsBetweenBranchesWithRemoteAsync(workspaceRoot, branch1, branch2, fetchRemote);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
             return new CallToolResponse

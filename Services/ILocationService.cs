@@ -12,6 +12,14 @@ public interface ILocationService
     /// </summary>
     /// <returns>The workspace root directory path</returns>
     string GetWorkspaceRoot();
+
+    /// <summary>
+    /// Extracts version information from a project file (e.g., .csproj) using XPath.
+    /// </summary>
+    /// <param name="projectFile">The path to the project file</param>
+    /// <returns>The version string, or null if not found</returns>
+    public string? GetAppVersion(string projectFile);
+
     public string? ReadFile(string filePath);
     /// <summary>
     /// Gets all files under the workspace root directory with relative paths and file types

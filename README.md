@@ -1,4 +1,4 @@
-# GitVisionMCP 1.0.6
+# GitVisionMCP 1.0.7
 
 Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documentation
 
@@ -24,6 +24,7 @@ Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documenta
 | transform_xml_with_xslt               | Transform XML files using XSLT stylesheets                                |
 | search_yaml_file                      | Search for YAML values in a YAML file using JSONPath queries              |
 | SearchCsvFile                         | Search for CSV values in a CSV file using JSONPath queries                |
+| search_excel_file                     | Search for Excel values in an Excel file using JSONPath queries           |
 | list_workspace_files                  | List all files in the workspace with advanced filtering options           |
 | list_workspace_files_with_cached_data | High-performance file listing using cached data                           |
 | read_filtered_workspace_files         | Read contents of filtered files with size and count limits                |
@@ -228,9 +229,26 @@ GitVisionMCP provides specialized MCP prompts for creating release documentation
 - **Code Archaeology**: `"Find all references to deprecated API functions"`
 - **Documentation**: `"Search for 'TODO' comments across the project"`
 
+## 🆕 What's New - Excel File Search Tool
+
+**Latest Addition**: Advanced Excel spreadsheet analysis that brings JSONPath querying to Excel files:
+
+✅ **Excel Spreadsheet Support**
+
+- Process and analyze Excel (.xlsx) files using JSONPath syntax
+- Multi-sheet support for comprehensive workbook analysis
+- Structured results with clean formatting and error handling
+
+✅ **Business Intelligence Applications**
+
+- Extract metrics and KPIs from financial spreadsheets
+- Analyze inventory and procurement data
+- Query product catalogs and business reports
+- Extract configuration settings from Excel templates
+
 ## 🆕 What's New - YAML Search & XSLT Transformation Tools
 
-**Latest Addition**: Powerful YAML file search functionality that brings JSONPath querying to YAML configuration files:
+**Previous Addition**: Powerful YAML file search functionality that brings JSONPath querying to YAML configuration files:
 
 ✅ **YAML Configuration Support**
 
@@ -284,7 +302,7 @@ This prevents build messages and logging output from interfering with the JSON-R
 
 ## Features
 
-### 🛠️ Complete Tool Suite (26 Tools Available)
+### 🛠️ Complete Tool Suite (27 Tools Available)
 
 This MCP server provides comprehensive git documentation and analysis capabilities through 26 specialized tools:
 
@@ -296,7 +314,7 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - Historical change tracking and statistics
 - AI-powered sampling and analysis capabilities
 
-**🔍 Search & Discovery (8 tools)**
+**🔍 Search & Discovery (9 tools)**
 
 - Comprehensive commit search across messages and file contents
 - Intelligent file change detection between commits
@@ -304,6 +322,7 @@ This MCP server provides comprehensive git documentation and analysis capabiliti
 - XML file search and query capabilities using XPath
 - **YAML file search and query capabilities using JSONPath** 🆕
 - **XML transformation capabilities using XSLT** 🆕
+- **Excel spreadsheet analysis with JSONPath querying** 🔥 **NEW**
 - Workspace file discovery and content analysis
 - ASP.NET Core controller structure analysis
 
@@ -524,6 +543,40 @@ The **search_yaml_file** tool provides powerful YAML querying capabilities using
 #### YAML Search Examples:
 
 - `$.application.name` - Get application name from configuration
+
+### Excel Search Tool
+
+The **search_excel_file** tool provides advanced spreadsheet analysis using JSONPath with multi-sheet support:
+
+- **Multi-sheet processing**: Query data across all worksheets in an Excel file
+- **JSONPath queries**: Search Excel data using standard JSONPath syntax with wildcard support
+- **Structured results**: Returns sheet-by-sheet analysis with clean formatting
+- **Flexible data access**: Extract specific values, tables, or cell ranges
+- **Comprehensive error handling**: Graceful handling of formatting issues and invalid files
+- **Business intelligence ready**: Designed for extracting metrics, KPIs, and configuration data
+
+#### Key Excel Search Features:
+
+- **Worksheet-aware results**: Results clearly indicate which worksheet data comes from
+- **Intelligent type handling**: Automatic detection of numeric, string, and date formats
+- **Performance optimization**: Efficient processing of large spreadsheets
+- **Header row support**: Properly handles column headers for better data context
+- **Configurable options**: Adjust processing behavior to match specific Excel formats
+
+#### Excel Search Applications:
+
+- **Financial Analysis**: Extract metrics and KPIs from financial reports
+- **Inventory Management**: Query product catalogs and procurement data
+- **Configuration Extraction**: Pull settings, credentials, and endpoints from Excel templates
+- **Business Intelligence**: Analyze performance data and business metrics
+- **Data Migration**: Extract structured data from legacy Excel systems
+
+#### Excel Search Examples:
+
+- `$[*].ServerName` - Get all server names from a worksheet
+- `$[?(@.UptimeHours > 100)].ServerName` - Get servers with uptime over 100 hours
+- `$[0:5]` - Get the first 6 rows of data
+- `$[*].Status` - Get the status column from all rows
 - `$.database.connections[*].host` - Get all database hosts
 - `$.users[*].roles` - Get all user roles
 - `$.features[?(@.enabled)].name` - Get names of enabled features

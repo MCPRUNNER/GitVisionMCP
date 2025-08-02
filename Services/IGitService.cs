@@ -8,7 +8,6 @@ public interface IGitService
     Task<List<GitCommitInfo>> GetGitLogsAsync(string repositoryPath, int maxCommits = 50);
     Task<List<GitCommitInfo>> GetGitLogsBetweenBranchesAsync(string repositoryPath, string branch1, string branch2);
     Task<List<GitCommitInfo>> GetGitLogsBetweenCommitsAsync(string repositoryPath, string commit1, string commit2);
-    Task<string> GenerateDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown");
     Task<bool> WriteDocumentationToFileAsync(string content, string filePath);
 
     // New methods for enhanced git operations
@@ -25,7 +24,7 @@ public interface IGitService
     Task<string> GetCurrentBranchAsync(string repositoryPath);
     Task<bool> FetchFromRemoteAsync(string repositoryPath, string remoteName = "origin");
     Task<List<GitCommitInfo>> GetGitLogsBetweenBranchesWithRemoteAsync(string repositoryPath, string branch1, string branch2, bool fetchRemote = true);
-    Task<string> GenerateAutoDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown");
+    Task<string> GenerateCommitDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown");
     // New method for searching commits
     Task<CommitSearchResponse> SearchCommitsForStringAsync(string repositoryPath, string searchString, int maxCommits = 100);
 }

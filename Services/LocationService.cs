@@ -822,11 +822,19 @@ public class LocationService : ILocationService
     /// </summary>
     /// <param name="projectFile"></param>
     /// <returns></returns>
-    public string? GetAppVersion(string projectFile)
+    public string? GetAppVersion(string? projectFile)
     {
         try
         {
-           
+            if (string.IsNullOrEmpty(projectFile))
+            {
+                projectFile = GetFullPath("GitVisionMCP.csproj") ?? string.Empty;
+            }
+            if (string.IsNullOrEmpty(projectFile) || !File.Exists(projectFile))
+            {
+                _logger.LogWarning("Project file does not exist: {ProjectFile}", projectFile);
+                return "Unknown Version";
+            }
             var version = SearchXmlFile(projectFile, "/Project/PropertyGroup/Version/text()");
             return version;
         }

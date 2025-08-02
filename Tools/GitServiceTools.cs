@@ -1595,6 +1595,23 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
+    [McpServerToolAttribute]
+    [Description("Extract application version from a project file (e.g., .csproj)")]
+    public Task<string?> GetAppVersionAsync(
+        [Description("The path to the project file relative to workspace root")] string? projectFile)
+    {
+        try
+        {
+            var version = _locationService.GetAppVersion(projectFile);
+            return Task.FromResult<string?>(version);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting application version for file: {ProjectFile}", projectFile);
+            throw new InvalidOperationException($"Failed to get application version: {ex.Message}", ex);
+        }
+    }
+
     private bool IsBinaryFile(string filePath)
     {
         try

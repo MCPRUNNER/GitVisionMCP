@@ -567,6 +567,20 @@ public class McpServer : IMcpServer
                     },
                     required = new[] { "filePath" }
                 }
+            },
+            new Tool
+            {
+                Name = "get_app_version",
+                Description = "Get the application version from the project file",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        projectFile = new { type = "string", description = "Path to the project file (e.g., .csproj) relative to workspace root" }
+                    },
+                    required = new[] { "projectFile" }
+                }
             }
         };
 
@@ -619,6 +633,7 @@ public class McpServer : IMcpServer
             "search_csv_file" => await HandleSearchCsvFileAsync(toolRequest),
             "search_excel_file" => await HandleSearchExcelFileAsync(toolRequest),
             "search_yaml_file" => await HandleSearchYamlFileAsync(toolRequest),
+            "get_app_version" => await HandleGetAppVersionAsync(toolRequest),
             "search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
             "deconstruct_to_json" => await HandleDeconstructSourceAsync(toolRequest),
             "deconstruct_to_file" => await HandleDeconstructSourceToFileAsync(toolRequest),
@@ -787,7 +802,7 @@ public class McpServer : IMcpServer
             var workspaceRoot = _locationService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
- 
+
 
             // Make path relative to workspace if not absolute
             var fullPath = _locationService.GetFullPath(filePath);
@@ -1667,6 +1682,39 @@ public class McpServer : IMcpServer
                 IsError = true,
                 Content = new[] { new ToolContent { Type = "text", Text = $"Error deconstructing source to file: {ex.Message}" } }
             };
+        }
+    }
+
+    /// <summary>
+    /// Handles the get_app_version tool, extracting version info from a project file (e.g., .csproj).
+    /// </summary>
+    /// <param name="toolRequest">The RPC request with arguments, expects "projectFile".</param>
+    /// <returns>A CallToolResponse containing the version string or error message.</returns>
+    private Task<CallToolResponse> HandleGetAppVersionAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            // Extract project file path argument
+            var projectFile = GetArgumentValue<string>(toolRequest.Arguments, "projectFile", string.Empty);
+            // Call the location service to get the version
+
+            var version = _locationService.GetAppVersion(projectFile) ?? string.Empty;
+            var response = new CallToolResponse
+            {
+                IsError = false,
+                Content = new[] { new ToolContent { Type = "text", Text = version } }
+            };
+            return Task.FromResult(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing get_app_version");
+            var errorResponse = new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = ex.Message } }
+            };
+            return Task.FromResult(errorResponse);
         }
     }
 

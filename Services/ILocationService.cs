@@ -18,7 +18,7 @@ public interface ILocationService
     /// </summary>
     /// <param name="projectFile">The path to the project file</param>
     /// <returns>The version string, or null if not found</returns>
-    public string? GetAppVersion(string projectFile);
+    public string? GetAppVersion(string? projectFile);
 
     public string? ReadFile(string filePath);
     /// <summary>

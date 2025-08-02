@@ -14,6 +14,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
+using System.Reflection;
 
 namespace GitVisionMCP.Services;
 
@@ -828,13 +829,9 @@ public class LocationService : ILocationService
         {
             if (string.IsNullOrEmpty(projectFile))
             {
-                projectFile = GetFullPath("GitVisionMCP.csproj") ?? string.Empty;
+                return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? string.Empty;
             }
-            if (string.IsNullOrEmpty(projectFile) || !File.Exists(projectFile))
-            {
-                _logger.LogWarning("Project file does not exist: {ProjectFile}", projectFile);
-                return "Unknown Version";
-            }
+
             var version = SearchXmlFile(projectFile, "/Project/PropertyGroup/Version/text()");
             return version;
         }
@@ -935,8 +932,9 @@ public class LocationService : ILocationService
     /// </summary>
     /// <param name="xmlFilePath">The path to the XML file to transform</param>
     /// <param name="xsltFilePath">The path to the XSLT stylesheet file</param>
+    /// <param name="destinationFilePath">Optional path to save the transformed XML to a file</param>
     /// <returns>The transformed XML as a string, or null if an error occurs</returns>
-    public string? TransformXmlWithXslt(string xmlFilePath, string xsltFilePath)
+    public string? TransformXmlWithXslt(string xmlFilePath, string xsltFilePath, string? destinationFilePath = null)
     {
         try
         {
@@ -985,6 +983,34 @@ public class LocationService : ILocationService
             xslt.Transform(xmlDoc, xmlWriter);
 
             var result = stringWriter.ToString();
+
+            // Save to destination file if path is provided
+            if (!string.IsNullOrWhiteSpace(destinationFilePath))
+            {
+                try
+                {
+                    var fullDestinationPath = Path.IsPathRooted(destinationFilePath) 
+                        ? destinationFilePath 
+                        : Path.Combine(_workspaceRoot, destinationFilePath);
+
+                    // Create directory if it doesn't exist
+                    var directory = Path.GetDirectoryName(fullDestinationPath);
+                    if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                    {
+                        Directory.CreateDirectory(directory);
+                    }
+
+                    // Write the transformed result to the destination file
+                    File.WriteAllText(fullDestinationPath, result);
+                    
+                    _logger.LogInformation("Successfully saved transformed XML to: {DestinationFilePath}", destinationFilePath);
+                }
+                catch (Exception saveEx)
+                {
+                    _logger.LogError(saveEx, "Error saving transformed XML to destination file: {DestinationFilePath}", destinationFilePath);
+                    // Continue execution - don't fail the transformation if save fails
+                }
+            }
 
             _logger.LogInformation("Successfully transformed XML file '{XmlFilePath}' using XSLT '{XsltFilePath}'",
                 xmlFilePath, xsltFilePath);
@@ -1146,7 +1172,6 @@ public class LocationService : ILocationService
     public string? ReadFile(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
-
         {
             _logger.LogError("Filename cannot be null or empty");
             return null;
@@ -1154,25 +1179,21 @@ public class LocationService : ILocationService
 
         try
         {
-
             var fullPath = GetFullPath(filePath);
-            if (!File.Exists(fullPath))
+            if (string.IsNullOrEmpty(fullPath))
             {
                 _logger.LogWarning("ReadFile: file does not exist: {FilePath}", filePath);
                 return null;
             }
 
-            var content = File.ReadAllText(filePath);
+            var content = File.ReadAllText(fullPath);
             _logger.LogInformation("Successfully read file: {FilePath}", filePath);
-
 
             return content;
         }
         catch (Exception ex)
         {
-
             _logger.LogError(ex, "ReadFile: Error reading file: {Filename}", filePath);
-
             return null;
         }
     }
@@ -1181,7 +1202,6 @@ public class LocationService : ILocationService
     public string? GetFullPath(string relativePath)
     {
         if (string.IsNullOrWhiteSpace(relativePath))
-
         {
             _logger.LogError("GetFileFullPath: Filename cannot be null or empty");
             return null;
@@ -1189,20 +1209,29 @@ public class LocationService : ILocationService
 
         try
         {
-
-            var fullPath = Path.GetFullPath(relativePath);
-            if (!File.Exists(relativePath))
+            string fullPath;
+            
+            // If path is already absolute, use it as-is
+            if (Path.IsPathRooted(relativePath))
             {
-                _logger.LogInformation("GetFileFullPath: file not found at: {RelativePath}", relativePath);
+                fullPath = relativePath;
+            }
+            else
+            {
+                // If relative, combine with workspace root
+                fullPath = Path.Combine(_workspaceRoot, relativePath);
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                _logger.LogInformation("GetFileFullPath: file not found at: {FullPath}", fullPath);
                 return null;
             }
             return fullPath;
         }
         catch (Exception ex)
         {
-
-            _logger.LogError(ex, "GetFileFullPath: Error reading file: {Filename}", relativePath);
-
+            _logger.LogError(ex, "GetFileFullPath: Error processing file path: {RelativePath}", relativePath);
             return null;
         }
     }

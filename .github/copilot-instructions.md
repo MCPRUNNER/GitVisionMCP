@@ -1,4 +1,4 @@
-# selfDocumentMCP Copilot Instructions
+# GitVisionMCP Copilot Instructions
 
 This is a Model Context Protocol (MCP) Server project that contains MCP tools using JSON-RPC 2.0 and git logs to create documentation, and is designed to be used by vscode as a Copilot Agent.
 
@@ -9,7 +9,7 @@ This is a Model Context Protocol (MCP) Server project that contains MCP tools us
 - https://modelcontextprotocol.io/llms-full.txt
 - https://github.com/modelcontextprotocol/csharp-sdk
 
-This project:
+## This project:
 
 - Implements the Model Context Protocol Server for STDIO and JSON-RPC 2.0
 - gets git logs and creates documentation

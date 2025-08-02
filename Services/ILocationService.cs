@@ -107,8 +107,9 @@ public interface ILocationService
     /// </summary>
     /// <param name="xmlFilePath">The path to the XML file to transform</param>
     /// <param name="xsltFilePath">The path to the XSLT stylesheet file</param>
+    /// <param name="destinationFilePath">Optional path to save the transformed XML to a file</param>
     /// <returns>The transformed XML as a string, or null if an error occurs</returns>
-    string? TransformXmlWithXslt(string xmlFilePath, string xsltFilePath);
+    string? TransformXmlWithXslt(string xmlFilePath, string xsltFilePath, string? destinationFilePath = null);
 
     /// <summary>
     ///  Gets all files under the workspace root directory with relative paths and file types that match a specific search pattern.

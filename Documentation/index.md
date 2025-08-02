@@ -10,9 +10,8 @@ This index lists all markdown documentation files available in the `Documentatio
 - [EXCLUDE_FUNCTIONALITY.md](EXCLUDE_FUNCTIONALITY.md): Details on file exclusion patterns and configuration.
 - [MERGE_SUMMARY.md](MERGE_SUMMARY.md): Summary and analysis of branch merges.
 - [RELEASE_NOTES_FINAL.md](RELEASE_NOTES_FINAL.md): Final release notes and version history.
-- [SEARCH_TOOL_IMPLEMENTATION.md](SEARCH_TOOL_IMPLEMENTATION.md): Implementation details for search tools (JSON, XML, YAML, CSV).
 - [SETUP.md](SETUP.md): Setup instructions for development and production environments.
-- [XML_SEARCH_IMPLEMENTATION.md](XML_SEARCH_IMPLEMENTATION.md): Implementation details for XML search functionality.
+- [SEARCH_OVERVIEW.md](SEARCH_OVERVIEW_JSON_XML_YAML.md): Overview of search functionality across JSON, XML, and YAML formats Includes CSV/Excel examples.
 
 ## Included Github Prompts
 

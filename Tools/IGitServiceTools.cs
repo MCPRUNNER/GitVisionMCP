@@ -172,4 +172,13 @@ public interface IGitServiceTools
     /// <param name="outputFileName">The name of the output JSON file (optional, defaults to controller name + '_analysis.json')</param>
     /// <returns>Success message with the output file path</returns>
     Task<string?> DeconstructToJsonAsync(string filePath, string? outputFileName = null);
+
+    /// <summary>
+    /// Transform an XML file using an XSLT stylesheet
+    /// </summary>
+    /// <param name="xmlFilePath">Path to the XML file relative to workspace root</param>
+    /// <param name="xsltFilePath">Path to the XSLT stylesheet file relative to workspace root</param>
+    /// <param name="destinationFilePath">Optional path to save the transformed XML to a file</param>
+    /// <returns>Transformed XML result</returns>
+    Task<string?> TransformXmlWithXsltAsync(string xmlFilePath, string xsltFilePath, string? destinationFilePath = null);
 }

@@ -160,7 +160,7 @@ public class GitService : IGitService
             throw;
         }
     }
-    public async Task<string> GenerateAutoDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown")
+    public async Task<string> GenerateCommitDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown")
     {
         try
         {
@@ -168,10 +168,10 @@ public class GitService : IGitService
             var sysPrompt = _locationService.GetGitHubPromptFileContent("GenerateDocumentation.md");
             var documentation = format.ToLower() switch
             {
-                "markdown" => await GenerateMarkdownDocumentationAsync(commits),
-                "html" => await GenerateHtmlDocumentationAsync(commits),
-                "text" => await GenerateTextDocumentationAsync(commits),
-                _ => await GenerateMarkdownDocumentationAsync(commits)
+                "markdown" => await GenerateCommitMarkdownDocumentationAsync(commits),
+                "html" => await GenerateCommitHtmlDocumentationAsync(commits),
+                "text" => await GenerateCommitTextDocumentationAsync(commits),
+                _ => await GenerateCommitMarkdownDocumentationAsync(commits)
             };
 
             _logger.LogInformation("Generated documentation with {Length} characters", documentation.Length);
@@ -183,30 +183,7 @@ public class GitService : IGitService
             throw;
         }
     }
-    public async Task<string> GenerateDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown")
-    {
-        try
-        {
-            _logger.LogInformation("Generating documentation for {Count} commits in {Format} format", commits.Count, format);
-            var sysPrompt = _locationService.GetGitHubPromptFileContent("GenerateDocumentation.md");
-            var documentation = format.ToLower() switch
-            {
-                "markdown" => await GenerateMarkdownDocumentationAsync(commits),
-                "html" => await GenerateHtmlDocumentationAsync(commits),
-                "text" => await GenerateTextDocumentationAsync(commits),
-                _ => await GenerateMarkdownDocumentationAsync(commits)
-            };
-
-            _logger.LogInformation("Generated documentation with {Length} characters", documentation.Length);
-            return documentation;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error generating documentation");
-            throw;
-        }
-    }
-
+   
     public async Task<bool> WriteDocumentationToFileAsync(string content, string filePath)
     {
         try
@@ -529,7 +506,7 @@ public class GitService : IGitService
         return await Task.FromResult(commitInfo);
     }
 
-    private async Task<string> GenerateMarkdownDocumentationAsync(List<GitCommitInfo> commits)
+    private async Task<string> GenerateCommitMarkdownDocumentationAsync(List<GitCommitInfo> commits)
     {
         var markdown = new System.Text.StringBuilder();
 
@@ -579,7 +556,7 @@ public class GitService : IGitService
         return await Task.FromResult(markdown.ToString());
     }
 
-    private async Task<string> GenerateHtmlDocumentationAsync(List<GitCommitInfo> commits)
+    private async Task<string> GenerateCommitHtmlDocumentationAsync(List<GitCommitInfo> commits)
     {
         var html = new System.Text.StringBuilder();
 
@@ -641,7 +618,7 @@ public class GitService : IGitService
         return await Task.FromResult(html.ToString());
     }
 
-    private async Task<string> GenerateTextDocumentationAsync(List<GitCommitInfo> commits)
+    private async Task<string> GenerateCommitTextDocumentationAsync(List<GitCommitInfo> commits)
     {
         var text = new System.Text.StringBuilder();
 

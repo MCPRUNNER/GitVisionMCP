@@ -257,7 +257,7 @@ public class McpServerTests : IDisposable
 
         _mockGitService.Setup(x => x.GetGitLogsAsync(It.IsAny<string>(), It.IsAny<int>()))
                       .ReturnsAsync(commits);
-        _mockGitService.Setup(x => x.GenerateDocumentationAsync(It.IsAny<List<GitCommitInfo>>(), It.IsAny<string>()))
+        _mockGitService.Setup(x => x.GenerateCommitDocumentationAsync(It.IsAny<List<GitCommitInfo>>(), It.IsAny<string>()))
                       .ReturnsAsync(documentation);
 
         var toolRequest = new CallToolRequest
@@ -293,7 +293,7 @@ public class McpServerTests : IDisposable
 
         _mockGitService.Setup(x => x.GetGitLogsAsync(It.IsAny<string>(), It.IsAny<int>()))
                       .ReturnsAsync(commits);
-        _mockGitService.Setup(x => x.GenerateDocumentationAsync(It.IsAny<List<GitCommitInfo>>(), It.IsAny<string>()))
+        _mockGitService.Setup(x => x.GenerateCommitDocumentationAsync(It.IsAny<List<GitCommitInfo>>(), It.IsAny<string>()))
                       .ReturnsAsync(documentation);
         _mockGitService.Setup(x => x.WriteDocumentationToFileAsync(It.IsAny<string>(), It.IsAny<string>()))
                       .ReturnsAsync(true);
@@ -318,7 +318,7 @@ public class McpServerTests : IDisposable
 
         _mockGitService.Setup(x => x.GetGitLogsBetweenBranchesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                       .ReturnsAsync(commits);
-        _mockGitService.Setup(x => x.GenerateDocumentationAsync(It.IsAny<List<GitCommitInfo>>(), It.IsAny<string>()))
+        _mockGitService.Setup(x => x.GenerateCommitDocumentationAsync(It.IsAny<List<GitCommitInfo>>(), It.IsAny<string>()))
                       .ReturnsAsync(documentation);
 
         // Act

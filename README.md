@@ -1,144 +1,189 @@
-# GitVisionMCP 1.0.6
+# GitVisionMCP 1.0.7
 
-Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documentation
+> **🚀 Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documentation**
 
----
-
-## 🚀 Features & Tools
-
-| Tool Name                             | Description                                                               |
-| ------------------------------------- | ------------------------------------------------------------------------- |
-| generate_git_documentation            | Generate documentation from git logs for the current workspace            |
-| generate_git_documentation_to_file    | Generate documentation from git logs and write to a file                  |
-| compare_branches_documentation        | Generate documentation comparing differences between two local branches   |
-| compare_branches_with_remote          | Compare branches with full remote support (GitHub, GitLab, etc.)          |
-| compare_commits_documentation         | Generate documentation comparing differences between two commits          |
-| get_recent_commits                    | Get recent commits with detailed information                              |
-| get_changed_files_between_commits     | List files changed between two commits                                    |
-| get_detailed_diff_between_commits     | Get detailed diff content between commits                                 |
-| get_commit_diff_info                  | Get comprehensive diff statistics and file changes                        |
-| get_file_line_diff_between_commits    | Get line-by-line diff for a specific file between two commits             |
-| search_commits_for_string             | Search all commits for a specific string and return detailed match info   |
-| search_json_file                      | Search for JSON values in a JSON file using JSONPath queries              |
-| search_xml_file                       | Search for XML values in an XML file using XPath queries                  |
-| transform_xml_with_xslt               | Transform XML files using XSLT stylesheets                                |
-| search_yaml_file                      | Search for YAML values in a YAML file using JSONPath queries              |
-| SearchCsvFile                         | Search for CSV values in a CSV file using JSONPath queries                |
-| list_workspace_files                  | List all files in the workspace with advanced filtering options           |
-| list_workspace_files_with_cached_data | High-performance file listing using cached data                           |
-| read_filtered_workspace_files         | Read contents of filtered files with size and count limits                |
-| analyze_controller                    | Analyze ASP.NET Core controller structure and generate JSON documentation |
-| analyze_controller_to_file            | Analyze ASP.NET Core controller and save analysis to a file               |
-| get_local_branches                    | List all local branches in the repository                                 |
-| get_remote_branches                   | List all remote branches in the repository                                |
-| get_all_branches                      | List both local and remote branches                                       |
-| fetch_from_remote                     | Fetch latest changes from remote repository                               |
+[![.NET](https://img.shields.io/badge/.NET-9.0-blue)](https://dotnet.microsoft.com/download/dotnet/9.0)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![MCP](https://img.shields.io/badge/protocol-MCP-purple)](https://modelcontextprotocol.io/)
 
 ---
 
-## 🔥 Key Capabilities
+## Table of Contents
 
-- **Automated Documentation Generation**: Create comprehensive documentation from git logs
-- **Commit & Branch Search**: Search across all commits and branches for specific strings
-- **Historical Analysis**: Analyze changes between commits with line-by-line precision
-- **Remote Support**: Full support for remote repositories and branch comparison
-- **Precision Tools**: Get exact file changes, line diffs, and comprehensive statistics
-- **Workspace File Operations**: Smart file filtering, configurable exclude patterns, and performance optimization
-
----
-
-## 🆕 SearchCsvFile Tool
-
-**SearchCsvFile** enables automated searching of CSV files using JSONPath queries. It converts CSV to a JSON array of row objects for powerful, automated queries.
-
-**Usage:**
-
-```
-SearchCsvFile(csvFilePath, jsonPath, hasHeaderRecord = true, ignoreBlankLines = true)
-```
-
-- `csvFilePath`: Path to the CSV file relative to the workspace root.
-- `jsonPath`: JSONPath query string (e.g., `$[*].ServerName`, `$[*].UptimeHours`, `$` for all rows).
-- `hasHeaderRecord`: Whether the CSV has a header row (default: true).
-- `ignoreBlankLines`: Whether to ignore blank lines (default: true).
-
-**Example:**
-
-```
-SearchCsvFile("test.csv", "$[*].ServerName")
-SearchCsvFile("test.csv", "$[*].UptimeHours")
-SearchCsvFile("test.csv", "$")
-```
-
-**Output:**
-
-- JSON array of results matching your query.
-- Example: `["Server-1", "Server-2", ...]` or `[ { "ServerName": "Server-1", "UptimeHours": "123" }, ... ]`
-
-**Notes:**
-
-- Uses CsvHelper for robust CSV parsing.
-- JSONPath queries must match the structure of the converted JSON array.
-- Works with any CSV file with or without headers.
+1. [Quick Start](#quick-start)
+2. [Core Features](#core-features)
+3. [Available Tools](#available-tools)
+4. [Getting Started](#getting-started)
+5. [Configuration](#configuration)
+6. [Advanced Usage](#advanced-usage)
+7. [Documentation](#documentation)
 
 ---
 
-## 📝 Automated Usage Examples
+## Quick Start
 
-### Documentation Generation
+GitVisionMCP provides **28 powerful tools** for git analysis, documentation generation, and file searching:
 
+- 🔍 **Search commits**, branches, and files with advanced filtering
+- 📝 **Generate documentation** from git history automatically
+- 🌿 **Compare branches** and commits with detailed analysis
+- 📊 **Query files** using JSONPath (JSON/YAML/CSV/Excel) and XPath (XML)
+- ⚡ **Smart workspace** operations with configurable exclusions
+
+**Basic Commands:**
+
+```bash
+@copilot Generate documentation from the last 20 commits
+@copilot Search all commits for 'authentication'
+@copilot Compare my feature branch with origin/main
+@copilot Extract all Docker service names from docker-compose.yml
 ```
+
+---
+
+## Core Features
+
+### 🎯 **Git Analysis & Documentation**
+
+- **Automated Documentation**: Generate comprehensive docs from git logs
+- **Commit Search**: Deep search across messages and file contents
+- **Branch Comparison**: Compare local/remote branches with diff analysis
+- **Historical Analysis**: Line-by-line precision for change tracking
+
+### 🔍 **Advanced File Search**
+
+- **JSON/YAML/CSV/Excel**: JSONPath querying with filters and wildcards
+- **XML**: XPath querying with element/attribute access
+- **XSLT Transformation**: Transform XML files with custom stylesheets
+- **Smart Filtering**: Automatic exclusion of build artifacts and IDE files
+
+### ⚡ **Workspace Intelligence**
+
+- **Performance Optimized**: Efficient operations with size/count limits
+- **Configurable Exclusions**: Custom `.gitvision/exclude.json` patterns
+- **Multi-sheet Excel**: Process entire workbooks with structured results
+- **Remote Support**: Full GitHub/GitLab integration
+
+---
+
+## Available Tools
+
+### 📝 **Documentation & Analysis** (7 tools)
+
+| Tool                                 | Description                                                |
+| ------------------------------------ | ---------------------------------------------------------- |
+| `generate_git_documentation`         | Generate comprehensive documentation from git logs         |
+| `generate_git_documentation_to_file` | Generate docs and save to specified file                   |
+| `compare_branches_documentation`     | Compare two local branches with detailed analysis          |
+| `compare_branches_with_remote`       | Compare branches with full remote support (GitHub, GitLab) |
+| `compare_commits_documentation`      | Generate detailed diff between two commits                 |
+| `get_recent_commits`                 | Retrieve recent commits with metadata                      |
+| `get_commit_diff_info`               | Get comprehensive diff statistics                          |
+
+### 🔍 **Search & Discovery** (10 tools)
+
+| Tool                                    | Description                              | Query Language |
+| --------------------------------------- | ---------------------------------------- | -------------- |
+| `search_commits_for_string`             | Search all commits for specific text     | Text search    |
+| `search_json_file`                      | Query JSON files with advanced filtering | JSONPath       |
+| `search_yaml_file`                      | Query YAML files (Docker, K8s, CI/CD)    | JSONPath       |
+| `search_xml_file`                       | Query XML with element/attribute access  | XPath          |
+| `search_csv_file`                       | Query CSV data with header support       | JSONPath       |
+| `search_excel_file`                     | Multi-sheet Excel analysis               | JSONPath       |
+| `transform_xml_with_xslt`               | Transform XML with XSLT stylesheets      | XSLT           |
+| `list_workspace_files`                  | Smart file discovery with exclusions     | Glob patterns  |
+| `list_workspace_files_with_cached_data` | High-performance file operations         | Filters        |
+| `read_filtered_workspace_files`         | Bulk file reading with limits            | Filters        |
+
+### 🌿 **Branch & Repository Management** (5 tools)
+
+| Tool                  | Description                              |
+| --------------------- | ---------------------------------------- |
+| `get_local_branches`  | List all local branches                  |
+| `get_remote_branches` | List all remote branches                 |
+| `get_all_branches`    | Combined local and remote branch listing |
+| `get_current_branch`  | Get the current active branch            |
+| `fetch_from_remote`   | Sync with remote repositories            |
+
+### ⚡ **Advanced Analysis** (6 tools)
+
+| Tool                                 | Description                          |
+| ------------------------------------ | ------------------------------------ |
+| `get_changed_files_between_commits`  | Track file changes between commits   |
+| `get_detailed_diff_between_commits`  | Get complete diff content            |
+| `get_file_line_diff_between_commits` | Line-by-line diff for specific files |
+| `deconstruct_to_json`                | ASP.NET Core controller analysis     |
+| `deconstruct_to_file`                | Save controller analysis to file     |
+| `get_app_version`                    | Extract version from project files   |
+
+---
+
+## Getting Started
+
+### � **Prerequisites**
+
+- **.NET 9.0 SDK** - Download from [dotnet.microsoft.com](https://dotnet.microsoft.com/download/dotnet/9.0)
+- **Git repository** in workspace
+- **VS Code with Copilot** for optimal experience
+- **Remote access** (optional, for GitHub/GitLab features)
+
+### ⚡ **Quick Setup**
+
+```powershell
+# Build the project
+dotnet restore
+dotnet build --configuration Release
+
+# Run with optimal settings
+$env:DOTNET_ENVIRONMENT="Production"
+dotnet run --no-build --verbosity quiet
+```
+
+### 🎯 **Usage Examples**
+
+#### **Documentation Generation**
+
+```bash
 @copilot Generate documentation from the last 20 commits
 @copilot Create a release summary comparing main with release/v2.0
 @copilot Generate project history and save to docs/changelog.md
 ```
 
-### Search & Discovery
+#### **Search & Discovery**
 
-```
-@copilot Search all commits for 'authentication' and show me the results
+```bash
+@copilot Search all commits for 'authentication' and show results
 @copilot Find all commits that mention 'bug fix' in messages or code
-@copilot Search config.yaml for database settings using JSONPath $.database.*
 @copilot Extract all Docker service names from docker-compose.yml
+@copilot Search config.yaml for database settings using $.database.*
 @copilot Find all environment variables in Kubernetes manifests
-@copilot SearchCsvFile("test.csv", "$[*].ServerName")
 ```
 
-### Branch Analysis
+#### **Branch Analysis**
 
-```
+```bash
 @copilot Compare my feature branch with origin/main and save to analysis.md
 @copilot Show me what files changed between these two commits
 @copilot List all remote branches in this repository
 @copilot Fetch latest changes from origin and compare branches
 ```
 
-### Advanced Analysis
+#### **Advanced File Operations**
 
-```
-@copilot Get line-by-line diff for Services/GitService.cs between two commits
-@copilot Show me recent commits with detailed change information
+```bash
+@copilot Get line-by-line diff for Services/GitService.cs between commits
+@copilot Search test.csv for all server names using $[*].ServerName
+@copilot Transform config.xml using my stylesheet.xslt
+@copilot Extract IT department budget from budget.xlsx
 ```
 
 ---
 
-## ⚡ Automated Setup
+## Configuration
 
-### Prerequisites
+### 🔧 **VS Code MCP Setup**
 
-- .NET 9.0 SDK
-- Git repository in the workspace
-- VS Code with Copilot
-- Access to remote repositories (for remote branch features)
-
-### Build & Run
-
-```powershell
-dotnet restore; dotnet build --configuration Release
-$env:DOTNET_ENVIRONMENT="Production"; dotnet run --no-build --verbosity quiet
-```
-
-### VS Code MCP Configuration
+Add to your VS Code MCP configuration file:
 
 ```json
 {
@@ -149,540 +194,184 @@ $env:DOTNET_ENVIRONMENT="Production"; dotnet run --no-build --verbosity quiet
       "args": [
         "run",
         "--project",
-        "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP\\GitVisionMCP.csproj",
+        "c:\\path\\to\\GitVisionMCP\\GitVisionMCP.csproj",
         "--no-build",
         "--verbosity",
         "quiet"
       ],
       "env": {
         "DOTNET_ENVIRONMENT": "Production",
-        "GIT_REPOSITORY_DIRECTORY": "c:\\Users\\U00001\\source\\repos\\MCP\\GitVisionMCP"
+        "GIT_REPOSITORY_DIRECTORY": "c:\\path\\to\\your\\repo"
       }
     }
   }
 }
 ```
 
----
+### ⚙️ **Smart File Exclusions**
 
-## 🧠 MCP Prompts & Automation
-
-GitVisionMCP provides specialized MCP prompts for creating release documentation and automating repository analysis.
-
-**Example Prompts:**
-
-```
-@copilot Using the release_document prompt, create release notes for our project.
-@copilot Using the release_document_with_version prompt with version 2.0.0 and release date 2025-07-10, create release notes.
-```
-
----
-
-## 📚 Further Reading
-
-- [EXAMPLES.md](Documentation/EXAMPLES.md)
-- [DECONSTRUCTION_SERVICE.md](Documentation/DECONSTRUCTION_SERVICE.md)
-- [EXCLUDE_FUNCTIONALITY.md](Documentation/EXCLUDE_FUNCTIONALITY.md)
-
----
-
-A comprehensive Model Context Protocol (MCP) Server that provides advanced git analysis and documentation tools, including powerful commit search capabilities. Designed to be used as a Copilot Agent in VS Code for comprehensive repository analysis and documentation generation.
-
-## MCP Prompts
-
-GitVisionMCP provides specialized MCP prompts for creating release documentation. These prompts help guide the AI in generating comprehensive and well-structured release notes based on git history.
-
-### Available MCP Prompts and Documentation Generation
-
-## 🔥 Key Capabilities
-
-- **📝 Documentation Generation**: Create comprehensive documentation from git logs
-- **🔍 Commit Search**: Search across all commits for specific strings with detailed match results
-- **🌿 Branch Analysis**: Compare branches (local and remote) with detailed diff information
-- **📊 Historical Analysis**: Analyze changes between commits with line-by-line precision
-- **🌐 Remote Support**: Full support for remote repositories and branch comparison
-- **🎯 Precision Tools**: Get exact file changes, line diffs, and comprehensive statistics
-
-## 🆕 What's New - Commit Search Tool
-
-**Latest Addition**: Powerful commit search functionality that revolutionizes how you explore repository history:
-
-✅ **Deep Search Capabilities**
-
-- Search through commit messages AND file contents simultaneously
-- Case-insensitive search finds matches regardless of text case
-- Automatic binary file filtering for optimal performance
-
-✅ **Comprehensive Results**
-
-- Exact line numbers and full line content for every match
-- Commit metadata: hash, author, timestamp, and message
-- File-by-file breakdown showing exactly where matches occur
-- Summary statistics: total commits searched, matching commits, total line matches
-
-✅ **Practical Applications**
-
-- **Bug Tracking**: `"Find all commits mentioning 'authentication error'"`
-- **Feature History**: `"Search for 'user registration' across all development"`
-- **Security Audits**: `"Look for 'password' or 'secret' in commit history"`
-- **Code Archaeology**: `"Find all references to deprecated API functions"`
-- **Documentation**: `"Search for 'TODO' comments across the project"`
-
-## 🆕 What's New - YAML Search & XSLT Transformation Tools
-
-**Latest Addition**: Powerful YAML file search functionality that brings JSONPath querying to YAML configuration files:
-
-✅ **YAML Configuration Support**
-
-- Search through YAML files using familiar JSONPath syntax
-- Automatic YAML-to-JSON conversion for seamless querying
-- Support for .yaml and .yml file extensions
-
-✅ **DevOps Integration**
-
-- Query Docker Compose files: `"Extract all service images from docker-compose.yml"`
-- Search Kubernetes manifests: `"Find all container ports in k8s configurations"`
-- Analyze CI/CD pipelines: `"Get all environment variables from GitHub Actions"`
-- Parse Ansible playbooks: `"Extract all task names and their conditions"`
-
-✅ **Infrastructure as Code**
-
-- **Configuration Management**: Query application.yml, database.yml, feature flags
-- **API Documentation**: Search OpenAPI/Swagger YAML specifications
-- **Deployment Configs**: Extract settings from Helm charts and Terraform configurations
-- **Documentation**: Parse YAML front matter from markdown files
-
-✅ **Practical Applications**
-
-- **Configuration Audit**: `"Find all database connections in config.yaml"`
-- **Security Review**: `"Search for exposed ports and sensitive settings"`
-- **Environment Setup**: `"Extract all required environment variables"`
-- **Service Discovery**: `"List all microservices and their dependencies"`
-
-## ⚠️ Important Setup Note
-
-To ensure clean JSON-RPC communication, the MCP server should be run with:
-
-- Pre-built binaries (`--no-build` flag)
-- Production environment (`DOTNET_ENVIRONMENT=Production`)
-
-### Recent Fixes for VS Code Integration
-
-**Version 1.4.1** addresses VS Code MCP client integration issues:
-
-- **Fixed:** Console logging interference with JSON-RPC protocol
-  - Added `builder.Logging.ClearProviders()` to disable console output
-  - All logging now goes to file-only when using stdio transport
-  - Eliminates "Failed to parse message" warnings in VS Code
-- **Enhanced:** XML attribute search support
-  - Fixed XPath evaluation for attribute queries like `//user/@email`
-  - Proper handling of elements, attributes, and text content
-  - Comprehensive error handling for all XPath result types
-- Quiet verbosity (`--verbosity quiet`)
-
-This prevents build messages and logging output from interfering with the JSON-RPC protocol.
-
-## Features
-
-### 🛠️ Complete Tool Suite (26 Tools Available)
-
-This MCP server provides comprehensive git documentation and analysis capabilities through 26 specialized tools:
-
-**📝 Documentation & Analysis (7 tools)**
-
-- Documentation generation from git logs
-- Branch and commit comparison with detailed analysis
-- Remote repository integration and synchronization
-- Historical change tracking and statistics
-- AI-powered sampling and analysis capabilities
-
-**🔍 Search & Discovery (8 tools)**
-
-- Comprehensive commit search across messages and file contents
-- Intelligent file change detection between commits
-- JSON file search and query capabilities using JSONPath
-- XML file search and query capabilities using XPath
-- **YAML file search and query capabilities using JSONPath** 🆕
-- **XML transformation capabilities using XSLT** 🆕
-- Workspace file discovery and content analysis
-- ASP.NET Core controller structure analysis
-
-**🌿 Branch Management (4 tools)**
-
-- Local and remote branch discovery
-- Cross-repository branch comparison
-- Remote fetch and synchronization operations
-- Multi-branch analysis and reporting
-
-**⚡ Advanced Analysis (4 tools)**
-
-- Line-by-line diff analysis for specific files
-- Recent commit retrieval with detailed metadata
-- Workspace file listing with advanced filtering
-- Bulk file content reading with size limits
-
-**🚀 Workspace File Operations (3 tools)**
-
-- **Smart File Filtering**: Automatic exclusion of build artifacts, IDE files, and logs
-- **Configurable Exclude Patterns**: Customizable `.gitvision/exclude.json` configuration
-- **Performance Optimized**: Efficient file operations with size and count limits
-
-### 🆕 Exclude Functionality
-
-**New in this version**: Smart file exclusion system for workspace operations!
-
-✅ **Automatic Exclusions**
-
-- Build artifacts (`**/bin/**`, `**/obj/**`, `**/Debug/**`, `**/Release/**`)
-- IDE and editor files (`.vs/**`, `.vscode/**`, `*.cache`)
-- Version control (`.git/**`)
-- Package managers (`node_modules/**`)
-- Log files (`*.log`)
-
-✅ **Configurable Patterns**
-
-- Create `.gitvision/exclude.json` in your workspace root
-- Use glob patterns with wildcards (`*`, `**`, `?`)
-- Case-insensitive pattern matching
-- Automatic configuration loading and caching
-
-✅ **Performance Benefits**
-
-- Faster workspace file operations
-- Reduced memory usage
-- Cleaner file listings
-- Focus on relevant source code files
-
-### Core Documentation Tools
-
-- **generate_git_documentation**: Generate documentation from git logs for the current workspace
-- **generate_git_documentation_to_file**: Generate documentation from git logs and write to a file
-
-### Branch and Commit Comparison Tools
-
-- **compare_branches_documentation**: Generate documentation comparing differences between two local branches
-- **compare_branches_with_remote**: 🆕 Compare branches with full remote support (GitHub, GitLab, etc.)
-- **compare_commits_documentation**: Generate documentation comparing differences between two commits
-
-### Advanced Git Analysis Tools
-
-- **get_recent_commits**: Get recent commits with detailed information
-- **get_changed_files_between_commits**: List files changed between two commits
-- **get_detailed_diff_between_commits**: Get detailed diff content between commits
-- **get_commit_diff_info**: Get comprehensive diff statistics and file changes
-- **get_file_line_diff_between_commits**: 🆕 Get line-by-line diff for a specific file between two commits
-- **search_commits_for_string**: 🆕 Search all commits for a specific string and return detailed match information
-- **search_json_file**: 🆕 Search for JSON values in a JSON file using JSONPath queries
-- **search_xml_file**: 🆕 Search for XML values in an XML file using XPath queries
-- **transform_xml_with_xslt**: 🆕 Transform XML files using XSLT stylesheets
-- **search_yaml_file**: 🆕 Search for YAML values in a YAML file using JSONPath queries
-
-### Workspace File Operations
-
-- **list_workspace_files**: 🆕 List all files in the workspace with advanced filtering options
-- **list_workspace_files_with_cached_data**: 🆕 High-performance file listing using cached data
-- **read_filtered_workspace_files**: 🆕 Read contents of filtered files with size and count limits
-- **analyze_controller**: 🆕 Analyze ASP.NET Core controller structure and generate JSON documentation
-- **analyze_controller_to_file**: 🆕 Analyze ASP.NET Core controller and save analysis to a file
-
-### Commit Search Tool
-
-The new **search_commits_for_string** tool provides comprehensive commit searching capabilities:
-
-- **Search commit messages**: Find commits containing specific text in their messages
-- **Search file contents**: Search through all files in each commit for the specified string
-- **Detailed match information**: Returns commit hash, timestamp, author, line numbers, and full line content
-- **File-by-file breakdown**: Shows exactly which files contain matches and where
-- **Case-insensitive search**: Finds matches regardless of case
-
-#### Search Results Include:
-
-- Commit hash (short form)
-- Commit timestamp
-- Author information
-- Commit message
-- File names containing matches
-- Line numbers where matches occur
-- Full line content showing the match in context
-
-### JSON Search Tool
-
-The enhanced **search_json_file** tool provides powerful JSON querying capabilities using JSONPath with advanced features:
-
-- **JSONPath queries**: Search JSON files using standard JSONPath syntax with wildcard support
-- **Wildcard Support**: Use `*` wildcards and recursive descent (`..`) for complex queries
-- **Structured Results**: Optional `showKeyPaths` parameter returns path context with values
-- **Flexible file access**: Search any JSON file in the workspace
-- **Formatted output**: Option to return results with or without indentation
-- **Multiple result handling**: Automatically handles single values or arrays of results
-- **Error handling**: Comprehensive error reporting for invalid files or queries
-
-#### Enhanced Features:
-
-- **showKeyPaths option**: Returns structured results with path, value, and key information
-- **Wildcard patterns**: `$.users[*].email`, `$..author`, `$.config.*`
-- **Context preservation**: Track exactly where values are located in complex JSON structures
-- **Performance optimized**: Uses SelectTokens for efficient multiple result processing
-
-#### JSONPath Query Examples:
-
-- `$.name` - Get the root-level name property
-- `$.users[*].email` - Get all user email addresses (supports wildcards)
-- `$.configuration.database.host` - Get nested configuration values
-- `$.items[?(@.price > 100)].name` - Get names of items with price > 100 (conditional filtering)
-- `$..author` - Get all author properties at any level (recursive descent)
-- `$.configuration.*` - Get all values under configuration (wildcard properties)
-
-#### Enhanced JSONPath Support:
-
-- **Wildcards**: Use `[*]` to select all elements in arrays or `.*` for all properties
-- **Recursive Descent**: Use `..` to search at any depth in the JSON structure
-- **Conditional Filtering**: Use `[?(@.property == 'value')]` to filter based on conditions
-- **Multiple Results**: Automatically returns JSON arrays for queries matching multiple items
-- **Single Results**: Returns individual values when only one match is found
-
-#### JSON Search Results:
-
-- Extracted JSON values matching the JSONPath query
-- Formatted output (indented or compact)
-- "No matches found" message when query returns no results
-
-### XML Search Tool
-
-The **search_xml_file** tool provides powerful XML querying capabilities using XPath with comprehensive features:
-
-- **XPath queries**: Search XML files using standard XPath syntax with full expression support
-- **Element and attribute queries**: Navigate XML structures and extract values from both elements and attributes
-- **Structured Results**: Optional `showKeyPaths` parameter returns path context with values
-- **Flexible file access**: Search any XML file in the workspace
-- **Formatted output**: Option to return results with or without indentation
-- **Multiple result handling**: Automatically handles single values or arrays of results
-- **Error handling**: Comprehensive error reporting for invalid XML or malformed XPath queries
-
-#### Enhanced XML Features:
-
-- **showKeyPaths option**: Returns structured results with path, value, and key information
-- **Element queries**: `//user`, `//database/connectionString`, `/configuration/settings`
-- **Attribute queries**: `//user/@name`, `//feature[@enabled='true']/@name`
-- **Context preservation**: Track exactly where values are located in complex XML structures
-- **Performance optimized**: Uses XDocument and XPath for efficient XML processing
-
-#### XPath Query Examples:
-
-- `//connectionString` - Get all connectionString elements
-- `//user` - Get all user elements (equivalent to `$.users[*]` in JSON)
-- `//user/@email` - Get all user email attributes
-- `//feature[@enabled='true']` - Get all enabled features (conditional filtering)
-- `//user[@id='1']/@name` - Get name of user with specific ID
-- `/configuration/settings/*` - Get all direct children of settings element
-
-#### Enhanced XPath Support:
-
-- **Element Navigation**: Use `//` for recursive search or `/` for direct path navigation
-- **Attribute Access**: Use `@attribute` to access XML attributes
-- **Conditional Filtering**: Use `[@condition]` to filter based on attributes or content
-- **Multiple Results**: Automatically returns arrays for queries matching multiple items
-- **Single Results**: Returns individual values when only one match is found
-
-#### XML Search Results:
-
-- Extracted XML elements or attributes matching the XPath query
-- Formatted output (indented or compact)
-- Full element content including child elements and attributes
-- "No matches found" message when query returns no results
-
-#### JSON vs XML Query Comparison:
-
-| Operation           | JSON (JSONPath)        | XML (XPath)              | Description                     |
-| ------------------- | ---------------------- | ------------------------ | ------------------------------- |
-| Get all users       | `$.users[*]`           | `//user`                 | All user records                |
-| Get user names      | `$.users[*].name`      | `//user/@name`           | All user names                  |
-| Get first user      | `$.users[0]`           | `//user[1]`              | First user (XPath is 1-indexed) |
-| Filter by condition | `$.users[?(@.active)]` | `//user[@active='true']` | Conditional filtering           |
-| Get nested value    | `$.config.db.host`     | `//config/db/host`       | Nested element access           |
-
-### YAML Search Tool
-
-The **search_yaml_file** tool provides powerful YAML querying capabilities using JSONPath queries by converting YAML to JSON internally:
-
-- **JSONPath queries**: Search YAML files using familiar JSONPath syntax with wildcard support
-- **YAML-to-JSON conversion**: Internally converts YAML to JSON for consistent querying
-- **Structured Results**: Optional `showKeyPaths` parameter returns path context with values
-- **Flexible file access**: Search any YAML file in the workspace (.yaml, .yml extensions)
-- **Formatted output**: Option to return results with or without indentation
-- **Multiple result handling**: Automatically handles single values or arrays of results
-- **Error handling**: Comprehensive error reporting for invalid YAML or malformed JSONPath queries
-
-#### Enhanced YAML Features:
-
-- **Configuration Management**: Query Docker Compose, Kubernetes manifests, CI/CD pipelines
-- **Infrastructure as Code**: Search Ansible playbooks, Terraform configurations, Helm charts
-- **Application Config**: Extract settings from application.yml, database.yml files
-- **API Definitions**: Query OpenAPI/Swagger specifications in YAML format
-- **Documentation**: Extract metadata from YAML front matter
-
-#### YAML Search Examples:
-
-- `$.application.name` - Get application name from configuration
-- `$.database.connections[*].host` - Get all database hosts
-- `$.users[*].roles` - Get all user roles
-- `$.features[?(@.enabled)].name` - Get names of enabled features
-- `$.services.*.image` - Get all Docker service images (wildcard properties)
-
-#### YAML vs JSON vs XML Comparison:
-
-| Feature               | YAML Search (JSONPath) | JSON Search (JSONPath) | XML Search (XPath)  |
-| --------------------- | ---------------------- | ---------------------- | ------------------- |
-| File formats          | `.yaml`, `.yml`        | `.json`                | `.xml`              |
-| Query language        | JSONPath               | JSONPath               | XPath               |
-| Array access          | `$.items[0]`           | `$.items[0]`           | `//items[1]`        |
-| Filter conditions     | `$[?(@.enabled)]`      | `$[?(@.enabled)]`      | `[@enabled='true']` |
-| Nested navigation     | `$.config.db.host`     | `$.config.db.host`     | `//config/db/host`  |
-| Wildcard selection    | `$.users[*].name`      | `$.users[*].name`      | `//user/@name`      |
-| showKeyPaths support  | ✅ Yes                 | ✅ Yes                 | ✅ Yes              |
-| Human-readable format | ✅ Yes                 | ❌ No                  | ❌ No               |
-
-#### YAML Search Results:
-
-- Extracted JSON values matching the JSONPath query (converted from YAML)
-- Formatted output (indented or compact)
-- "No matches found" message when query returns no results
-- Full compatibility with existing JSON search infrastructure
-
-### XSLT Transformation Tool
-
-The **transform_xml_with_xslt** tool provides powerful XML transformation capabilities using XSLT stylesheets:
-
-- **XSLT 1.0 Support**: Full support for XSLT 1.0 transformations using XslCompiledTransform
-- **Multiple Output Formats**: Transform XML to HTML, XML, text, or any custom format
-- **Error Handling**: Comprehensive error reporting for invalid XML or malformed XSLT
-- **Path Resolution**: Automatic workspace-relative path resolution for both XML and XSLT files
-- **Performance Optimized**: Uses compiled XSLT transformations for efficient processing
-
-#### XSLT Transformation Examples:
-
-- **XML to HTML**: Transform data catalogs into HTML tables
-- **XML to XML**: Restructure XML documents using XSLT templates
-- **Data Extraction**: Extract specific data elements using XSLT filtering
-- **Format Conversion**: Convert between different XML schemas
-
-#### Common Use Cases:
-
-- **Report Generation**: Transform data XML into formatted HTML reports
-- **Configuration Processing**: Convert XML configurations to different formats
-- **Data Migration**: Transform XML data between different schemas
-- **Documentation**: Generate human-readable documentation from XML data
-
-#### Example XSLT Transformation:
-
-```xml
-<!-- Input XML -->
-<catalog>
-    <book id="1">
-        <title>The Great Gatsby</title>
-        <author>F. Scott Fitzgerald</author>
-        <price>12.99</price>
-    </book>
-</catalog>
-
-<!-- XSLT Stylesheet -->
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
-    <xsl:template match="/">
-        <html>
-            <body>
-                <h1>Book Catalog</h1>
-                <xsl:for-each select="catalog/book">
-                    <p><xsl:value-of select="title"/> by <xsl:value-of select="author"/></p>
-                </xsl:for-each>
-            </body>
-        </html>
-    </xsl:template>
-</xsl:stylesheet>
-```
-
-#### XSLT Transformation Results:
-
-- Transformed output in the specified format (HTML, XML, text, etc.)
-- Automatic error handling for invalid XML or XSLT syntax
-- Full workspace-relative path support for both input files
-
-### Workspace File Operations
-
-The workspace file operations provide comprehensive file management capabilities with intelligent filtering and performance optimizations:
-
-#### 🆕 Advanced File Discovery
-
-- **list_workspace_files**: Discover all files in the workspace with advanced filtering
-- **Smart Exclusions**: Automatically exclude build artifacts, IDE files, and dependencies
-- **Multiple Filters**: Filter by file type, path patterns, and modification dates
-- **Performance Optimized**: Efficient file system traversal with exclude patterns
-
-#### 🆕 Bulk Content Analysis
-
-- **read_filtered_workspace_files**: Read multiple file contents with safety limits
-- **Size Limits**: Configurable file size limits (default 1MB, max 10MB per file)
-- **Count Limits**: Configurable file count limits (default 500, max 1000 files)
-- **Binary Detection**: Automatic binary file exclusion
-- **Error Handling**: Graceful handling of missing or corrupted files
-
-#### 🆕 Exclude Configuration
-
-**Location**: `.gitvision/exclude.json` in workspace root
-
-**Default Exclude Patterns**:
+Create `.gitvision/exclude.json` in your workspace root for custom exclusions:
 
 ```json
 {
   "excludePatterns": [
-    ".git/**", // Git repository data
-    "node_modules/**", // Node.js dependencies
-    "**/bin/**", // Build output directories
-    "**/obj/**", // Build intermediate files
-    "**/Debug/**", // Debug build artifacts
-    "**/Release/**", // Release build artifacts
-    ".vs/**", // Visual Studio files
-    ".vscode/**", // VS Code files
-    "*.cache", // Cache files
-    "*.log", // Log files
-    "**/.gitvision/**" // GitVision configuration
-  ],
-  "description": "Default exclude patterns for workspace file operations",
-  "version": "1.0.0"
+    "**/node_modules/**",
+    "**/bin/**",
+    "**/obj/**",
+    "**/.git/**",
+    "**/*.log",
+    "**/temp/**"
+  ]
 }
 ```
 
-**Glob Pattern Support**:
+**Default Exclusions:**
 
-- `**` - Matches any number of directories (recursive)
-- `*` - Matches any characters except directory separators
-- `?` - Matches any single character
-- Case-insensitive pattern matching
+- Build artifacts (`**/bin/**`, `**/obj/**`, `**/Debug/**`, `**/Release/**`)
+- IDE files (`.vs/**`, `.vscode/**`, `*.cache`)
+- Version control (`.git/**`)
+- Package managers (`node_modules/**`)
+- Log files (`*.log`)
 
-#### 🆕 Controller Analysis
+### 📊 **Query Language Reference**
 
-- **analyze_controller**: Parse ASP.NET Core controller files
-- **analyze_controller_to_file**: Parse ASP.NET Core controller files and save to workspace
-- **Structure Analysis**: Extract actions, parameters, return types, and attributes
-- **Documentation Generation**: Create comprehensive JSON documentation
-- **Route Analysis**: Analyze routing patterns and HTTP methods
+#### **JSONPath (JSON/YAML/CSV/Excel)**
 
-### Branch Discovery and Remote Support
+```bash
+$                    # Root element
+$.property           # Direct property
+$[0]                 # First array element
+$[*]                 # All array elements
+$..property          # Recursive search
+$[?(@.prop == val)]  # Filter by value
+$['prop1','prop2']   # Multiple properties
+```
 
-- **get_local_branches**: List all local branches in the repository
-- **get_remote_branches**: List all remote branches (origin, upstream, etc.)
-- **get_all_branches**: List both local and remote branches
-- **fetch_from_remote**: Fetch latest changes from remote repository
+#### **XPath (XML)**
 
-## 🚀 New Remote Branch Support
+```bash
+/                    # Root
+//element           # All elements
+//@attr             # All attributes
+//elem[@attr='val'] # Filter by attribute
+//elem[1]           # First element
+//elem[last()]      # Last element
+```
 
-The server now fully supports remote branches, enabling:
+---
 
-- **Cross-repository analysis**: Compare local development with remote main/master branches
-- **Release planning**: Analyze differences between release branches and main
-- **Code review preparation**: Document changes before creating pull requests
-- **Team collaboration**: Compare feature branches with remote counterparts
+## Advanced Usage
 
-### Remote Branch Examples
+### 🚀 **New Features Highlights**
+
+#### **🔍 Commit Search Tool**
+
+Deep search capabilities across commit history:
+
+- Search commit messages AND file contents simultaneously
+- Case-insensitive with automatic binary file filtering
+- Exact line numbers and comprehensive match statistics
+
+**Use Cases:**
+
+- Bug tracking: `"Find all commits mentioning 'authentication error'"`
+- Security audits: `"Look for 'password' or 'secret' in commit history"`
+- Code archaeology: `"Find all references to deprecated API functions"`
+
+#### **📈 Excel File Analysis**
+
+Advanced spreadsheet querying with multi-sheet support:
+
+- Extract metrics and KPIs from financial reports
+- Query product catalogs and business data
+- Analyze inventory and procurement information
+
+#### **📄 YAML & DevOps Integration**
+
+Infrastructure as code analysis:
+
+- Docker Compose: `"Extract all service images from docker-compose.yml"`
+- Kubernetes: `"Find all container ports in k8s configurations"`
+- CI/CD: `"Get all environment variables from GitHub Actions"`
+
+### 🎯 **MCP Prompts & Automation**
+
+GitVisionMCP provides specialized prompts for release documentation:
+
+```bash
+@copilot Using the release_document prompt, create release notes for our project
+@copilot Using the release_document_with_version prompt with version 2.0.0 and release date 2025-07-10, create release notes
+```
+
+---
+
+## Documentation
+
+### 📚 **Additional Resources**
+
+- **[Search Tools Guide](Documentation/SEARCH_OVERVIEW.md)** - Comprehensive guide to file search capabilities
+- **[Examples & Use Cases](Documentation/EXAMPLES.md)** - Practical examples and workflows
+- **[Controller Analysis](Documentation/DECONSTRUCTION_SERVICE.md)** - ASP.NET Core analysis features
+- **[Exclude Functionality](Documentation/EXCLUDE_FUNCTIONALITY.md)** - File filtering configuration
+
+### 🔧 **Technical Details**
+
+- **MCP Protocol**: Compatible with Model Context Protocol standard
+- **VS Code Integration**: Optimized for Copilot Agent usage
+- **Performance**: Clean JSON-RPC communication with production settings
+- **Logging**: File-based logging to prevent protocol interference
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**GitVisionMCP** - A comprehensive Model Context Protocol (MCP) Server that provides advanced git analysis and documentation tools. Designed as a Copilot Agent in VS Code for comprehensive repository analysis and automated documentation generation.
+
+## 🎯 Quick Start Examples
+
+### Basic Documentation Generation
+
+```bash
+# Generate git documentation
+mcp_tool generate_git_documentation
+
+# Save to specific file
+mcp_tool generate_git_documentation_to_file --filePath "RELEASE_NOTES.md"
+```
+
+### Search Operations
+
+```bash
+# Search commits for specific content
+mcp_tool search_commits_for_string --searchString "authentication"
+
+# Query JSON configuration
+mcp_tool search_json_file --jsonFilePath "config.json" --jsonPath "$.database.host"
+
+# Search Excel data
+mcp_tool search_excel_file --excelFilePath "data.xlsx" --jsonPath "$[*].ServerName"
+```
+
+### Branch Comparison
+
+```bash
+# Compare branches with documentation
+mcp_tool compare_branches_documentation --branch1 "main" --branch2 "feature/new-api" --filePath "comparison.md"
+```
+
+---
+
+## 📖 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+**GitVisionMCP** - A comprehensive Model Context Protocol (MCP) Server designed as a Copilot Agent in VS Code for repository analysis and documentation generation.
 
 #### Using Copilot Commands
 

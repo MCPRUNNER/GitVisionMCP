@@ -307,7 +307,7 @@ namespace GitVisionMCP.Tests.Services
             var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
 
             // Act
-            var result = await _gitService.GenerateDocumentationAsync(commits, "markdown");
+            var result = await _gitService.GenerateCommitDocumentationAsync(commits, "markdown");
 
             // Assert
             Assert.NotNull(result);
@@ -324,7 +324,7 @@ namespace GitVisionMCP.Tests.Services
             var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
 
             // Act
-            var result = await _gitService.GenerateDocumentationAsync(commits, "html");
+            var result = await _gitService.GenerateCommitDocumentationAsync(commits, "html");
 
             // Assert
             Assert.NotNull(result);
@@ -341,7 +341,7 @@ namespace GitVisionMCP.Tests.Services
             var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
 
             // Act
-            var result = await _gitService.GenerateDocumentationAsync(commits, "text");
+            var result = await _gitService.GenerateCommitDocumentationAsync(commits, "text");
 
             // Assert
             Assert.NotNull(result);
@@ -358,7 +358,7 @@ namespace GitVisionMCP.Tests.Services
             var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
 
             // Act
-            var result = await _gitService.GenerateDocumentationAsync(commits, "invalid");
+            var result = await _gitService.GenerateCommitDocumentationAsync(commits, "invalid");
 
             // Assert
             Assert.NotNull(result);
@@ -719,7 +719,7 @@ namespace GitVisionMCP.Tests.Services
             var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
 
             // Act
-            var result = await _gitService.GenerateDocumentationAsync(commits, format);
+            var result = await _gitService.GenerateCommitDocumentationAsync(commits, format);
 
             // Assert
             Assert.NotNull(result);

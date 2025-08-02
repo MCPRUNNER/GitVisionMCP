@@ -167,7 +167,7 @@ public class McpServer : IMcpServer
     private async Task<JsonRpcResponse> HandleInitializeAsync(JsonRpcRequest request)
     {
         _logger.LogDebug("Handling initialize request");
-
+        var appVersion = _locationService.GetAppVersion("GitVisionMCP.csproj");
         var initResponse = new InitializeResponse
         {
             ProtocolVersion = "2024-11-05",
@@ -212,7 +212,7 @@ public class McpServer : IMcpServer
             ServerInfo = new ServerInfo
             {
                 Name = "GitVisionMCP",
-                Version = "1.0.5"
+                Version = appVersion ?? "0.0.0"
             }
         };
 
@@ -473,6 +473,25 @@ public class McpServer : IMcpServer
             },
             new Tool
             {
+                Name = "read_filtered_workspace_files",
+                Description = "Read contents of all files from filtered workspace results",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        fileType = new { type = "string", description = "Filter by file type (extension without dot, e.g., 'cs', 'json')" },
+                        relativePath = new { type = "string", description = "Filter by relative path (contains search)" },
+                        fullPath = new { type = "string", description = "Filter by full path (contains search)" },
+                        lastModifiedAfter = new { type = "string", description = "Filter by last modified date (ISO format: yyyy-MM-dd)" },
+                        lastModifiedBefore = new { type = "string", description = "Filter by last modified date (ISO format: yyyy-MM-dd)" },
+                        maxFiles = new { type = "integer", description = "Maximum number of files to read (default: 500, max: 1000)" },
+                        maxFileSize = new { type = "integer", description = "Maximum file size to read in bytes (default: 1MB)" }
+                    }
+                }
+            },
+            new Tool
+            {
                 Name = "search_json_file",
                 Description = "Search for JSON values in a JSON file using JSONPath",
                 InputSchema = new
@@ -567,6 +586,70 @@ public class McpServer : IMcpServer
                     },
                     required = new[] { "filePath" }
                 }
+            },
+            new Tool
+            {
+                Name = "get_app_version",
+                Description = "Get the application version from the project file",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        projectFile = new { type = "string", description = "Path to the project file (e.g., .csproj) relative to workspace root" }
+                    },
+                    required = new[] { "projectFile" }
+                }
+            },
+            new Tool
+            {
+                Name = "search_excel_file",
+                Description = "Search for values in an Excel (.xlsx) file using JSONPath. Processes all worksheets and returns results for each.",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        excelFilePath = new { type = "string", description = "Path to the Excel file relative to workspace root" },
+                        jsonPath = new { type = "string", description = "JSONPath query string (e.g., '$[*].ServerName')" }
+                    },
+                    required = new[] { "excelFilePath", "jsonPath" }
+                }
+            },
+            new Tool
+            {
+                Name = "list_workspace_files_with_cached_data",
+                Description = "List workspace files with optional filtering using pre-fetched file data to improve performance",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        cachedFiles = new { type = "array", items = new { type = "object", properties = new { relativePath = new { type = "string" }, fullPath = new { type = "string" }, fileType = new { type = "string" }, size = new { type = "integer" }, lastModified = new { type = "string" } }, additionalProperties = false }, description = "Pre-fetched file data" },
+                        fileType = new { type = "string", description = "Filter by file type (extension without dot, e.g., 'cs', 'json')" },
+                        relativePath = new { type = "string", description = "Filter by relative path (contains search)" },
+                        fullPath = new { type = "string", description = "Filter by full path (contains search)" },
+                        lastModifiedAfter = new { type = "string", description = "Filter by last modified date (ISO format: yyyy-MM-dd)" },
+                        lastModifiedBefore = new { type = "string", description = "Filter by last modified date (ISO format: yyyy-MM-dd)" }
+                    },
+                    required = new[] { "cachedFiles" }
+                }
+            },
+            new Tool
+            {
+                Name = "transform_xml_with_xslt",
+                Description = "Transform an XML file using an XSLT stylesheet",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                        xmlFilePath = new { type = "string", description = "Path to the XML file relative to workspace root" },
+                        xsltFilePath = new { type = "string", description = "Path to the XSLT stylesheet file relative to workspace root" },
+                        destinationFilePath = new { type = "string", description = "Optional path to save the transformed XML to a file" }
+                    },
+                    required = new[] { "xmlFilePath", "xsltFilePath" }
+                }
             }
         };
 
@@ -598,30 +681,34 @@ public class McpServer : IMcpServer
 
         var response = toolRequest.Name switch
         {
+            "compare_branches_documentation" => await HandleCompareBranchesDocumentationAsync(toolRequest),
+            "compare_branches_with_remote_documentation" => await HandleCompareBranchesWithRemoteAsync(toolRequest),
+            "compare_commits_documentation" => await HandleCompareCommitsDocumentationAsync(toolRequest),
+            "deconstruct_to_file" => await HandleDeconstructSourceToFileAsync(toolRequest),
+            "deconstruct_to_json" => await HandleDeconstructSourceAsync(toolRequest),
+            "fetch_from_remote" => await HandleFetchFromRemoteAsync(toolRequest),
             "generate_git_documentation" => await HandleGenerateGitDocumentationAsync(toolRequest),
             "generate_git_documentation_to_file" => await HandleGenerateGitDocumentationToFileAsync(toolRequest),
-            "compare_branches_documentation" => await HandleCompareBranchesDocumentationAsync(toolRequest),
-            "compare_commits_documentation" => await HandleCompareCommitsDocumentationAsync(toolRequest),
-            "get_recent_commits" => await HandleGetRecentCommitsAsync(toolRequest),
+            "get_all_branches" => await HandleGetAllBranchesAsync(toolRequest),
+            "get_app_version" => await HandleGetAppVersionAsync(toolRequest),
             "get_changed_files_between_commits" => await HandleGetChangedFilesBetweenCommitsAsync(toolRequest),
-            "get_detailed_diff_between_commits" => await HandleGetDetailedDiffBetweenCommitsAsync(toolRequest),
             "get_commit_diff_info" => await HandleGetCommitDiffInfoAsync(toolRequest),
+            "get_current_branch" => await HandleGetCurrentBranchAsync(toolRequest),
+            "get_detailed_diff_between_commits" => await HandleGetDetailedDiffBetweenCommitsAsync(toolRequest),
             "get_file_line_diff_between_commits" => await HandleGetFileLineDiffBetweenCommitsAsync(toolRequest),
             "get_local_branches" => await HandleGetLocalBranchesAsync(toolRequest),
+            "get_recent_commits" => await HandleGetRecentCommitsAsync(toolRequest),
             "get_remote_branches" => await HandleGetRemoteBranchesAsync(toolRequest),
-            "get_all_branches" => await HandleGetAllBranchesAsync(toolRequest),
-            "get_current_branch" => await HandleGetCurrentBranchAsync(toolRequest),
-            "fetch_from_remote" => await HandleFetchFromRemoteAsync(toolRequest),
-            "compare_branches_with_remote" => await HandleCompareBranchesWithRemoteAsync(toolRequest),
-            "search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
             "list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
-            "search_json_file" => await HandleSearchJsonFileAsync(toolRequest),
+            "list_workspace_files_with_cached_data" => await HandleListWorkspaceFilesWithCachedDataAsync(toolRequest),
+            "read_filtered_workspace_files" => await HandleReadFilteredWorkspaceFilesAsync(toolRequest),
+            "search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
             "search_csv_file" => await HandleSearchCsvFileAsync(toolRequest),
             "search_excel_file" => await HandleSearchExcelFileAsync(toolRequest),
-            "search_yaml_file" => await HandleSearchYamlFileAsync(toolRequest),
+            "search_json_file" => await HandleSearchJsonFileAsync(toolRequest),
             "search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
-            "deconstruct_to_json" => await HandleDeconstructSourceAsync(toolRequest),
-            "deconstruct_to_file" => await HandleDeconstructSourceToFileAsync(toolRequest),
+            "search_yaml_file" => await HandleSearchYamlFileAsync(toolRequest),
+            "transform_xml_with_xslt" => await HandleTransformXmlWithXsltAsync(toolRequest),
             _ => new CallToolResponse
             {
                 IsError = true,
@@ -645,7 +732,7 @@ public class McpServer : IMcpServer
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
             var commits = await _gitService.GetGitLogsAsync(workspaceRoot, maxCommits);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             return new CallToolResponse
             {
@@ -688,7 +775,7 @@ public class McpServer : IMcpServer
             }
 
             var commits = await _gitService.GetGitLogsAsync(workspaceRoot, maxCommits);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
             return new CallToolResponse
@@ -732,14 +819,20 @@ public class McpServer : IMcpServer
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
             // Make path relative to workspace if not absolute
-            if (!Path.IsPathRooted(filePath))
+            var fullPath = _locationService.GetFullPath(filePath);
+            if (string.IsNullOrEmpty(fullPath))
             {
-                filePath = Path.Combine(workspaceRoot, filePath);
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "Invalid file path" } }
+                };
             }
 
+
             var commits = await _gitService.GetGitLogsBetweenBranchesAsync(workspaceRoot, branch1, branch2);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
-            var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
+            var success = await _gitService.WriteDocumentationToFileAsync(documentation, fullPath);
 
             return new CallToolResponse
             {
@@ -781,22 +874,29 @@ public class McpServer : IMcpServer
             var workspaceRoot = _locationService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
 
+
+
             // Make path relative to workspace if not absolute
-            if (!Path.IsPathRooted(filePath))
+            var fullPath = _locationService.GetFullPath(filePath);
+            if (string.IsNullOrEmpty(fullPath))
             {
-                filePath = Path.Combine(workspaceRoot, filePath);
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "Invalid file path" } }
+                };
             }
 
             var commits = await _gitService.GetGitLogsBetweenCommitsAsync(workspaceRoot, commit1, commit2);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
-            var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
+            var success = await _gitService.WriteDocumentationToFileAsync(documentation, fullPath);
 
             return new CallToolResponse
             {
                 Content = new[] { new ToolContent
                 {
                     Type = "text",
-                    Text = success ? $"Commit comparison documentation successfully written to {filePath}" : "Failed to write documentation to file"
+                    Text = success ? $"Commit comparison documentation successfully written to {fullPath}" : "Failed to write documentation to file"
                 } }
             };
         }
@@ -1123,7 +1223,7 @@ public class McpServer : IMcpServer
             }
 
             var commits = await _gitService.GetGitLogsBetweenBranchesWithRemoteAsync(workspaceRoot, branch1, branch2, fetchRemote);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
             return new CallToolResponse
@@ -1249,8 +1349,8 @@ public class McpServer : IMcpServer
         try
         {
             var fileType = GetArgumentValue<string?>(toolRequest.Arguments, "fileType", null);
-            var relativePath = GetArgumentValue<string?>(toolRequest.Arguments, "relativePath", "*");
-            var fullPath = GetArgumentValue<string?>(toolRequest.Arguments, "fullPath", "*");
+            var relativePath = GetArgumentValue<string?>(toolRequest.Arguments, "relativePath", null);
+            var fullPath = GetArgumentValue<string?>(toolRequest.Arguments, "fullPath", null);
             var lastModifiedAfter = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedAfter", null);
             var lastModifiedBefore = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedBefore", null);
 
@@ -1298,6 +1398,69 @@ public class McpServer : IMcpServer
             {
                 IsError = true,
                 Content = new[] { new ToolContent { Type = "text", Text = $"Error listing workspace files: {ex.Message}" } }
+            };
+        }
+    }
+
+    /// <summary>
+    /// Handles the read_filtered_workspace_files tool, reading contents of filtered workspace files.
+    /// </summary>
+    /// <param name="toolRequest">The tool request containing filter parameters.</param>
+    /// <returns>A CallToolResponse containing the file contents or error message.</returns>
+    private async Task<CallToolResponse> HandleReadFilteredWorkspaceFilesAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var fileType = GetArgumentValue<string?>(toolRequest.Arguments, "fileType", null);
+            var relativePath = GetArgumentValue<string?>(toolRequest.Arguments, "relativePath", null);
+            var fullPath = GetArgumentValue<string?>(toolRequest.Arguments, "fullPath", null);
+            var lastModifiedAfter = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedAfter", null);
+            var lastModifiedBefore = GetArgumentValue<string?>(toolRequest.Arguments, "lastModifiedBefore", null);
+            var maxFiles = GetArgumentValue<int?>(toolRequest.Arguments, "maxFiles", 500);
+            var maxFileSize = GetArgumentValue<long?>(toolRequest.Arguments, "maxFileSize", 1048576);
+
+            _logger.LogInformation("Reading filtered workspace files with parameters: fileType={FileType}, relativePath={RelativePath}, maxFiles={MaxFiles}, maxFileSize={MaxFileSize}",
+                fileType, relativePath, maxFiles, maxFileSize);
+
+            var result = await _gitServiceTools.ReadFilteredWorkspaceFilesAsync(
+                fileType,
+                relativePath,
+                fullPath,
+                lastModifiedAfter,
+                lastModifiedBefore,
+                maxFiles,
+                maxFileSize);
+
+            _logger.LogInformation("Successfully read {FileCount} filtered workspace files", result.Count);
+
+            return new CallToolResponse
+            {
+                Content = new[]
+                {
+                    new ToolContent
+                    {
+                        Type = "text",
+                        Text = JsonSerializer.Serialize(result, _jsonOptions)
+                    }
+                }
+            };
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid arguments for read_filtered_workspace_files");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Invalid arguments: {ex.Message}" } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error reading filtered workspace files");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error reading filtered workspace files: {ex.Message}" } }
             };
         }
     }
@@ -1653,6 +1816,134 @@ public class McpServer : IMcpServer
             {
                 IsError = true,
                 Content = new[] { new ToolContent { Type = "text", Text = $"Error deconstructing source to file: {ex.Message}" } }
+            };
+        }
+    }
+
+    /// <summary>
+    /// Handles the get_app_version tool, extracting version info from a project file (e.g., .csproj).
+    /// </summary>
+    /// <param name="toolRequest">The RPC request with arguments, expects "projectFile".</param>
+    /// <returns>A CallToolResponse containing the version string or error message.</returns>
+    private Task<CallToolResponse> HandleGetAppVersionAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            // Extract project file path argument
+            var projectFile = GetArgumentValue<string>(toolRequest.Arguments, "projectFile", string.Empty);
+            // Call the location service to get the version
+
+            var version = _locationService.GetAppVersion(projectFile) ?? string.Empty;
+            var response = new CallToolResponse
+            {
+                IsError = false,
+                Content = new[] { new ToolContent { Type = "text", Text = version } }
+            };
+            return Task.FromResult(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing get_app_version");
+            var errorResponse = new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = ex.Message } }
+            };
+            return Task.FromResult(errorResponse);
+        }
+    }
+
+    private async Task<CallToolResponse> HandleListWorkspaceFilesWithCachedDataAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var cachedFilesArg = GetArgumentValue<object?>(toolRequest.Arguments, "cachedFiles", null);
+            if (cachedFilesArg is not JsonElement cachedFilesElement || cachedFilesElement.ValueKind != JsonValueKind.Array)
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "cachedFiles argument is required and must be an array" } }
+                };
+            }
+
+            // Convert JsonElement array to List<WorkspaceFileInfo>
+            var cachedFiles = cachedFilesElement.EnumerateArray()
+                .Select(item => new WorkspaceFileInfo
+                {
+                    RelativePath = item.GetProperty("relativePath").GetString() ?? "",
+                    FullPath = item.GetProperty("fullPath").GetString() ?? "",
+                    FileType = item.GetProperty("fileType").GetString() ?? "",
+                    Size = item.GetProperty("size").GetInt64(),
+                    LastModified = DateTime.TryParse(item.GetProperty("lastModified").GetString(), out var lastModified) ? lastModified : DateTime.MinValue
+                })
+                .ToList();
+
+            var fileType = GetArgumentValue<string>(toolRequest.Arguments, "fileType", "");
+            var relativePath = GetArgumentValue<string>(toolRequest.Arguments, "relativePath", "");
+            var fullPath = GetArgumentValue<string>(toolRequest.Arguments, "fullPath", "");
+            var lastModifiedAfter = GetArgumentValue<string>(toolRequest.Arguments, "lastModifiedAfter", "");
+            var lastModifiedBefore = GetArgumentValue<string>(toolRequest.Arguments, "lastModifiedBefore", "");
+
+            var result = await _gitServiceTools.ListWorkspaceFilesWithCachedDataAsync(
+                cachedFiles, fileType, relativePath, fullPath, lastModifiedAfter, lastModifiedBefore);
+
+            var jsonResult = JsonSerializer.Serialize(result, _outputJsonOptions);
+
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = jsonResult } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error listing workspace files with cached data");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error: {ex.Message}" } }
+            };
+        }
+    }
+
+    private async Task<CallToolResponse> HandleTransformXmlWithXsltAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+            var xmlFilePath = GetArgumentValue<string>(toolRequest.Arguments, "xmlFilePath", "");
+            var xsltFilePath = GetArgumentValue<string>(toolRequest.Arguments, "xsltFilePath", "");
+            var destinationFilePath = GetArgumentValue<string>(toolRequest.Arguments, "destinationFilePath", "");
+
+            if (string.IsNullOrEmpty(xmlFilePath) || string.IsNullOrEmpty(xsltFilePath))
+            {
+                return new CallToolResponse
+                {
+                    IsError = true,
+                    Content = new[] { new ToolContent { Type = "text", Text = "xmlFilePath and xsltFilePath arguments are required" } }
+                };
+            }
+
+            var result = await _gitServiceTools.TransformXmlWithXsltAsync(xmlFilePath, xsltFilePath, 
+                string.IsNullOrEmpty(destinationFilePath) ? null : destinationFilePath);
+
+            var responseMessage = result ?? "Transformation failed";
+            if (!string.IsNullOrEmpty(destinationFilePath) && !string.IsNullOrEmpty(result))
+            {
+                responseMessage += $"\nTransformed XML saved to: {destinationFilePath}";
+            }
+
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = responseMessage } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error transforming XML with XSLT");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error: {ex.Message}" } }
             };
         }
     }

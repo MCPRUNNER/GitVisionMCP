@@ -27,7 +27,7 @@ public class GitServiceTools : IGitServiceTools
         _logger = logger;
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "fetch_from_remote")]
     [Description("Fetch latest changes from remote repository")]
     public async Task<bool> FetchFromRemoteAsync(
         [Description("Name of the remote (default: origin)")] string? remoteName = "origin")
@@ -44,7 +44,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "generate_git_documentation")]
     [Description("Generate documentation from git logs for the current workspace")]
     public async Task<string> GenerateGitDocumentationAsync(
         [Description("Maximum number of commits to include (default: 50)")] int? maxCommits = 50,
@@ -66,7 +66,7 @@ public class GitServiceTools : IGitServiceTools
                 commitCount, outputFormat);
 
             var commits = await _gitService.GetGitLogsAsync(repoPath, commitCount);
-            return await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            return await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
         }
         catch (DirectoryNotFoundException ex)
         {
@@ -118,7 +118,7 @@ public class GitServiceTools : IGitServiceTools
         return outputFormat;
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "generate_git_documentation_to_file")]
     [Description("Generate documentation from git logs and write to a file")]
     public async Task<string> GenerateGitDocumentationToFileAsync(
         [Description("Path where to save the documentation file")] string filePath,
@@ -146,7 +146,7 @@ public class GitServiceTools : IGitServiceTools
                 filePath, commitCount);
 
             var commits = await _gitService.GetGitLogsAsync(repoPath, commitCount);
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
@@ -215,7 +215,7 @@ public class GitServiceTools : IGitServiceTools
     */
 
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "compare_branches_documentation")]
     [Description("Generate documentation comparing differences between two branches")]
     public async Task<string> CompareBranchesDocumentationAsync(
         [Description("First branch name")] string branch1,
@@ -262,7 +262,7 @@ public class GitServiceTools : IGitServiceTools
                 return $"No differences found between branches {branch1} and {branch2}";
             }
 
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
@@ -304,7 +304,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "compare_branches_with_remote_documentation")]
     [Description("Generate documentation comparing differences between two branches with remote support")]
     public async Task<string> CompareBranchesWithRemote(
         [Description("First branch name (can be local or remote, e.g., 'main' or 'origin/main')")] string branch1,
@@ -358,7 +358,7 @@ public class GitServiceTools : IGitServiceTools
                 return $"No differences found between branches {branch1} and {branch2}";
             }
 
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
@@ -400,7 +400,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "compare_commits_documentation")]
     [Description("Generate documentation comparing differences between two commits")]
     public async Task<string> CompareCommitsDocumentation(
         [Description("First commit hash")] string commit1,
@@ -447,7 +447,7 @@ public class GitServiceTools : IGitServiceTools
                 return $"No differences found between commits {commit1} and {commit2}";
             }
 
-            var documentation = await _gitService.GenerateDocumentationAsync(commits, outputFormat);
+            var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
 
             var success = await _gitService.WriteDocumentationToFileAsync(documentation, filePath);
 
@@ -494,7 +494,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_recent_commits")]
     [Description("Get recent commits from the current repository")]
     public async Task<List<GitCommitInfo>> GetRecentCommitsAsync(
         [Description("Number of recent commits to retrieve (default: 10)")] int? count = 10)
@@ -511,7 +511,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_local_branches")]
     [Description("Get list of local branches in the repository")]
     public async Task<List<string>> GetLocalBranchesAsync()
     {
@@ -527,7 +527,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_remote_branches")]
     [Description("Get list of remote branches in the repository")]
     public async Task<List<string>> GetRemoteBranchesAsync()
     {
@@ -543,7 +543,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_all_branches")]
     [Description("Get list of all branches (local and remote) in the repository")]
     public async Task<List<string>> GetAllBranchesAsync()
     {
@@ -559,7 +559,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_current_branch")]
     [Description("Get the current active branch in the repository")]
     public async Task<string> GetCurrentBranchAsync()
     {
@@ -575,7 +575,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_changed_files_between_commits")]
     [Description("Get list of files changed between two commits")]
     public async Task<List<string>> GetChangedFilesBetweenCommits(
         [Description("First commit hash")] string commit1,
@@ -627,7 +627,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_commit_diff_info")]
     [Description("Get comprehensive diff information between two commits including file changes and statistics")]
     public async Task<GitCommitDiffInfo> GetCommitDiffInfo(
         [Description("First commit hash")] string commit1,
@@ -688,7 +688,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_detailed_diff_between_commits")]
     [Description("Get detailed diff content between two commits")]
     public async Task<string> GetDetailedDiffBetweenCommits(
         [Description("First commit hash")] string commit1,
@@ -761,7 +761,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "search_commits_for_string")]
     [Description("Search all commits for a specific string and return commit details, filenames, and line matches")]
     public async Task<CommitSearchResponse> SearchCommitsForStringAsync(
         [Description("The string to search for in commit messages and file contents")] string searchString,
@@ -824,7 +824,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "get_file_line_diff_between_commits")]
     [Description("Get line-by-line file diff between two commits")]
     public async Task<FileLineDiffInfo> GetFileLineDiffBetweenCommits(
         [Description("First commit hash")] string commit1,
@@ -895,7 +895,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "list_workspace_files")]
     [Description("List all files in the workspace with optional filtering")]
     public async Task<List<WorkspaceFileInfo>> ListWorkspaceFilesAsync(
         [Description("Filter by file type (extension without dot, e.g., 'cs', 'json')")] string? fileType = null,
@@ -954,7 +954,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "list_workspace_files_with_cached_data")]
     [Description("List workspace files with optional filtering using pre-fetched file data to improve performance")]
     public async Task<List<WorkspaceFileInfo>> ListWorkspaceFilesWithCachedDataAsync(
         List<WorkspaceFileInfo> cachedFiles,
@@ -1014,7 +1014,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "read_filtered_workspace_files")]
     [Description("Read contents of all files from filtered workspace results")]
     public async Task<List<Models.FileContentInfo>> ReadFilteredWorkspaceFilesAsync(
         [Description("Filter by file type (extension without dot, e.g., 'cs', 'json')")] string? fileType = null,
@@ -1128,7 +1128,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "search_json_file")]
     [Description("Search for JSON values in a JSON file using JSONPath")]
     public Task<string?> SearchJsonFileAsync(
         [Description("Path to the JSON file relative to workspace root")] string jsonFilePath,
@@ -1189,7 +1189,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "search_xml_file")]
     [Description("Search for XML values in an XML file using XPath")]
     public Task<string?> SearchXmlFileAsync(
         [Description("Path to the XML file relative to workspace root")] string xmlFilePath,
@@ -1255,11 +1255,12 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "transform_xml_with_xslt")]
     [Description("Transform an XML file using an XSLT stylesheet")]
     public Task<string?> TransformXmlWithXsltAsync(
         [Description("Path to the XML file relative to workspace root")] string xmlFilePath,
-        [Description("Path to the XSLT stylesheet file relative to workspace root")] string xsltFilePath)
+        [Description("Path to the XSLT stylesheet file relative to workspace root")] string xsltFilePath,
+        [Description("Optional path to save the transformed XML to a file")] string? destinationFilePath = null)
     {
         try
         {
@@ -1279,7 +1280,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Transforming XML file {XmlFilePath} with XSLT {XsltFilePath}",
                 xmlFilePath, xsltFilePath);
 
-            var result = _locationService.TransformXmlWithXslt(xmlFilePath, xsltFilePath);
+            var result = _locationService.TransformXmlWithXslt(xmlFilePath, xsltFilePath, destinationFilePath);
 
             if (string.IsNullOrEmpty(result))
             {
@@ -1319,7 +1320,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
     // string? SearchCsvFile(string csvFilePath, string jsonPath, bool hasHeaderRecord = true, bool ignoreBlankLines = true)
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "search_csv_file")]
     [Description("Search for CSV values in a CSV file using JSONPath")]
     public Task<string?> SearchCsvFileAsync(
         [Description("Path to the CSV file relative to workspace root")] string csvFilePath,
@@ -1388,7 +1389,7 @@ public class GitServiceTools : IGitServiceTools
     /// <param name="excelFilePath">Path to the Excel file relative to workspace root</param>
     /// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
     /// <returns>JSON search result or error message</returns>
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "search_excel_file")]
     [Description("Search for values in an Excel (.xlsx) file using JSONPath. Processes all worksheets and returns results for each.")]
     public Task<string?> SearchExcelFileAsync(
         [Description("Path to the Excel file relative to workspace root")] string excelFilePath,
@@ -1444,7 +1445,7 @@ public class GitServiceTools : IGitServiceTools
             throw new InvalidOperationException($"Error searching Excel file: {ex.Message}. See inner exception for details.", ex);
         }
     }
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "search_yaml_file")]
     [Description("Search for YAML values in a YAML file using JSONPath")]
     public Task<string?> SearchYamlFileAsync(
         [Description("Path to the YAML file relative to workspace root")] string yamlFilePath,
@@ -1505,7 +1506,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "deconstruct_to_file")]
     [Description("Deconstruct a C# Service, Repository or Controller file and returns its structure as JSON")]
     public Task<string?> DeconstructAsync(
         [Description("Path to the c# file relative to workspace root")] string filePath)
@@ -1549,7 +1550,7 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute]
+    [McpServerToolAttribute(Name = "deconstruct_to_json")]
     [Description("Deconstruct a C# Service, Repository or Controller file and saves the structure to a JSON file in the workspace directory")]
     public Task<string?> DeconstructToJsonAsync(
         [Description("Path to the source file relative to workspace root")] string filePath,
@@ -1592,6 +1593,23 @@ public class GitServiceTools : IGitServiceTools
         {
             _logger.LogError(ex, "Error Deconstruct file to file {FilePath}", filePath);
             throw new InvalidOperationException($"Error Deconstruct file to file: {ex.Message}. See inner exception for details.", ex);
+        }
+    }
+
+    [McpServerToolAttribute(Name = "get_app_version")]
+    [Description("Extract application version from a project file (e.g., .csproj)")]
+    public Task<string?> GetAppVersionAsync(
+        [Description("The path to the project file relative to workspace root")] string? projectFile)
+    {
+        try
+        {
+            var version = _locationService.GetAppVersion(projectFile);
+            return Task.FromResult<string?>(version);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting application version for file: {ProjectFile}", projectFile);
+            throw new InvalidOperationException($"Failed to get application version: {ex.Message}", ex);
         }
     }
 

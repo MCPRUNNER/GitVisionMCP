@@ -4,19 +4,14 @@ This index lists all markdown documentation files available in the `Documentatio
 
 ## Documentation Files
 
-- [ControllerDocumentation.md](ControllerDocumentation.md): API controller structure and documentation.
 - [DECONSTRUCTION_SERVICE.md](DECONSTRUCTION_SERVICE.md): Service for deconstructing C# files and extracting architecture.
 - [DOCKER.md](DOCKER.md): Docker setup and usage instructions for GitVisionMCP.
 - [EXAMPLES.md](EXAMPLES.md): Comprehensive usage examples for MCP tools and integrations.
 - [EXCLUDE_FUNCTIONALITY.md](EXCLUDE_FUNCTIONALITY.md): Details on file exclusion patterns and configuration.
-- [Example_mssqlMCP_Dataflows.md](Example_mssqlMCP_Dataflows.md): Example dataflows for MSSQL MCP integration.
 - [MERGE_SUMMARY.md](MERGE_SUMMARY.md): Summary and analysis of branch merges.
-- [PROJECT_STATUS.md](PROJECT_STATUS.md): Current project status and progress tracking.
 - [RELEASE_NOTES_FINAL.md](RELEASE_NOTES_FINAL.md): Final release notes and version history.
-- [SEARCH_TOOL_IMPLEMENTATION.md](SEARCH_TOOL_IMPLEMENTATION.md): Implementation details for search tools (JSON, XML, YAML, CSV).
 - [SETUP.md](SETUP.md): Setup instructions for development and production environments.
-- [VS_CODE_INTEGRATION_FIXES.md](VS_CODE_INTEGRATION_FIXES.md): Fixes and improvements for VS Code integration.
-- [XML_SEARCH_IMPLEMENTATION.md](XML_SEARCH_IMPLEMENTATION.md): Implementation details for XML search functionality.
+- [SEARCH_OVERVIEW.md](SEARCH_OVERVIEW_JSON_XML_YAML.md): Overview of search functionality across JSON, XML, and YAML formats Includes CSV/Excel examples.
 
 ## Included Github Prompts
 
@@ -28,3 +23,8 @@ This index lists all markdown documentation files available in the `Documentatio
 - [document.csharp.prompt.md](../.github/prompts/document.csharp.prompt.md): Prompt for C# application documentation.
 - [document.controller.prompt.md](../.github/prompts/document.controller.prompt.md): Prompt for controller documentation extraction.
 - [document.ansible.prompt.md](../.github/prompts/document.ansible.prompt.md): Prompt for Ansible infrastructure documentation.
+
+## Example Output
+
+- [Example_mssqlMCP_Dataflows.md](Example_mssqlMCP_Dataflows.md): Example dataflows for MSSQL MCP integration.
+- [ControllerDocumentation.md](ControllerDocumentation.md): API controller structure and documentation.

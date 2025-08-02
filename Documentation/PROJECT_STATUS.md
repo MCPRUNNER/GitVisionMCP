@@ -2,6 +2,8 @@
 
 ## ✅ Implementation Complete - Full Feature Set with Advanced Search, Docker Support, and Enhanced Documentation
 
+**Enhanced Tool Count**: Updated from 15 to 27 total tools available
+
 The GitVisionMCP project has been successfully developed as a comprehensive Model Context Protocol (MCP) Server with advanced git analysis capabilities, including **full remote branch support**, **powerful commit search functionality**, **containerized Docker deployment**, and **comprehensive example documentation**.
 
 ### Core Architecture
@@ -9,11 +11,11 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
 - **Program.cs**: Application entry point with dependency injection and Serilog logging
 - **Models/McpModels.cs**: Complete MCP protocol data models and JSON-RPC structures
 - **Services/GitService.cs**: Advanced git operations with remote branch support and search capabilities
-- **Services/McpServer.cs**: Complete MCP protocol implementation with 15 specialized tools
+- **Services/McpServer.cs**: Complete MCP protocol implementation with 27 specialized tools
 
 ### 🆕 Latest Major Enhancements
 
-#### Enhanced Documentation and Examples (UPDATED July 2025)
+#### Enhanced Documentation and Examples (UPDATED August 2025)
 
 - ✅ **Comprehensive Example Updates**: Recently updated README.md with improved examples
   - **Dual Format Examples**: Both Copilot commands AND JSON-RPC calls for each use case
@@ -52,9 +54,10 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
 - ✅ **Code Archaeology**: Locate all references to deprecated APIs or functions
 - ✅ **Documentation Discovery**: Find TODO comments, documentation references, or specific APIs
 
-#### JSON Configuration Analysis (NEW - July 2025)
+#### Structured Data Analysis (UPDATED - August 2025)
 
-- ✅ **search_json_file**: 🆕 Advanced JSON querying with JSONPath support
+- ✅ **search_json_file**: Advanced JSON querying with JSONPath support
+
   - **JSONPath Integration**: Full JSONPath syntax support for complex queries
   - **Flexible File Access**: Search any JSON file within the workspace
   - **Rich Query Support**: Simple property access to complex filtered queries
@@ -63,12 +66,28 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
   - **Configuration Analysis**: Extract API keys, database settings, environment configs
   - **Data Extraction**: Pull specific values from JSON datasets or configuration files
 
-#### JSON Search Applications
+- ✅ **search_excel_file**: 🔥 **NEW**: Excel spreadsheet analysis with JSONPath querying
+  - **Multi-sheet Support**: Process all worksheets in Excel files
+  - **Structured Results**: Returns sheet-by-sheet analysis with clean formatting
+  - **JSONPath Queries**: Apply the same powerful query syntax as JSON files
+  - **Error Handling**: Graceful handling of formatting issues and invalid files
+  - **Data Extraction**: Pull specific values, tables, or cell ranges
+  - **Configuration Analysis**: Extract settings, credentials, or endpoints from Excel configurations
+
+#### Structured Data Search Applications
 
 - ✅ **Configuration Validation**: Extract environment-specific settings from config files
 - ✅ **Security Audits**: Find API keys, passwords, or sensitive data in JSON files
 - ✅ **Documentation Generation**: Build configuration references from JSON schemas
 - ✅ **Data Analysis**: Query JSON datasets for specific information or patterns
+
+#### Excel Search Applications
+
+- ✅ **Spreadsheet Analysis**: Extract specific data from Excel worksheets using JSONPath
+- ✅ **Multi-sheet Processing**: Work across all worksheets in a single query
+- ✅ **Data Extraction**: Pull configuration settings, credentials, or connection details from Excel files
+- ✅ **Business Intelligence**: Extract metrics, KPIs, and performance data from reports
+- ✅ **Inventory Analysis**: Query product catalogs, inventory lists, and procurement data
 
 #### Smart File Exclusion System (NEW - July 2025)
 
@@ -114,7 +133,7 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
 
 - ✅ JSON-RPC 2.0 protocol implementation with compact output
 - ✅ Initialize/initialized handshake
-- ✅ Tools list and tool calling (15 total tools including advanced search and JSON querying)
+- ✅ Tools list and tool calling (27 total tools including advanced search and JSON querying)
 - ✅ Comprehensive error handling and responses
 - ✅ STDIO communication optimized for VS Code integration
 
@@ -145,7 +164,7 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
 - ✅ **.vscode/mcp.json**: VS Code workspace MCP configuration
 - ✅ **.gitignore**: Comprehensive .NET gitignore including logs directory
 
-### Documentation (Recently Updated July 2025)
+### Documentation (Recently Updated August 2025)
 
 - ✅ **README.md**: Complete documentation with enhanced examples and dual-format use cases
 - ✅ **EXAMPLES.md**: Comprehensive examples including remote branch usage and advanced scenarios
@@ -191,7 +210,7 @@ GitVisionMCP/
 │   ├── ILocationService.cs       # Location service interface
 │   ├── IMcpServer.cs             # MCP server interface
 │   ├── LocationService.cs        # Location service implementation
-│   └── McpServer.cs              # MCP protocol server (14 tools)
+│   └── McpServer.cs              # MCP protocol server (27 tools)
 ├── Tools/
 │   ├── GitServiceTools.cs        # MCP tool implementations
 │   └── IGitServiceTools.cs       # Tool interface
@@ -219,7 +238,7 @@ GitVisionMCP/
 └── test_*.cs                     # Test files
 ```
 
-## 🚀 Complete Tool Inventory (14 Tools)
+## 🚀 Complete Tool Inventory (27 Tools)
 
 ### 📝 Documentation Generation (2 tools)
 
@@ -244,33 +263,58 @@ GitVisionMCP/
 13. **get_commit_diff_info** - 🆕 Comprehensive diff statistics
 14. **get_file_line_diff_between_commits** - 🆕 Line-by-line file diff
 
-### 🔍 Search & Discovery (2 tools)
+### 🔍 Search & Discovery (9 tools)
 
-14. **search_commits_for_string** - 🔥 **NEW**: Advanced commit search across messages and file contents
-15. **search_json_file** - 🆕 **NEW**: JSONPath queries for JSON file analysis
+15. **search_commits_for_string** - 🔥 Advanced commit search across messages and file contents
+16. **search_json_file** - JSONPath queries for JSON file analysis
+17. **search_excel_file** - 🔥 **NEW**: Excel spreadsheet analysis with JSONPath queries
+18. **search_csv_file** - CSV data analysis with JSONPath support
+19. **search_xml_file** - XML analysis with XPath queries
+20. **search_yaml_file** - YAML configuration analysis using JSONPath
+21. **transform_xml_with_xslt** - Transform XML using XSLT stylesheets
+22. **list_workspace_files** - List files with advanced filtering options
+23. **read_filtered_workspace_files** - Read files with smart exclusions
+
+### 🧩 C# Analysis (4 tools)
+
+24. **deconstruct** - Analyze C# Service/Repository/Controller structure
+25. **deconstruct_to_json** - Save C# component analysis to JSON file
+26. **list_workspace_files_with_cached_data** - Performance-optimized file listing
+27. **list_workspace_file_info** - Get detailed workspace file information
 
 ## 📋 Tool Capabilities Matrix
 
-| Tool                               | Local Branches | Remote Branches | Commit Analysis | File Output | Formats  |
-| ---------------------------------- | :------------: | :-------------: | :-------------: | :---------: | :------: |
-| generate_git_documentation         |       ✅       |       ✅        |       ✅        |     ❌      |  M,H,T   |
-| generate_git_documentation_to_file |       ✅       |       ✅        |       ✅        |     ✅      |  M,H,T   |
-| compare_branches_documentation     |       ✅       |       ❌        |       ✅        |     ✅      |  M,H,T   |
-| compare_branches_with_remote       |       ✅       |       ✅        |       ✅        |     ✅      |  M,H,T   |
-| compare_commits_documentation      |       ✅       |       ✅        |       ✅        |     ✅      |  M,H,T   |
-| get_recent_commits                 |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
-| get_changed_files_between_commits  |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
-| get_detailed_diff_between_commits  |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
-| get_commit_diff_info               |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
-| get_file_line_diff_between_commits |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
-| get_local_branches                 |       ✅       |       ❌        |       ❌        |     ❌      |   Text   |
-| get_remote_branches                |       ❌       |       ✅        |       ❌        |     ❌      |   Text   |
-| get_all_branches                   |       ✅       |       ✅        |       ❌        |     ❌      |   Text   |
-| fetch_from_remote                  |       ❌       |       ✅        |       ❌        |     ❌      |   Text   |
-| search_commits_for_string          |       ✅       |       ✅        |       ✅        |     ❌      | Markdown |
-| search_json_file                   |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| Tool                                  | Local Branches | Remote Branches | Commit Analysis | File Output | Formats  |
+| ------------------------------------- | :------------: | :-------------: | :-------------: | :---------: | :------: |
+| generate_git_documentation            |       ✅       |       ✅        |       ✅        |     ❌      |  M,H,T   |
+| generate_git_documentation_to_file    |       ✅       |       ✅        |       ✅        |     ✅      |  M,H,T   |
+| compare_branches_documentation        |       ✅       |       ❌        |       ✅        |     ✅      |  M,H,T   |
+| compare_branches_with_remote          |       ✅       |       ✅        |       ✅        |     ✅      |  M,H,T   |
+| compare_commits_documentation         |       ✅       |       ✅        |       ✅        |     ✅      |  M,H,T   |
+| get_recent_commits                    |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
+| get_changed_files_between_commits     |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
+| get_detailed_diff_between_commits     |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
+| get_commit_diff_info                  |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
+| get_file_line_diff_between_commits    |       ✅       |       ✅        |       ✅        |     ❌      |   Text   |
+| get_local_branches                    |       ✅       |       ❌        |       ❌        |     ❌      |   Text   |
+| get_remote_branches                   |       ❌       |       ✅        |       ❌        |     ❌      |   Text   |
+| get_all_branches                      |       ✅       |       ✅        |       ❌        |     ❌      |   Text   |
+| fetch_from_remote                     |       ❌       |       ✅        |       ❌        |     ❌      |   Text   |
+| search_commits_for_string             |       ✅       |       ✅        |       ✅        |     ❌      | Markdown |
+| search_json_file                      |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| search_excel_file                     |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| search_csv_file                       |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| search_xml_file                       |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| search_yaml_file                      |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| transform_xml_with_xslt               |       ❌       |       ❌        |       ❌        |     ❌      |   XML    |
+| list_workspace_files                  |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| read_filtered_workspace_files         |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| deconstruct                           |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| deconstruct_to_json                   |       ❌       |       ❌        |       ❌        |     ✅      |   JSON   |
+| list_workspace_files_with_cached_data |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
+| list_workspace_file_info              |       ❌       |       ❌        |       ❌        |     ❌      |   JSON   |
 
-**Legend**: M=Markdown, H=HTML, T=Text, JSON=JSON formatted output
+**Legend**: M=Markdown, H=HTML, T=Text, JSON=JSON formatted output, XML=XML formatted output
 
 ## 🎯 Business Value & Use Cases
 
@@ -309,7 +353,7 @@ GitVisionMCP/
 
 ### Testing Completed
 
-- [x] All 15 tools tested and verified (including new JSON search functionality)
+- [x] All 27 tools tested and verified (including new JSON search functionality)
 - [x] Remote branch operations tested with GitHub repositories
 - [x] JSON-RPC protocol communication verified
 - [x] Error handling tested for edge cases
@@ -426,6 +470,7 @@ While the current implementation is feature-complete, potential enhancements cou
 - ✅ **Performance Optimization**: Smart binary file filtering and configurable search depth
 - ✅ **User Experience**: Rich markdown output with detailed match summaries and statistics
 - ✅ **Practical Applications**: Enables bug tracking, feature history analysis, security audits, and code archaeology
+- ✅ **Excel Analysis**: 🆕 **NEW**: Advanced Excel file analysis with multi-sheet support and JSONPath querying
 
 ## 📈 Project Impact
 
@@ -436,10 +481,11 @@ The GitVisionMCP server now provides a **complete git analysis ecosystem** with 
 - **Security**: Advanced search capabilities for audit and compliance with dedicated security examples
 - **Management**: Clear visibility into project progress and code changes with professional documentation
 - **Research**: Historical analysis and pattern discovery across development timeline
-- **DevOps**: 🆕 Containerized deployment for seamless integration into CI/CD pipelines
+- **DevOps**: Containerized deployment for seamless integration into CI/CD pipelines
 - **Learning**: Improved onboarding with comprehensive examples showing both natural language and API usage
+- **Data Analysis**: 🆕 Advanced Excel and JSON analysis for configuration management and business intelligence
 
-### Latest Documentation Enhancements (July 2025)
+### Latest Documentation Enhancements (August 2025)
 
 - **Dual-Format Examples**: Every use case now includes both Copilot commands and JSON-RPC calls
 - **Realistic Scenarios**: Updated with practical parameters and real-world file paths

@@ -1,6 +1,10 @@
-# GitVisionMCP Docker Guide
+# GitVisionMCP 1.0.6 Docker Guide
 
 This guide explains how to use GitVisionMCP in a Docker container with VS Code as a Copilot Agent.
+
+## About
+
+GitVisionMCP is a comprehensive Model Context Protocol (MCP) Server that provides advanced git analysis and documentation tools, including powerful commit, Excel, XML, YAML and JSON search capabilities. Designed to be used as a Copilot Agent in VS Code for comprehensive repository analysis and documentation generation.
 
 ## Prerequisites
 
@@ -63,6 +67,8 @@ Press Ctrl+C to exit the container.
 
 ### Create/Update .vscode/mcp.json
 
+Path format dependent on your OS. For Windows, use forward slashes or double backslashes in paths.
+
 Create a `.vscode/mcp.json` file in your workspace with the following content (adjust paths to match your system):
 
 ```json
@@ -83,9 +89,9 @@ Create a `.vscode/mcp.json` file in your workspace with the following content (a
         "-e",
         "GIT_APP_LOG_DIRECTORY=/app/logs",
         "-v",
-        "C:/your/repository/path:/app/repo:ro",
+        "/your/repository/path:/app/repo",
         "-v",
-        "C:/your/repository/path/logs:/app/logs",
+        "/your/repository/path/logs:/app/logs",
         "mcprunner/gitvisionmcp:latest"
       ],
       "env": {
@@ -102,18 +108,19 @@ Create a `.vscode/mcp.json` file in your workspace with the following content (a
 
 1. **Volume Mounts**:
 
-   - `-v C:/your/repository/path:/app/repo:ro`: Mount your git repository read-only inside the container
+   - `-v C:/your/repository/path:/app/repo`: Mount your git repository inside the container
    - `-v C:/your/repository/path/logs:/app/logs`: Mount a logs directory for persistent logs
 
 2. **Environment Variables**:
 
    - `DOTNET_ENVIRONMENT`: Set to "Production" for optimized performance
-   - `GITVISION_MCP_TRANSPORT`: Set to "Stdio" for VS Code communication
+   - `GITVISION_MCP_TRANSPORT`: Set to "Stdio" or "Http" for VS Code communication (defaults to Stdio)
    - `GIT_APP_LOG_DIRECTORY`: Container path for logs
 
 3. **Path Format**:
-   - Windows paths should use forward slashes in the Docker volume mounts
-   - Example: `C:/Users/username/source/repos/project`
+   - Windows paths should use forward slashes or double backslashes in the Docker volume mounts
+   - Example 1: `"c:\\Users\\username\\source\\repos\\project:/app/repo",`
+   - Example 2: `/c/Users/username/source/repos/project`
 
 ## Using GitVisionMCP with Copilot
 
@@ -138,7 +145,7 @@ After configuring the mcp.json file, restart VS Code to load the new MCP configu
 
 ## Available Docker MCP Tools
 
-GitVisionMCP in Docker provides 13 tools for comprehensive git analysis:
+GitVisionMCP in Docker provides over 20 tools for comprehensive git analysis and file operations:
 
 ### Documentation Tools
 
@@ -150,6 +157,7 @@ GitVisionMCP in Docker provides 13 tools for comprehensive git analysis:
 - `get_all_branches` - List all branches
 - `get_local_branches` - List local branches
 - `get_remote_branches` - List remote branches
+- `get_current_branch` - Show current active branch
 - `compare_branches_documentation` - Compare local branches
 - `compare_branches_with_remote` - Compare with remote support
 - `fetch_from_remote` - Fetch from remote
@@ -161,6 +169,22 @@ GitVisionMCP in Docker provides 13 tools for comprehensive git analysis:
 - `get_changed_files_between_commits` - List changed files
 - `get_detailed_diff_between_commits` - Detailed diffs
 - `get_commit_diff_info` - Comprehensive diff stats
+- `get_file_line_diff_between_commits` - Line-by-line file diff
+- `search_commits_for_string` - Search through commit history
+
+### File Analysis Tools
+
+- `list_workspace_files` - List files in workspace
+- `search_json_file` - Search JSON files with JSONPath
+- `search_yaml_file` - Search YAML files with JSONPath
+- `search_xml_file` - Search XML files with XPath
+- `search_csv_file` - Search CSV files with JSONPath
+- `search_excel_file` - Search Excel files with JSONPath
+
+### Code Analysis Tools
+
+- `deconstruct_to_json` - Analyze C# code structure
+- `deconstruct_to_file` - Save code analysis to file
 
 ## Troubleshooting
 

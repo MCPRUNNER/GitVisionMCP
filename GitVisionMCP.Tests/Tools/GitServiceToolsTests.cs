@@ -476,7 +476,7 @@ namespace GitVisionMCP.Tests.Tools
             var xmlFilePath = "test-data.xml";
             var xsltFilePath = "transform-to-html.xslt";
             var expectedResult = "<html><head><title>Book Catalog</title>";
-            _mockLocationService.Setup(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath))
+            _mockLocationService.Setup(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath, It.IsAny<string?>()))
                                .Returns(expectedResult);
 
             // Act
@@ -484,7 +484,7 @@ namespace GitVisionMCP.Tests.Tools
 
             // Assert
             Assert.Equal(expectedResult, result);
-            _mockLocationService.Verify(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath), Times.Once);
+            _mockLocationService.Verify(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath, It.IsAny<string?>()), Times.Once);
         }
 
         [Fact]
@@ -509,7 +509,7 @@ namespace GitVisionMCP.Tests.Tools
             // Arrange
             var xmlFilePath = "test.xml";
             var xsltFilePath = "transform.xslt";
-            _mockLocationService.Setup(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath))
+            _mockLocationService.Setup(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath, It.IsAny<string?>()))
                                .Returns((string?)null);
 
             // Act
@@ -525,12 +525,32 @@ namespace GitVisionMCP.Tests.Tools
             // Arrange
             var xmlFilePath = "nonexistent.xml";
             var xsltFilePath = "transform.xslt";
-            _mockLocationService.Setup(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath))
+            _mockLocationService.Setup(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath, It.IsAny<string?>()))
                                .Throws(new FileNotFoundException("File not found"));
 
             // Act & Assert
             await Assert.ThrowsAsync<FileNotFoundException>(
                 async () => await _gitServiceTools.TransformXmlWithXsltAsync(xmlFilePath, xsltFilePath));
+        }
+
+        [Fact]
+        public async Task TransformXmlWithXsltAsync_WithDestinationFilePath_CallsLocationServiceWithAllParameters()
+        {
+            // Arrange
+            var xmlFilePath = "test.xml";
+            var xsltFilePath = "transform.xslt";
+            var destinationFilePath = "output.xml";
+            var expectedResult = "<transformed><element>Test</element></transformed>";
+            
+            _mockLocationService.Setup(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath, destinationFilePath))
+                               .Returns(expectedResult);
+
+            // Act
+            var result = await _gitServiceTools.TransformXmlWithXsltAsync(xmlFilePath, xsltFilePath, destinationFilePath);
+
+            // Assert
+            Assert.Equal(expectedResult, result);
+            _mockLocationService.Verify(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath, destinationFilePath), Times.Once);
         }
 
         #endregion

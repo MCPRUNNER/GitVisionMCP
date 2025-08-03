@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
+using Newtonsoft.Json;
 using GitVisionMCP.Models;
 using Xunit;
 
@@ -17,7 +17,7 @@ namespace GitVisionMCP.Tests.Models
                 Method = "testMethod",
                 Params = new { foo = "bar" }
             };
-            var json = JsonSerializer.Serialize(req);
+            var json = JsonConvert.SerializeObject(req);
             Assert.Contains("\"jsonrpc\":\"2.0\"", json);
             Assert.Contains("\"id\":1", json);
             Assert.Contains("\"method\":\"testMethod\"", json);
@@ -33,7 +33,7 @@ namespace GitVisionMCP.Tests.Models
                 Result = new { value = 42 },
                 Error = null
             };
-            var json = JsonSerializer.Serialize(resp);
+            var json = JsonConvert.SerializeObject(resp);
             Assert.Contains("\"jsonrpc\":\"2.0\"", json);
             Assert.Contains("\"id\":2", json);
             Assert.Contains("\"result\":{", json);

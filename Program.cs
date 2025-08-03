@@ -16,6 +16,7 @@ using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using GitVisionMCP.Handlers;
 
 // Ensure UTF-8 encoding for stdout
 Console.OutputEncoding = Encoding.UTF8;
@@ -93,7 +94,7 @@ builder.Services.AddSingleton<IGitService, GitService>();
 builder.Services.AddSingleton<IDeconstructionService, DeconstructionService>();
 
 builder.Services.AddTransient<IGitServiceTools, GitServiceTools>();
-builder.Services.AddSingleton<GitVisionMCP.Services.IMcpServer, GitVisionMCP.Services.McpServer>();
+builder.Services.AddSingleton<IMcpHandler, McpHandler>();
 
 
 // Configure JSON options

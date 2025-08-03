@@ -1,12 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GitVisionMCP.Services;
+namespace GitVisionMCP.Handlers;
 
 /// <summary>
 /// Interface for the Model Context Protocol server
 /// </summary>
-public interface IMcpServer
+public interface IMcpHandler
 {
     /// <summary>
     /// Starts the MCP server

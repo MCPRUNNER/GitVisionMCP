@@ -17,19 +17,19 @@ public class GitService : IGitService
         _logger = logger;
         _locationService = locationService;
     }
-    public async Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
+    public Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
     {
         var result = new ConflictResult();
         if (string.IsNullOrWhiteSpace(file.Content))
         {
-            return result; // Return empty result if content is null or empty
+            return Task.FromResult(result); // Return empty result if content is null or empty
         }
         var lines = file.Content?.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
         if (lines == null || lines.Length == 0)
         {
             _logger.LogWarning("No lines found in content");
-            return result;
+            return Task.FromResult(result);
         }
 
         for (int i = 0; i < lines.Length; i++)
@@ -56,15 +56,15 @@ public class GitService : IGitService
                             LineNumber = startLine + 1, // Convert to 1-based index
                             ConflictContent = string.Join(Environment.NewLine, conflictLines)
                         };
-                        
+
                         // Return immediately after finding the first conflict in this file
-                        return result;
+                        return Task.FromResult(result);
                     }
                 }
             }
         }
-        
-        return result;
+
+        return Task.FromResult(result);
     }
 
     public async Task<List<ConflictResult>> FindAllGitConflictMarkers(IEnumerable<FileContentInfo> fileList)
@@ -79,7 +79,7 @@ public class GitService : IGitService
         foreach (var file in fileList)
         {
             var conflictResult = await ReadGitConflictMarkers(file);
-            
+
             // Only add non-empty results
             if (!string.IsNullOrEmpty(conflictResult.Filename) && !string.IsNullOrEmpty(conflictResult.ConflictContent))
             {

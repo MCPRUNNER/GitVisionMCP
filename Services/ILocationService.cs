@@ -28,6 +28,15 @@ public interface ILocationService
     List<WorkspaceFileInfo> GetAllFiles();
 
     /// <summary>
+    /// Gets the contents of files in the workspace based on a list of WorkspaceFileInfo.
+    /// This method retrieves the contents of files specified in the provided list. 
+    /// </summary>
+    /// <param name="workspaceFileList"></param>
+    /// <returns>The List of Models.FileContentInfo, or null if not found</returns>
+
+    Task<List<Models.FileContentInfo>> GetFileContentsAsync(List<WorkspaceFileInfo> workspaceFileList);
+
+    /// <summary>
     /// Searches a CSV file for values using JSONPath query with support for wildcards and structured
     /// results.
     /// /// </summary>

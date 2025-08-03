@@ -22,7 +22,7 @@
 
 ## Quick Start
 
-GitVisionMCP provides **28 powerful tools** for git analysis, documentation generation, and file searching:
+GitVisionMCP provides **29 powerful tools** for git analysis, documentation generation, and file searching:
 
 - 🔍 **Search commits**, branches, and files with advanced filtering
 - 📝 **Generate documentation** from git history automatically
@@ -80,7 +80,7 @@ GitVisionMCP provides **28 powerful tools** for git analysis, documentation gene
 | `get_recent_commits`                 | Retrieve recent commits with metadata                      |
 | `get_commit_diff_info`               | Get comprehensive diff statistics                          |
 
-### 🔍 **Search & Discovery** (10 tools)
+### 🔍 **Search & Discovery** (11 tools)
 
 | Tool                                    | Description                              | Query Language |
 | --------------------------------------- | ---------------------------------------- | -------------- |
@@ -94,6 +94,7 @@ GitVisionMCP provides **28 powerful tools** for git analysis, documentation gene
 | `list_workspace_files`                  | Smart file discovery with exclusions     | Glob patterns  |
 | `list_workspace_files_with_cached_data` | High-performance file operations         | Filters        |
 | `read_filtered_workspace_files`         | Bulk file reading with limits            | Filters        |
+| `git_find_merge_conflicts`              | Locate Git merge conflicts in code       | Text search    |
 
 ### 🌿 **Branch & Repository Management** (5 tools)
 
@@ -175,6 +176,7 @@ dotnet run --no-build --verbosity quiet
 @copilot Search test.csv for all server names using $[*].ServerName
 @copilot Transform config.xml using my stylesheet.xslt
 @copilot Extract IT department budget from budget.xlsx
+@copilot Find all merge conflicts in the codebase
 ```
 
 ---
@@ -547,6 +549,8 @@ Once configured, you can use natural language commands with Copilot:
 
 - "Get line-by-line diff for Services/GitService.cs between two commits"
 - "Show me recent commits with detailed change information"
+- "Find all merge conflicts in my code"
+- "Locate merge conflicts that need to be resolved"
 
 ## � System Prompts
 
@@ -757,6 +761,16 @@ Compares two specific commits and generates documentation.
 **Example:** Compare two commit hashes
 
 ### Git Analysis Tools
+
+#### git_find_merge_conflicts
+
+Searches for Git merge conflict markers in the current workspace.
+
+**Parameters:** None
+
+**Returns:** List of files containing merge conflicts with line numbers and conflict details
+
+**Example:** Find all unresolved merge conflicts in the workspace
 
 #### get_recent_commits
 

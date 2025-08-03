@@ -14,11 +14,11 @@ using GitVisionMCP.Services;
 using GitVisionMCP.Tools;
 using GitVisionMCP.Prompts;
 
-namespace GitVisionMCP.Services;
+namespace GitVisionMCP.Handlers;
 
-public class McpServer : IMcpServer
+public class McpHandler : IMcpHandler
 {
-    private readonly ILogger<McpServer> _logger;
+    private readonly ILogger<McpHandler> _logger;
     private readonly IConfiguration _configuration;
     private readonly IGitService _gitService;
     private readonly ILocationService _locationService;
@@ -27,8 +27,8 @@ public class McpServer : IMcpServer
     private readonly JsonSerializerOptions _outputJsonOptions;
     private bool _isRunning;
 
-    public McpServer(
-        ILogger<McpServer> logger,
+    public McpHandler(
+        ILogger<McpHandler> logger,
         IConfiguration configuration,
         IGitService gitService,
         ILocationService locationService,
@@ -650,6 +650,18 @@ public class McpServer : IMcpServer
                     },
                     required = new[] { "xmlFilePath", "xsltFilePath" }
                 }
+            },
+            new Tool
+            {
+                Name = "git_find_merge_conflicts",
+                Description = "Find merge conflict markers in workspace files and return detailed conflict information",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                    }
+                }
             }
         };
 
@@ -699,6 +711,7 @@ public class McpServer : IMcpServer
             "get_local_branches" => await HandleGetLocalBranchesAsync(toolRequest),
             "get_recent_commits" => await HandleGetRecentCommitsAsync(toolRequest),
             "get_remote_branches" => await HandleGetRemoteBranchesAsync(toolRequest),
+            "git_find_merge_conflicts" => await HandleGitFindMergeConflictsAsync(toolRequest),
             "list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
             "list_workspace_files_with_cached_data" => await HandleListWorkspaceFilesWithCachedDataAsync(toolRequest),
             "read_filtered_workspace_files" => await HandleReadFilteredWorkspaceFilesAsync(toolRequest),
@@ -709,6 +722,7 @@ public class McpServer : IMcpServer
             "search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
             "search_yaml_file" => await HandleSearchYamlFileAsync(toolRequest),
             "transform_xml_with_xslt" => await HandleTransformXmlWithXsltAsync(toolRequest),
+
             _ => new CallToolResponse
             {
                 IsError = true,
@@ -728,8 +742,8 @@ public class McpServer : IMcpServer
         try
         {
             var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var maxCommits = GetArgumentValue<int>(toolRequest.Arguments, "maxCommits", 50);
-            var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
+            var maxCommits = GetArgumentValue(toolRequest.Arguments, "maxCommits", 50);
+            var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
 
             var commits = await _gitService.GetGitLogsAsync(workspaceRoot, maxCommits);
             var documentation = await _gitService.GenerateCommitDocumentationAsync(commits, outputFormat);
@@ -754,7 +768,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
+            var filePath = GetArgumentValue(toolRequest.Arguments, "filePath", "");
             if (string.IsNullOrEmpty(filePath))
             {
                 return new CallToolResponse
@@ -765,8 +779,8 @@ public class McpServer : IMcpServer
             }
 
             var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var maxCommits = GetArgumentValue<int>(toolRequest.Arguments, "maxCommits", 50);
-            var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
+            var maxCommits = GetArgumentValue(toolRequest.Arguments, "maxCommits", 50);
+            var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
 
             // Make path relative to workspace if not absolute
             if (!Path.IsPathRooted(filePath))
@@ -802,9 +816,9 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var branch1 = GetArgumentValue<string>(toolRequest.Arguments, "branch1", "");
-            var branch2 = GetArgumentValue<string>(toolRequest.Arguments, "branch2", "");
-            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
+            var branch1 = GetArgumentValue(toolRequest.Arguments, "branch1", "");
+            var branch2 = GetArgumentValue(toolRequest.Arguments, "branch2", "");
+            var filePath = GetArgumentValue(toolRequest.Arguments, "filePath", "");
 
             if (string.IsNullOrEmpty(branch1) || string.IsNullOrEmpty(branch2) || string.IsNullOrEmpty(filePath))
             {
@@ -816,7 +830,7 @@ public class McpServer : IMcpServer
             }
 
             var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
+            var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
 
             // Make path relative to workspace if not absolute
             var fullPath = _locationService.GetFullPath(filePath);
@@ -858,9 +872,9 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var commit1 = GetArgumentValue<string>(toolRequest.Arguments, "commit1", "");
-            var commit2 = GetArgumentValue<string>(toolRequest.Arguments, "commit2", "");
-            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
+            var commit1 = GetArgumentValue(toolRequest.Arguments, "commit1", "");
+            var commit2 = GetArgumentValue(toolRequest.Arguments, "commit2", "");
+            var filePath = GetArgumentValue(toolRequest.Arguments, "filePath", "");
 
             if (string.IsNullOrEmpty(commit1) || string.IsNullOrEmpty(commit2) || string.IsNullOrEmpty(filePath))
             {
@@ -872,7 +886,7 @@ public class McpServer : IMcpServer
             }
 
             var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
+            var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
 
 
 
@@ -916,7 +930,7 @@ public class McpServer : IMcpServer
         try
         {
             var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var count = GetArgumentValue<int>(toolRequest.Arguments, "count", 10);
+            var count = GetArgumentValue(toolRequest.Arguments, "count", 10);
 
             var commits = await _gitService.GetRecentCommitsAsync(workspaceRoot, count);
             var commitSummary = string.Join("\n", commits.Select(c =>
@@ -942,8 +956,8 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var commit1 = GetArgumentValue<string>(toolRequest.Arguments, "commit1", "");
-            var commit2 = GetArgumentValue<string>(toolRequest.Arguments, "commit2", "");
+            var commit1 = GetArgumentValue(toolRequest.Arguments, "commit1", "");
+            var commit2 = GetArgumentValue(toolRequest.Arguments, "commit2", "");
 
             if (string.IsNullOrEmpty(commit1) || string.IsNullOrEmpty(commit2))
             {
@@ -978,8 +992,8 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var commit1 = GetArgumentValue<string>(toolRequest.Arguments, "commit1", "");
-            var commit2 = GetArgumentValue<string>(toolRequest.Arguments, "commit2", "");
+            var commit1 = GetArgumentValue(toolRequest.Arguments, "commit1", "");
+            var commit2 = GetArgumentValue(toolRequest.Arguments, "commit2", "");
 
             if (string.IsNullOrEmpty(commit1) || string.IsNullOrEmpty(commit2))
             {
@@ -1021,8 +1035,8 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var commit1 = GetArgumentValue<string>(toolRequest.Arguments, "commit1", "");
-            var commit2 = GetArgumentValue<string>(toolRequest.Arguments, "commit2", "");
+            var commit1 = GetArgumentValue(toolRequest.Arguments, "commit1", "");
+            var commit2 = GetArgumentValue(toolRequest.Arguments, "commit2", "");
 
             if (string.IsNullOrEmpty(commit1) || string.IsNullOrEmpty(commit2))
             {
@@ -1172,7 +1186,7 @@ public class McpServer : IMcpServer
         try
         {
             var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var remoteName = GetArgumentValue<string>(toolRequest.Arguments, "remoteName", "origin");
+            var remoteName = GetArgumentValue(toolRequest.Arguments, "remoteName", "origin");
             var success = await _gitService.FetchFromRemoteAsync(workspaceRoot, remoteName);
 
             return new CallToolResponse
@@ -1199,9 +1213,9 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var branch1 = GetArgumentValue<string>(toolRequest.Arguments, "branch1", "");
-            var branch2 = GetArgumentValue<string>(toolRequest.Arguments, "branch2", "");
-            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
+            var branch1 = GetArgumentValue(toolRequest.Arguments, "branch1", "");
+            var branch2 = GetArgumentValue(toolRequest.Arguments, "branch2", "");
+            var filePath = GetArgumentValue(toolRequest.Arguments, "filePath", "");
 
             if (string.IsNullOrEmpty(branch1) || string.IsNullOrEmpty(branch2) || string.IsNullOrEmpty(filePath))
             {
@@ -1213,8 +1227,8 @@ public class McpServer : IMcpServer
             }
 
             var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var outputFormat = GetArgumentValue<string>(toolRequest.Arguments, "outputFormat", "markdown");
-            var fetchRemote = GetArgumentValue<bool>(toolRequest.Arguments, "fetchRemote", true);
+            var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
+            var fetchRemote = GetArgumentValue(toolRequest.Arguments, "fetchRemote", true);
 
             // Make path relative to workspace if not absolute
             if (!Path.IsPathRooted(filePath))
@@ -1250,7 +1264,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var searchString = GetArgumentValue<string>(toolRequest.Arguments, "searchString", "");
+            var searchString = GetArgumentValue(toolRequest.Arguments, "searchString", "");
 
             if (string.IsNullOrEmpty(searchString))
             {
@@ -1262,7 +1276,7 @@ public class McpServer : IMcpServer
             }
 
             var workspaceRoot = _locationService.GetWorkspaceRoot();
-            var maxCommits = GetArgumentValue<int>(toolRequest.Arguments, "maxCommits", 100);
+            var maxCommits = GetArgumentValue(toolRequest.Arguments, "maxCommits", 100);
 
             var searchResults = await _gitService.SearchCommitsForStringAsync(workspaceRoot, searchString, maxCommits);
 
@@ -1296,7 +1310,7 @@ public class McpServer : IMcpServer
 
     private string FormatSearchResults(CommitSearchResponse searchResults)
     {
-        var sb = new System.Text.StringBuilder();
+        var sb = new StringBuilder();
 
         sb.AppendLine($"# Search Results for: '{searchResults.SearchString}'");
         sb.AppendLine();
@@ -1469,10 +1483,10 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var csvFilePath = GetArgumentValue<string>(toolRequest.Arguments, "csvFilePath", "");
-            var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
-            var hasHeaderRecord = GetArgumentValue<bool>(toolRequest.Arguments, "hasHeaderRecord", true);
-            var ignoreBlankLines = GetArgumentValue<bool>(toolRequest.Arguments, "ignoreBlankLines", true);
+            var csvFilePath = GetArgumentValue(toolRequest.Arguments, "csvFilePath", "");
+            var jsonPath = GetArgumentValue(toolRequest.Arguments, "jsonPath", "");
+            var hasHeaderRecord = GetArgumentValue(toolRequest.Arguments, "hasHeaderRecord", true);
+            var ignoreBlankLines = GetArgumentValue(toolRequest.Arguments, "ignoreBlankLines", true);
 
             if (string.IsNullOrEmpty(csvFilePath) || string.IsNullOrEmpty(jsonPath))
             {
@@ -1511,8 +1525,8 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var excelFilePath = GetArgumentValue<string>(toolRequest.Arguments, "excelFilePath", "");
-            var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
+            var excelFilePath = GetArgumentValue(toolRequest.Arguments, "excelFilePath", "");
+            var jsonPath = GetArgumentValue(toolRequest.Arguments, "jsonPath", "");
 
             if (string.IsNullOrEmpty(excelFilePath) || string.IsNullOrEmpty(jsonPath))
             {
@@ -1551,8 +1565,8 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var jsonFilePath = GetArgumentValue<string>(toolRequest.Arguments, "jsonFilePath", "");
-            var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
+            var jsonFilePath = GetArgumentValue(toolRequest.Arguments, "jsonFilePath", "");
+            var jsonPath = GetArgumentValue(toolRequest.Arguments, "jsonPath", "");
             var indented = GetArgumentValue<bool?>(toolRequest.Arguments, "indented", true);
             var showKeyPaths = GetArgumentValue<bool?>(toolRequest.Arguments, "showKeyPaths", false);
 
@@ -1614,8 +1628,8 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var xmlFilePath = GetArgumentValue<string>(toolRequest.Arguments, "xmlFilePath", "");
-            var xPath = GetArgumentValue<string>(toolRequest.Arguments, "xPath", "");
+            var xmlFilePath = GetArgumentValue(toolRequest.Arguments, "xmlFilePath", "");
+            var xPath = GetArgumentValue(toolRequest.Arguments, "xPath", "");
             var indented = GetArgumentValue<bool?>(toolRequest.Arguments, "indented", true);
             var showKeyPaths = GetArgumentValue<bool?>(toolRequest.Arguments, "showKeyPaths", false);
 
@@ -1677,10 +1691,10 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var yamlFilePath = GetArgumentValue<string>(toolRequest.Arguments, "yamlFilePath", "");
-            var jsonPath = GetArgumentValue<string>(toolRequest.Arguments, "jsonPath", "");
-            var indented = GetArgumentValue<bool>(toolRequest.Arguments, "indented", true);
-            var showKeyPaths = GetArgumentValue<bool>(toolRequest.Arguments, "showKeyPaths", false);
+            var yamlFilePath = GetArgumentValue(toolRequest.Arguments, "yamlFilePath", "");
+            var jsonPath = GetArgumentValue(toolRequest.Arguments, "jsonPath", "");
+            var indented = GetArgumentValue(toolRequest.Arguments, "indented", true);
+            var showKeyPaths = GetArgumentValue(toolRequest.Arguments, "showKeyPaths", false);
 
             if (string.IsNullOrEmpty(yamlFilePath) || string.IsNullOrEmpty(jsonPath))
             {
@@ -1721,7 +1735,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
+            var filePath = GetArgumentValue(toolRequest.Arguments, "filePath", "");
 
             if (string.IsNullOrWhiteSpace(filePath))
             {
@@ -1772,7 +1786,7 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
+            var filePath = GetArgumentValue(toolRequest.Arguments, "filePath", "");
             var outputFileName = GetArgumentValue<string?>(toolRequest.Arguments, "outputFileName", null);
 
             if (string.IsNullOrWhiteSpace(filePath))
@@ -1830,7 +1844,7 @@ public class McpServer : IMcpServer
         try
         {
             // Extract project file path argument
-            var projectFile = GetArgumentValue<string>(toolRequest.Arguments, "projectFile", string.Empty);
+            var projectFile = GetArgumentValue(toolRequest.Arguments, "projectFile", string.Empty);
             // Call the location service to get the version
 
             var version = _locationService.GetAppVersion(projectFile) ?? string.Empty;
@@ -1879,11 +1893,11 @@ public class McpServer : IMcpServer
                 })
                 .ToList();
 
-            var fileType = GetArgumentValue<string>(toolRequest.Arguments, "fileType", "");
-            var relativePath = GetArgumentValue<string>(toolRequest.Arguments, "relativePath", "");
-            var fullPath = GetArgumentValue<string>(toolRequest.Arguments, "fullPath", "");
-            var lastModifiedAfter = GetArgumentValue<string>(toolRequest.Arguments, "lastModifiedAfter", "");
-            var lastModifiedBefore = GetArgumentValue<string>(toolRequest.Arguments, "lastModifiedBefore", "");
+            var fileType = GetArgumentValue(toolRequest.Arguments, "fileType", "");
+            var relativePath = GetArgumentValue(toolRequest.Arguments, "relativePath", "");
+            var fullPath = GetArgumentValue(toolRequest.Arguments, "fullPath", "");
+            var lastModifiedAfter = GetArgumentValue(toolRequest.Arguments, "lastModifiedAfter", "");
+            var lastModifiedBefore = GetArgumentValue(toolRequest.Arguments, "lastModifiedBefore", "");
 
             var result = await _gitServiceTools.ListWorkspaceFilesWithCachedDataAsync(
                 cachedFiles, fileType, relativePath, fullPath, lastModifiedAfter, lastModifiedBefore);
@@ -1910,9 +1924,9 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var xmlFilePath = GetArgumentValue<string>(toolRequest.Arguments, "xmlFilePath", "");
-            var xsltFilePath = GetArgumentValue<string>(toolRequest.Arguments, "xsltFilePath", "");
-            var destinationFilePath = GetArgumentValue<string>(toolRequest.Arguments, "destinationFilePath", "");
+            var xmlFilePath = GetArgumentValue(toolRequest.Arguments, "xmlFilePath", "");
+            var xsltFilePath = GetArgumentValue(toolRequest.Arguments, "xsltFilePath", "");
+            var destinationFilePath = GetArgumentValue(toolRequest.Arguments, "destinationFilePath", "");
 
             if (string.IsNullOrEmpty(xmlFilePath) || string.IsNullOrEmpty(xsltFilePath))
             {
@@ -1923,7 +1937,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var result = await _gitServiceTools.TransformXmlWithXsltAsync(xmlFilePath, xsltFilePath, 
+            var result = await _gitServiceTools.TransformXmlWithXsltAsync(xmlFilePath, xsltFilePath,
                 string.IsNullOrEmpty(destinationFilePath) ? null : destinationFilePath);
 
             var responseMessage = result ?? "Transformation failed";
@@ -1944,6 +1958,47 @@ public class McpServer : IMcpServer
             {
                 IsError = true,
                 Content = new[] { new ToolContent { Type = "text", Text = $"Error: {ex.Message}" } }
+            };
+        }
+    }
+
+    private async Task<CallToolResponse> HandleGitFindMergeConflictsAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+
+
+            var results = new List<ConflictResult>();
+            var workspaceFileList = await _locationService.GetAllFilesAsync();
+            var fileContents = await _locationService.GetFileContentsAsync(workspaceFileList);
+            results = await _gitService.FindAllGitConflictMarkers(fileContents);
+
+            if (results == null || !results.Any())
+            {
+                _logger.LogInformation("No merge conflicts found in the workspace");
+                return new CallToolResponse
+                {
+                    Content = new[] { new ToolContent { Type = "text", Text = "No merge conflicts found." } }
+                };
+            }
+
+            var count = results.Count;
+            var jsonResult = JsonSerializer.Serialize(results, _outputJsonOptions);
+
+            _logger.LogInformation("Found {ConflictCount} merge conflicts in {FileCount} files", count, workspaceFileList.Count);
+
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = jsonResult } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error finding merge conflicts");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error finding merge conflicts: {ex.Message}" } }
             };
         }
     }
@@ -2011,7 +2066,7 @@ public class McpServer : IMcpServer
         return new JsonRpcResponse
         {
             Id = id,
-            Error = new GitVisionMCP.Models.JsonRpcError
+            Error = new JsonRpcError
             {
                 Code = code,
                 Message = message,
@@ -2083,9 +2138,9 @@ public class McpServer : IMcpServer
     {
         try
         {
-            var commit1 = GetArgumentValue<string>(toolRequest.Arguments, "commit1", "");
-            var commit2 = GetArgumentValue<string>(toolRequest.Arguments, "commit2", "");
-            var filePath = GetArgumentValue<string>(toolRequest.Arguments, "filePath", "");
+            var commit1 = GetArgumentValue(toolRequest.Arguments, "commit1", "");
+            var commit2 = GetArgumentValue(toolRequest.Arguments, "commit2", "");
+            var filePath = GetArgumentValue(toolRequest.Arguments, "filePath", "");
 
             if (string.IsNullOrEmpty(commit1) || string.IsNullOrEmpty(commit2) || string.IsNullOrEmpty(filePath))
             {

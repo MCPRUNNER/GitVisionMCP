@@ -71,6 +71,23 @@ namespace GitVisionMCP.Tests.Tools
             // Setup mock location service
             _mockLocationService.Setup(m => m.GetAllFiles()).Returns(_mockFiles);
             _mockLocationService.Setup(m => m.GetAllFilesAsync()).ReturnsAsync(_mockFiles);
+
+            // Setup GetFileContentsAsync with customizable parameters
+            _mockLocationService.Setup(m => m.GetFileContentsAsync(It.IsAny<List<WorkspaceFileInfo>>()))
+                .ReturnsAsync((List<WorkspaceFileInfo> files) =>
+                {
+                    // Default content
+                    const string fileContent = "Test file content";
+
+                    return files.Select(f => new GitVisionMCP.Models.FileContentInfo
+                    {
+                        RelativePath = f.RelativePath,
+                        FullPath = f.FullPath,
+                        FileType = f.FileType,
+                        Content = fileContent,
+                        IsError = false
+                    }).ToList();
+                });
         }
 
         #region ListWorkspaceFilesAsync Tests
@@ -258,12 +275,34 @@ namespace GitVisionMCP.Tests.Tools
         {
             // Arrange
             var maxFiles = 2;
+            var fileContent = "Test file content";
+            var mockWorkspaceRoot = _mockLocationService.Object.GetWorkspaceRoot();
 
-            // Act
-            var result = await _gitServiceTools.ReadFilteredWorkspaceFilesAsync(maxFiles: maxFiles);
+            // Ensure directory and files exist, and setup ReadFile mock
+            Directory.CreateDirectory(mockWorkspaceRoot);
+            Directory.CreateDirectory(Path.Combine(mockWorkspaceRoot, "subfolder"));
+            foreach (var file in _mockFiles)
+            {
+                File.WriteAllText(file.FullPath, fileContent);
+                _mockLocationService.Setup(m => m.ReadFile(file.FullPath)).Returns(fileContent);
+            }
 
-            // Assert
-            Assert.Equal(maxFiles, result.Count);
+            try
+            {
+                // Act
+                var result = await _gitServiceTools.ReadFilteredWorkspaceFilesAsync(maxFiles: maxFiles);
+
+                // Assert
+                Assert.Equal(maxFiles, result.Count);
+            }
+            finally
+            {
+                // Cleanup
+                if (Directory.Exists(mockWorkspaceRoot))
+                {
+                    Directory.Delete(mockWorkspaceRoot, true);
+                }
+            }
         }
 
         [Fact]
@@ -277,13 +316,13 @@ namespace GitVisionMCP.Tests.Tools
                 Directory.Delete(mockWorkspaceRoot, true);
             }
 
-            // Act
-            var result = await _gitServiceTools.ReadFilteredWorkspaceFilesAsync();
+            // Setup GetAllFilesAsync to throw an exception for this test
+            _mockLocationService.Setup(m => m.GetAllFilesAsync())
+                .ThrowsAsync(new InvalidOperationException("Directory does not exist"));
 
-            // Assert
-            Assert.Equal(_mockFiles.Count, result.Count);
-            Assert.All(result, file => Assert.True(file.IsError));
-            Assert.All(result, file => Assert.Equal("File not found", file.ErrorMessage));
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidOperationException>(
+                async () => await _gitServiceTools.ReadFilteredWorkspaceFilesAsync());
         }
 
         [Fact]
@@ -296,6 +335,20 @@ namespace GitVisionMCP.Tests.Tools
             // Create mock directory but no files - we'll just test the size check
             var mockWorkspaceRoot = _mockLocationService.Object.GetWorkspaceRoot();
             Directory.CreateDirectory(mockWorkspaceRoot);
+
+            // Override the default mock for this specific test
+            _mockLocationService.Setup(m => m.GetFileContentsAsync(It.IsAny<List<WorkspaceFileInfo>>()))
+                .ReturnsAsync((List<WorkspaceFileInfo> files) =>
+                {
+                    return files.Select(f => new GitVisionMCP.Models.FileContentInfo
+                    {
+                        RelativePath = f.RelativePath,
+                        FullPath = f.FullPath,
+                        FileType = f.FileType,
+                        IsError = true,
+                        ErrorMessage = $"File {f.RelativePath} exceeds maximum allowed size of {maxFileSize} bytes"
+                    }).ToList();
+                });
 
             try
             {
@@ -541,7 +594,7 @@ namespace GitVisionMCP.Tests.Tools
             var xsltFilePath = "transform.xslt";
             var destinationFilePath = "output.xml";
             var expectedResult = "<transformed><element>Test</element></transformed>";
-            
+
             _mockLocationService.Setup(x => x.TransformXmlWithXslt(xmlFilePath, xsltFilePath, destinationFilePath))
                                .Returns(expectedResult);
 

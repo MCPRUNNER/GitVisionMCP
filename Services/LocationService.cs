@@ -989,8 +989,8 @@ public class LocationService : ILocationService
             {
                 try
                 {
-                    var fullDestinationPath = Path.IsPathRooted(destinationFilePath) 
-                        ? destinationFilePath 
+                    var fullDestinationPath = Path.IsPathRooted(destinationFilePath)
+                        ? destinationFilePath
                         : Path.Combine(_workspaceRoot, destinationFilePath);
 
                     // Create directory if it doesn't exist
@@ -1002,7 +1002,7 @@ public class LocationService : ILocationService
 
                     // Write the transformed result to the destination file
                     File.WriteAllText(fullDestinationPath, result);
-                    
+
                     _logger.LogInformation("Successfully saved transformed XML to: {DestinationFilePath}", destinationFilePath);
                 }
                 catch (Exception saveEx)
@@ -1210,7 +1210,7 @@ public class LocationService : ILocationService
         try
         {
             string fullPath;
-            
+
             // If path is already absolute, use it as-is
             if (Path.IsPathRooted(relativePath))
             {
@@ -1261,6 +1261,60 @@ public class LocationService : ILocationService
         }
 
         return false;
+    }
+
+    public async Task<List<Models.FileContentInfo>> GetFileContentsAsync(List<WorkspaceFileInfo> workspaceFileList)
+    {
+        if (workspaceFileList == null || !workspaceFileList.Any())
+        {
+            _logger.LogWarning("GetFileContentsAsync: No files provided to read");
+            return new List<Models.FileContentInfo>();
+        }
+
+        var fileContents = new List<Models.FileContentInfo>();
+
+        foreach (var file in workspaceFileList)
+        {
+            try
+            {
+                var fullPath = file.FullPath;
+                if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
+                {
+                    _logger.LogWarning("GetFileContentsAsync: file does not exist: {FilePath}", file.RelativePath);
+                    fileContents.Add(new Models.FileContentInfo
+                    {
+                        RelativePath = file.RelativePath,
+                        FileType = file.FileType,
+                        IsError = true,
+                        ErrorMessage = "File does not exist"
+                    });
+                    continue;
+                }
+
+                var content = await File.ReadAllTextAsync(fullPath);
+                fileContents.Add(new Models.FileContentInfo
+                {
+                    RelativePath = file.RelativePath,
+                    FullPath = file.FullPath,
+                    FileType = file.FileType,
+                    Content = content,
+                    IsError = false
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetFileContentsAsync: Error reading file: {FilePath}", file.RelativePath);
+                fileContents.Add(new Models.FileContentInfo
+                {
+                    RelativePath = file.RelativePath,
+                    FileType = file.FileType,
+                    IsError = true,
+                    ErrorMessage = $"Error reading file: {ex.Message}"
+                });
+            }
+        }
+
+        return fileContents;
     }
     /// <summary>
     /// Searches for values in an Excel file (.xlsx) using JSONPath queries by converting worksheet data to JSON.

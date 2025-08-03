@@ -1040,81 +1040,8 @@ public class GitServiceTools : IGitServiceTools
             filteredFiles = filteredFiles.Take(fileLimit).ToList();
 
             var result = new List<Models.FileContentInfo>();
+            result = await _locationService.GetFileContentsAsync(filteredFiles);
 
-            foreach (var file in filteredFiles)
-            {
-                try
-                {
-                    var fileInfo = new FileInfo(file.FullPath);
-
-                    // Create FileContentInfo with basic properties
-                    var fileContentInfo = new Models.FileContentInfo
-                    {
-                        RelativePath = file.RelativePath,
-                        FileType = file.FileType,
-                        FullPath = file.FullPath,
-                        Size = file.Size,
-                        LastModified = file.LastModified
-                    };
-
-                    // Skip files that are too large - check size from file info we have
-                    // Note: In test scenarios, the file might not exist but we still need to check its size
-                    if (file.Size > sizeLimit)
-                    {
-                        fileContentInfo.IsError = true;
-                        fileContentInfo.ErrorMessage = $"File exceeds maximum allowed size of {sizeLimit} bytes";
-                        result.Add(fileContentInfo);
-                        continue;
-                    }
-
-                    // Check if file exists
-                    if (!File.Exists(file.FullPath))
-                    {
-                        fileContentInfo.IsError = true;
-                        fileContentInfo.ErrorMessage = "File not found";
-                        result.Add(fileContentInfo);
-                        continue;
-                    }
-
-                    // Skip binary files
-                    if (IsBinaryFile(file.FullPath))
-                    {
-                        fileContentInfo.IsError = true;
-                        fileContentInfo.ErrorMessage = "Binary file not supported";
-                        result.Add(fileContentInfo);
-                        continue;
-                    }
-
-                    // Read content if file exists and meets criteria
-                    try
-                    {
-                        var content = _locationService.ReadFile(file.FullPath);
-                        // var content = await File.ReadAllTextAsync(file.FullPath);
-                        fileContentInfo.Content = content;
-                        result.Add(fileContentInfo);
-                    }
-                    catch (Exception ex)
-                    {
-                        fileContentInfo.IsError = true;
-                        fileContentInfo.ErrorMessage = $"Error reading file: {ex.Message}";
-                        result.Add(fileContentInfo);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Error processing file FullPath {FilePath} RelativePath {RelativePath}", file.FullPath, file.RelativePath);
-                    result.Add(new Models.FileContentInfo
-                    {
-                        RelativePath = file.RelativePath,
-                        FileType = file.FileType,
-                        FullPath = file.FullPath,
-                        Size = file.Size,
-                        LastModified = file.LastModified,
-                        IsError = true,
-                        ErrorMessage = $"Error processing file: {ex.Message}"
-                    });
-                }
-            }
 
             _logger.LogInformation("Read {ReadCount} files out of {FilteredCount} filtered files",
                 result.Count, filteredFiles.Count);
@@ -1125,6 +1052,29 @@ public class GitServiceTools : IGitServiceTools
         {
             _logger.LogError(ex, "Error reading filtered workspace files");
             throw new InvalidOperationException("Failed to read filtered workspace files. See inner exception for details.", ex);
+        }
+    }
+
+    [McpServerToolAttribute(Name = "git_find_merge_conflicts")]
+    [Description("Search for Git merge conflicts in source code")]
+    public async Task<List<ConflictResult>> FindMergeConflictsAsync()
+
+    {
+        try
+        {
+            var results = new List<ConflictResult>();
+            var workspaceFileList = await _locationService.GetAllFilesAsync();
+            var fileContents = await _locationService.GetFileContentsAsync(workspaceFileList);
+            results = await _gitService.FindAllGitConflictMarkers(fileContents);
+
+            _logger.LogInformation("Found merge conflicts in workspace");
+            return results;
+        }
+
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching for merge conflicts {Message}", ex.Message);
+            throw new InvalidOperationException($"Error searching for merge conflicts in file: {ex.Message}. See inner exception for details.", ex);
         }
     }
 

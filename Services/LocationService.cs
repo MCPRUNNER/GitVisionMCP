@@ -24,25 +24,19 @@ namespace GitVisionMCP.Services;
 /// Implementation of location service that checks for GIT_REPOSITORY_DIRECTORY environment variable
 /// </summary>
 public class LocationService : ILocationService
-/// <summary>
-/// Searches for CSV values in a CSV file using JSONPath queries by converting CSV to JSON using CsvHelper.
-/// </summary>
-/// <param name="csvFilePath">Path to the CSV file relative to workspace root</param>
-/// <param name="jsonPath">JSONPath query string (e.g., '$[*].ServerName')</param>
-/// <param name="hasHeaderRecord">Whether the CSV has a header record (default: true)</param>
-/// <param name="ignoreBlankLines">Whether to ignore blank lines (default: true)</param>
-/// <returns>CSV search result or null if not found</returns>
 
 {
     private readonly ILogger<LocationService> _logger;
     private readonly string _workspaceRoot;
-    private ExcludeConfiguration? _excludeConfiguration;
+    private ExcludeConfiguration _excludeConfiguration;
     private DateTime _lastExcludeConfigLoad = DateTime.MinValue;
 
     public LocationService(ILogger<LocationService> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _workspaceRoot = DetermineWorkspaceRoot();
+        _excludeConfiguration = new ExcludeConfiguration();
+
     }
 
     /// <summary>
@@ -322,7 +316,11 @@ public class LocationService : ILocationService
 
             var jsonContent = await File.ReadAllTextAsync(fullPath);
             var configuration = JsonConvert.DeserializeObject<ExcludeConfiguration>(jsonContent);
-
+            if (configuration == null)
+            {
+                _logger.LogWarning("Exclude configuration is null after deserialization");
+                return null;
+            }
             _excludeConfiguration = configuration;
             _lastExcludeConfigLoad = lastWriteTime;
 
@@ -1291,7 +1289,7 @@ public class LocationService : ILocationService
                     continue;
                 }
 
-                var content = await File.ReadAllTextAsync(fullPath);
+                var content = ReadFile(fullPath);
                 fileContents.Add(new Models.FileContentInfo
                 {
                     RelativePath = file.RelativePath,

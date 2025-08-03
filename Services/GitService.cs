@@ -15,19 +15,19 @@ public class GitService : IGitService
         _logger = logger;
         _locationService = locationService;
     }
-    public Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
+    public async Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
     {
         var result = new ConflictResult();
         if (string.IsNullOrWhiteSpace(file.Content))
         {
-            return Task.FromResult(result); // Return empty result if content is null or empty
+            return await Task.FromResult(result); // Return empty result if content is null or empty
         }
         var lines = file.Content?.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
         if (lines == null || lines.Length == 0)
         {
             _logger.LogWarning("No lines found in content");
-            return Task.FromResult(result);
+            return await Task.FromResult(result);
         }
 
         for (int i = 0; i < lines.Length; i++)

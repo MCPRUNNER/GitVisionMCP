@@ -1,8 +1,6 @@
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using GitVisionMCP.Models;
-using DocumentFormat.OpenXml.Drawing.Diagrams;
-
 namespace GitVisionMCP.Services;
 
 

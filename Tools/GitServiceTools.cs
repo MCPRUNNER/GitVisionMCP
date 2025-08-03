@@ -6,7 +6,6 @@ using System.ComponentModel;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
 using YamlDotNet.Core;
-using Microsoft.AspNetCore.Authentication;
 namespace GitVisionMCP.Tools;
 
 /// <summary>

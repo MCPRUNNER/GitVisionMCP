@@ -9,3 +9,4 @@ As of 2025-08-03, the following tasks are pending:
 - [ ] Implement configuration file saved under `.gitvision/config.json` that allows changing the `maxFiles`, `maxFileSize`, and `applyExclusions` settings, and load it when needed.
 - [ ] Add Missing Unit Tests.
 - [ ] Add VS Code Extension that allows using GitVisionMCP features directly in VS Code.
+- [ ] Fix IsFileExcluded method to use the ExcludeConfiguration.

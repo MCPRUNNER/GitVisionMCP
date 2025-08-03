@@ -54,12 +54,12 @@ public class GitService : IGitService
                     };
 
                     // Return immediately after finding the first conflict in this file
-                    return Task.FromResult(result);
+                    return result;
                 }
             }
         }
 
-        return Task.FromResult(result);
+        return await Task.FromResult(result);
     }
 
     public async Task<List<ConflictResult>> FindAllGitConflictMarkers(IEnumerable<FileContentInfo> fileList)

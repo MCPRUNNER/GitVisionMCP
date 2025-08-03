@@ -1923,7 +1923,7 @@ public class McpServer : IMcpServer
                 };
             }
 
-            var result = await _gitServiceTools.TransformXmlWithXsltAsync(xmlFilePath, xsltFilePath, 
+            var result = await _gitServiceTools.TransformXmlWithXsltAsync(xmlFilePath, xsltFilePath,
                 string.IsNullOrEmpty(destinationFilePath) ? null : destinationFilePath);
 
             var responseMessage = result ?? "Transformation failed";

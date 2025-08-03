@@ -16,7 +16,63 @@ public class GitService : IGitService
         _logger = logger;
         _locationService = locationService;
     }
+    public List<ConflictResult> FindGitConflictMarkers(IEnumerable<FileContentInfo> fileList)
+    {
 
+        var results = new List<ConflictResult>();
+        if (fileList == null || !fileList.Any())
+        {
+            _logger.LogWarning("No files provided for conflict marker search");
+            return results;
+        }
+
+        foreach (var file in fileList)
+        {
+
+            if (file == null || string.IsNullOrEmpty(file.Content) || string.IsNullOrEmpty(file.RelativePath))
+            {
+                continue; // Skip null or empty files
+            }
+
+            var lines = file?.Content?.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
+            if (lines == null || lines.Length == 0)
+            {
+                continue;
+            }
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i].StartsWith("<<<<<<<"))
+                {
+                    var conflictLines = new List<string>();
+                    int startLine = i;
+
+                    while (i < lines.Length && !lines[i].StartsWith(">>>>>>>"))
+                    {
+                        conflictLines.Add(lines[i]);
+                        i++;
+                    }
+
+                    if (i < lines.Length)
+                    {
+                        conflictLines.Add(lines[i]); // Add the >>>>>>> line
+                        if (file != null)
+                        {
+                            results.Add(new ConflictResult
+                            {
+                                Filename = file.RelativePath,
+                                LineNumber = startLine + 1, // Convert to 1-based index
+                                ConflictContent = string.Join(Environment.NewLine, conflictLines)
+                            });
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
     public async Task<List<GitCommitInfo>> GetGitLogsAsync(string repositoryPath, int maxCommits = 50)
     {
         try
@@ -183,7 +239,7 @@ public class GitService : IGitService
             throw;
         }
     }
-   
+
     public async Task<bool> WriteDocumentationToFileAsync(string content, string filePath)
     {
         try

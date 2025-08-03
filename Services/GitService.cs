@@ -46,18 +46,15 @@ public class GitService : IGitService
                 if (i < lines.Length)
                 {
                     conflictLines.Add(lines[i]); // Add the >>>>>>> line
-                    if (file != null)
+                    result = new ConflictResult
                     {
-                        result = new ConflictResult
-                        {
-                            Filename = file.RelativePath,
-                            LineNumber = startLine + 1, // Convert to 1-based index
-                            ConflictContent = string.Join(Environment.NewLine, conflictLines)
-                        };
+                        Filename = file.RelativePath,
+                        LineNumber = startLine + 1, // Convert to 1-based index
+                        ConflictContent = string.Join(Environment.NewLine, conflictLines)
+                    };
 
-                        // Return immediately after finding the first conflict in this file
-                        return Task.FromResult(result);
-                    }
+                    // Return immediately after finding the first conflict in this file
+                    return Task.FromResult(result);
                 }
             }
         }

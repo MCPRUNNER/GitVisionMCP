@@ -1,6 +1,7 @@
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using GitVisionMCP.Models;
+using DocumentFormat.OpenXml.Drawing.Diagrams;
 
 namespace GitVisionMCP.Services;
 
@@ -16,9 +17,58 @@ public class GitService : IGitService
         _logger = logger;
         _locationService = locationService;
     }
-    public List<ConflictResult> FindGitConflictMarkers(IEnumerable<FileContentInfo> fileList)
+    public async Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
     {
+        var result = new ConflictResult();
+        if (string.IsNullOrWhiteSpace(file.Content))
+        {
+            return result; // Return empty result if content is null or empty
+        }
+        var lines = file.Content?.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
 
+        if (lines == null || lines.Length == 0)
+        {
+            _logger.LogWarning("No lines found in content");
+            return result;
+        }
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (lines[i].StartsWith("<<<<<<<"))
+            {
+                var conflictLines = new List<string>();
+                int startLine = i;
+
+                while (i < lines.Length && !lines[i].StartsWith(">>>>>>>"))
+                {
+                    conflictLines.Add(lines[i]);
+                    i++;
+                }
+
+                if (i < lines.Length)
+                {
+                    conflictLines.Add(lines[i]); // Add the >>>>>>> line
+                    if (file != null)
+                    {
+                        result = new ConflictResult
+                        {
+                            Filename = file.RelativePath,
+                            LineNumber = startLine + 1, // Convert to 1-based index
+                            ConflictContent = string.Join(Environment.NewLine, conflictLines)
+                        };
+                        
+                        // Return immediately after finding the first conflict in this file
+                        return result;
+                    }
+                }
+            }
+        }
+        
+        return result;
+    }
+
+    public async Task<List<ConflictResult>> FindAllGitConflictMarkers(IEnumerable<FileContentInfo> fileList)
+    {
         var results = new List<ConflictResult>();
         if (fileList == null || !fileList.Any())
         {
@@ -28,46 +78,12 @@ public class GitService : IGitService
 
         foreach (var file in fileList)
         {
-
-            if (file == null || string.IsNullOrEmpty(file.Content) || string.IsNullOrEmpty(file.RelativePath))
+            var conflictResult = await ReadGitConflictMarkers(file);
+            
+            // Only add non-empty results
+            if (!string.IsNullOrEmpty(conflictResult.Filename) && !string.IsNullOrEmpty(conflictResult.ConflictContent))
             {
-                continue; // Skip null or empty files
-            }
-
-            var lines = file?.Content?.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
-            if (lines == null || lines.Length == 0)
-            {
-                continue;
-            }
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                if (lines[i].StartsWith("<<<<<<<"))
-                {
-                    var conflictLines = new List<string>();
-                    int startLine = i;
-
-                    while (i < lines.Length && !lines[i].StartsWith(">>>>>>>"))
-                    {
-                        conflictLines.Add(lines[i]);
-                        i++;
-                    }
-
-                    if (i < lines.Length)
-                    {
-                        conflictLines.Add(lines[i]); // Add the >>>>>>> line
-                        if (file != null)
-                        {
-                            results.Add(new ConflictResult
-                            {
-                                Filename = file.RelativePath,
-                                LineNumber = startLine + 1, // Convert to 1-based index
-                                ConflictContent = string.Join(Environment.NewLine, conflictLines)
-                            });
-                        }
-
-                    }
-                }
+                results.Add(conflictResult);
             }
         }
 

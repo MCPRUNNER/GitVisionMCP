@@ -650,6 +650,18 @@ public class McpServer : IMcpServer
                     },
                     required = new[] { "xmlFilePath", "xsltFilePath" }
                 }
+            },
+            new Tool
+            {
+                Name = "git_find_merge_conflicts",
+                Description = "Find merge conflict markers in workspace files and return detailed conflict information",
+                InputSchema = new
+                {
+                    type = "object",
+                    properties = new
+                    {
+                    }
+                }
             }
         };
 
@@ -709,6 +721,7 @@ public class McpServer : IMcpServer
             "search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
             "search_yaml_file" => await HandleSearchYamlFileAsync(toolRequest),
             "transform_xml_with_xslt" => await HandleTransformXmlWithXsltAsync(toolRequest),
+            "git_find_merge_conflicts" => await HandleGitFindMergeConflictsAsync(toolRequest),
             _ => new CallToolResponse
             {
                 IsError = true,
@@ -1944,6 +1957,47 @@ public class McpServer : IMcpServer
             {
                 IsError = true,
                 Content = new[] { new ToolContent { Type = "text", Text = $"Error: {ex.Message}" } }
+            };
+        }
+    }
+
+    private async Task<CallToolResponse> HandleGitFindMergeConflictsAsync(CallToolRequest toolRequest)
+    {
+        try
+        {
+
+
+            var results = new List<ConflictResult>();
+            var workspaceFileList = await _locationService.GetAllFilesAsync();
+            var fileContents = await _locationService.GetFileContentsAsync(workspaceFileList);
+            results = await _gitService.FindAllGitConflictMarkers(fileContents);
+
+            if (results == null || !results.Any())
+            {
+                _logger.LogInformation("No merge conflicts found in the workspace");
+                return new CallToolResponse
+                {
+                    Content = new[] { new ToolContent { Type = "text", Text = "No merge conflicts found." } }
+                };
+            }
+
+            var count = results.Count;
+            var jsonResult = JsonSerializer.Serialize(results, _outputJsonOptions);
+
+            _logger.LogInformation("Found {ConflictCount} merge conflicts in {FileCount} files", count, workspaceFileList.Count);
+
+            return new CallToolResponse
+            {
+                Content = new[] { new ToolContent { Type = "text", Text = jsonResult } }
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error finding merge conflicts");
+            return new CallToolResponse
+            {
+                IsError = true,
+                Content = new[] { new ToolContent { Type = "text", Text = $"Error finding merge conflicts: {ex.Message}" } }
             };
         }
     }

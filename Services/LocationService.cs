@@ -1262,6 +1262,47 @@ public class LocationService : ILocationService
 
         return false;
     }
+
+    public async Task<List<Models.FileContentInfo>> GetFileContentsAsync(List<WorkspaceFileInfo> workspaceFileList)
+    {
+        if (workspaceFileList == null || !workspaceFileList.Any())
+        {
+            _logger.LogWarning("GetFileContentsAsync: No files provided to read");
+            return new List<Models.FileContentInfo>();
+        }
+
+        var filePaths = workspaceFileList.Select(f => f.RelativePath).ToList();
+       // return await GetFileContentsAsync(filePaths);
+    
+    
+        var fileContents = new List<Models.FileContentInfo>();
+
+        foreach (var filePath in filePaths)
+        {
+            try
+            {
+                var fullPath = GetFullPath(filePath);
+                if (string.IsNullOrEmpty(fullPath))
+                {
+                    _logger.LogWarning("GetFileContentsAsync: file does not exist: {FilePath}", filePath);
+                    continue;
+                }
+
+                var content = await File.ReadAllTextAsync(fullPath);
+                fileContents.Add(new Models.FileContentInfo
+                {
+                    RelativePath = filePath,
+                    Content = content
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetFileContentsAsync: Error reading file: {FilePath}", filePath);
+            }
+        }
+
+        return fileContents;
+    }
     /// <summary>
     /// Searches for values in an Excel file (.xlsx) using JSONPath queries by converting worksheet data to JSON.
     /// Processes all worksheets and returns results for each.

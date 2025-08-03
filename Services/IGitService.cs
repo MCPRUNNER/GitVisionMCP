@@ -16,7 +16,8 @@ public interface IGitService
     Task<string> GetDetailedDiffBetweenCommitsAsync(string repositoryPath, string commit1, string commit2, List<string>? specificFiles = null);
     Task<GitCommitDiffInfo> GetCommitDiffInfoAsync(string repositoryPath, string commit1, string commit2);
     Task<FileLineDiffInfo> GetFileLineDiffBetweenCommitsAsync(string repositoryPath, string commit1, string commit2, string filePath);
-
+    Task<List<ConflictResult>> FindAllGitConflictMarkers(IEnumerable<FileContentInfo> fileList);
+    Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file);
     // New methods for remote branch support
     Task<List<string>> GetLocalBranchesAsync(string repositoryPath);
     Task<List<string>> GetRemoteBranchesAsync(string repositoryPath);

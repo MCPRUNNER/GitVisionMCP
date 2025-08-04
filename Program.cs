@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using GitVisionMCP.Handlers;
+using GitVisionMCP.Repositories;
 
 // Ensure UTF-8 encoding for stdout
 Console.OutputEncoding = Encoding.UTF8;
@@ -89,6 +90,7 @@ else
 }
 
 // Add our GitVision MCP services
+builder.Services.AddSingleton<IFileRepository, FileRepository>();
 builder.Services.AddSingleton<IFileService, FileService>();
 builder.Services.AddSingleton<ILocationService, LocationService>();
 builder.Services.AddSingleton<IGitService, GitService>();

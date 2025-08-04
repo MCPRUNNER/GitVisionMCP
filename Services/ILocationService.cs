@@ -7,11 +7,7 @@ namespace GitVisionMCP.Services;
 
 public interface ILocationService
 {
-    /// <summary>
-    /// Gets the workspace root directory, checking for environment variable first
-    /// </summary>
-    /// <returns>The workspace root directory path</returns>
-    string GetWorkspaceRoot();
+
 
     /// <summary>
     /// Extracts version information from a project file (e.g., .csproj) using XPath.
@@ -20,21 +16,8 @@ public interface ILocationService
     /// <returns>The version string, or null if not found</returns>
     public string? GetAppVersion(string? projectFile);
 
-    public string? ReadFile(string filePath);
-    /// <summary>
-    /// Gets all files under the workspace root directory with relative paths and file types
-    /// </summary>
-    /// <returns>A list of file information including relative path and file type</returns>
-    List<WorkspaceFileInfo> GetAllFiles();
 
-    /// <summary>
-    /// Gets the contents of files in the workspace based on a list of WorkspaceFileInfo.
-    /// This method retrieves the contents of files specified in the provided list. 
-    /// </summary>
-    /// <param name="workspaceFileList"></param>
-    /// <returns>The List of Models.FileContentInfo, or null if not found</returns>
 
-    Task<List<Models.FileContentInfo>> GetFileContentsAsync(List<WorkspaceFileInfo> workspaceFileList);
 
     /// <summary>
     /// Searches a CSV file for values using JSONPath query with support for wildcards and structured
@@ -61,24 +44,6 @@ public interface ILocationService
     /// <returns>JSON search result or null if not found</returns>
     string? SearchExcelFile(string excelFilePath, string jsonPath);
 
-    /// <summary>
-    /// Gets all files under the workspace root directory with relative paths and file types, excluding files matching exclude patterns
-    /// </summary>
-    /// <returns>A list of file information including relative path and file type, excluding excluded files</returns>
-    Task<List<WorkspaceFileInfo>> GetAllFilesAsync();
-    /// <summary>
-    /// Gets the full path of a file based on its relative path within the workspace root directory.
-    /// This method resolves the relative path in the workspace root to provide the absolute path.
-    /// </summary>
-    /// <param name="relativePath"></param>
-    /// <returns></returns>
-    string? GetFullPath(string relativePath);
-    /// <summary>
-    /// Checks if a file path should be excluded based on the exclude patterns
-    /// </summary>
-    /// <param name="relativePath">The relative path to check</param>
-    /// <returns>True if the file should be excluded, false otherwise</returns>
-    Task<bool> IsFileExcludedAsync(string relativePath);
 
 
     /// <summary>
@@ -120,20 +85,8 @@ public interface ILocationService
     /// <returns>The transformed XML as a string, or null if an error occurs</returns>
     string? TransformXmlWithXslt(string xmlFilePath, string xsltFilePath, string? destinationFilePath = null);
 
-    /// <summary>
-    ///  Gets all files under the workspace root directory with relative paths and file types that match a specific search pattern.
-    /// </summary>
-    /// <param name="searchPattern"></param>
-    /// <returns></returns>
-    List<WorkspaceFileInfo> GetAllFilesMatching(string searchPattern);
 
-    /// <summary>
-    /// Saves the output of GetAllFiles() to an XML file
-    /// </summary>
-    /// <param name="xmlFilePath">The path where the XML file will be saved</param>
-    /// <returns>True if the file was saved successfully, false otherwise</returns>
-    bool SaveAllFilesToXml(string xmlFilePath);
-
+ 
     /// <summary>
     /// Reads a file from the Prompts directory within the workspace root
     /// </summary>

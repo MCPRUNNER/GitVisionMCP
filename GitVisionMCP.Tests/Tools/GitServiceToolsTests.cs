@@ -17,6 +17,7 @@ namespace GitVisionMCP.Tests.Tools
         private readonly Mock<ILogger<GitServiceTools>> _mockLogger;
         private readonly Mock<IGitService> _mockGitService;
         private readonly Mock<ILocationService> _mockLocationService;
+        private readonly Mock<IFileService> _mockFileService;
         private readonly Mock<IDeconstructionService> _mockDeconstructionService;
         private readonly GitServiceTools _gitServiceTools;
         private readonly List<WorkspaceFileInfo> _mockFiles;
@@ -26,10 +27,13 @@ namespace GitVisionMCP.Tests.Tools
             _mockLogger = new Mock<ILogger<GitServiceTools>>();
             _mockGitService = new Mock<IGitService>();
             _mockLocationService = new Mock<ILocationService>();
+            _mockFileService = new Mock<IFileService>();
             _mockDeconstructionService = new Mock<IDeconstructionService>();
-            _gitServiceTools = new GitServiceTools(_mockGitService.Object, _mockLocationService.Object, _mockDeconstructionService.Object, _mockLogger.Object);            // Setup mock workspace root
+            _gitServiceTools = new GitServiceTools(_mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, _mockDeconstructionService.Object, _mockLogger.Object);
+
+            // Setup mock workspace root
             var mockWorkspaceRoot = Path.Combine(Path.GetTempPath(), "mock-workspace");
-            _mockLocationService.Setup(m => m.GetWorkspaceRoot()).Returns(mockWorkspaceRoot);
+            _mockFileService.Setup(m => m.GetWorkspaceRoot()).Returns(mockWorkspaceRoot);
 
             // Create mock file list
             _mockFiles = new List<WorkspaceFileInfo>
@@ -69,11 +73,11 @@ namespace GitVisionMCP.Tests.Tools
             };
 
             // Setup mock location service
-            _mockLocationService.Setup(m => m.GetAllFiles()).Returns(_mockFiles);
-            _mockLocationService.Setup(m => m.GetAllFilesAsync()).ReturnsAsync(_mockFiles);
+            _mockFileService.Setup(m => m.GetAllFiles()).Returns(_mockFiles);
+            _mockFileService.Setup(m => m.GetAllFilesAsync()).ReturnsAsync(_mockFiles);
 
             // Setup GetFileContentsAsync with customizable parameters
-            _mockLocationService.Setup(m => m.GetFileContentsAsync(It.IsAny<List<WorkspaceFileInfo>>()))
+            _mockFileService.Setup(m => m.GetFileContentsAsync(It.IsAny<List<WorkspaceFileInfo>>()))
                 .ReturnsAsync((List<WorkspaceFileInfo> files) =>
                 {
                     // Default content
@@ -220,7 +224,7 @@ namespace GitVisionMCP.Tests.Tools
         public async Task ListWorkspaceFilesAsync_HandlesExceptions()
         {
             // Arrange
-            _mockLocationService.Setup(m => m.GetAllFilesAsync()).ThrowsAsync(new Exception("Test exception"));
+            _mockFileService.Setup(m => m.GetAllFilesAsync()).ThrowsAsync(new Exception("Test exception"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(
@@ -237,7 +241,7 @@ namespace GitVisionMCP.Tests.Tools
             // Arrange
             // Setup mock file content
             var fileContent = "Test file content";
-            var mockWorkspaceRoot = _mockLocationService.Object.GetWorkspaceRoot();
+            var mockWorkspaceRoot = _mockFileService.Object.GetWorkspaceRoot();
 
             // Mock directory and file
             Directory.CreateDirectory(mockWorkspaceRoot);
@@ -247,7 +251,7 @@ namespace GitVisionMCP.Tests.Tools
             {
                 File.WriteAllText(file.FullPath, fileContent);
                 // Setup mock for ReadFile to return the content
-                _mockLocationService.Setup(m => m.ReadFile(file.FullPath)).Returns(fileContent);
+                _mockFileService.Setup(m => m.ReadFile(file.FullPath)).Returns(fileContent);
             }
 
             try
@@ -276,7 +280,7 @@ namespace GitVisionMCP.Tests.Tools
             // Arrange
             var maxFiles = 2;
             var fileContent = "Test file content";
-            var mockWorkspaceRoot = _mockLocationService.Object.GetWorkspaceRoot();
+            var mockWorkspaceRoot = _mockFileService.Object.GetWorkspaceRoot();
 
             // Ensure directory and files exist, and setup ReadFile mock
             Directory.CreateDirectory(mockWorkspaceRoot);
@@ -284,7 +288,7 @@ namespace GitVisionMCP.Tests.Tools
             foreach (var file in _mockFiles)
             {
                 File.WriteAllText(file.FullPath, fileContent);
-                _mockLocationService.Setup(m => m.ReadFile(file.FullPath)).Returns(fileContent);
+                _mockFileService.Setup(m => m.ReadFile(file.FullPath)).Returns(fileContent);
             }
 
             try
@@ -310,14 +314,14 @@ namespace GitVisionMCP.Tests.Tools
         {
             // Arrange
             // Ensure files do not exist on disk
-            var mockWorkspaceRoot = _mockLocationService.Object.GetWorkspaceRoot();
+            var mockWorkspaceRoot = _mockFileService.Object.GetWorkspaceRoot();
             if (Directory.Exists(mockWorkspaceRoot))
             {
                 Directory.Delete(mockWorkspaceRoot, true);
             }
 
             // Setup GetAllFilesAsync to throw an exception for this test
-            _mockLocationService.Setup(m => m.GetAllFilesAsync())
+            _mockFileService.Setup(m => m.GetAllFilesAsync())
                 .ThrowsAsync(new InvalidOperationException("Directory does not exist"));
 
             // Act & Assert
@@ -333,11 +337,11 @@ namespace GitVisionMCP.Tests.Tools
             long maxFileSize = 100;
 
             // Create mock directory but no files - we'll just test the size check
-            var mockWorkspaceRoot = _mockLocationService.Object.GetWorkspaceRoot();
+            var mockWorkspaceRoot = _mockFileService.Object.GetWorkspaceRoot();
             Directory.CreateDirectory(mockWorkspaceRoot);
 
             // Override the default mock for this specific test
-            _mockLocationService.Setup(m => m.GetFileContentsAsync(It.IsAny<List<WorkspaceFileInfo>>()))
+            _mockFileService.Setup(m => m.GetFileContentsAsync(It.IsAny<List<WorkspaceFileInfo>>()))
                 .ReturnsAsync((List<WorkspaceFileInfo> files) =>
                 {
                     return files.Select(f => new GitVisionMCP.Models.FileContentInfo
@@ -403,7 +407,7 @@ namespace GitVisionMCP.Tests.Tools
         public async Task ReadFilteredWorkspaceFilesAsync_HandlesExceptions()
         {
             // Arrange
-            _mockLocationService.Setup(m => m.GetAllFilesAsync()).ThrowsAsync(new Exception("Test exception"));
+            _mockFileService.Setup(m => m.GetAllFilesAsync()).ThrowsAsync(new Exception("Test exception"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(

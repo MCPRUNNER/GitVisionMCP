@@ -19,11 +19,13 @@ public class DeconstructionService : IDeconstructionService
 {
     private readonly ILogger<DeconstructionService> _logger;
     private readonly ILocationService _locationService;
+    private readonly IFileService _fileService;
 
-    public DeconstructionService(ILogger<DeconstructionService> logger, ILocationService locationService)
+    public DeconstructionService(ILogger<DeconstructionService> logger, ILocationService locationService, IFileService fileService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _locationService = locationService ?? throw new ArgumentNullException(nameof(locationService));
+        _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
     }
 
     /// <summary>
@@ -42,13 +44,13 @@ public class DeconstructionService : IDeconstructionService
             }
 
             // Read the source file content
-            var fullPath = _locationService.GetFullPath(filePath);
+            var fullPath = _fileService.GetFullPath(filePath);
             if (string.IsNullOrWhiteSpace(fullPath) || !File.Exists(fullPath))
             {
                 _logger.LogError("Source file not found: {FilePath}", filePath);
                 return null;
             }
-            var fileContent = _locationService.ReadFile(fullPath);
+            var fileContent = _fileService.ReadFile(fullPath);
 
             if (string.IsNullOrWhiteSpace(fileContent))
             {
@@ -116,7 +118,7 @@ public class DeconstructionService : IDeconstructionService
             }
 
             // Create full output path in workspace directory
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var outputPath = Path.Combine(workspaceRoot, outputFileName);
 
             // Create directory if it doesn't exist
@@ -269,7 +271,7 @@ public class DeconstructionService : IDeconstructionService
                         break;
                 }
 
- 
+
 
                 // Parse base class and interfaces
                 if (classMatch.Groups.Count > 2 && !string.IsNullOrEmpty(classMatch.Groups[2].Value))

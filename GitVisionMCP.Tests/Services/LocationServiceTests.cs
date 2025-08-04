@@ -12,15 +12,19 @@ public class LocationServiceTests
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockFileService = new Mock<IFileService>();
 
         // Set the GIT_REPOSITORY_DIRECTORY environment variable to point to the main project directory
         var originalDir = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
         var projectDir = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..");
-        Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", projectDir);
+
+        // Mock FileService methods with expected content
+        mockFileService.Setup(x => x.GetWorkspaceRoot()).Returns(projectDir);
+        mockFileService.Setup(x => x.ReadFile(It.IsAny<string>())).Returns("System Prompt for Generating Release Notes\n\nThis is a test content for the release notes prompt.");
 
         try
         {
-            var locationService = new LocationService(mockLogger.Object);
+            var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
             var promptFilename = "ReleaseNotesPrompt.md";
 
             // Act
@@ -43,7 +47,12 @@ public class LocationServiceTests
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object);
+        var mockFileService = new Mock<IFileService>();
+
+        // Mock FileService to return null for ReadFile
+        mockFileService.Setup(x => x.ReadFile(It.IsAny<string>())).Returns((string?)null);
+
+        var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
         var promptFilename = "NonExistentFile.md";
 
         // Act
@@ -58,7 +67,8 @@ public class LocationServiceTests
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object);
+        var mockFileService = new Mock<IFileService>();
+        var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
 
         // Act
         var content = locationService.GetGitHubPromptFileContent("");
@@ -72,7 +82,8 @@ public class LocationServiceTests
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object);
+        var mockFileService = new Mock<IFileService>();
+        var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
 
         // Act
         var content = locationService.GetGitHubPromptFileContent(null!);
@@ -86,13 +97,8 @@ public class LocationServiceTests
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockFileService = new Mock<IFileService>();
 
-        // Set up environment to point to test directory
-        var originalDir = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
-        var testDir = Path.Combine(Path.GetTempPath(), "yaml-test");
-        Directory.CreateDirectory(testDir);
-
-        var yamlFilePath = Path.Combine(testDir, "test-config.yaml");
         var yamlContent = @"
 application:
   name: ""TestApp""
@@ -106,30 +112,21 @@ users:
   - name: ""Jane""
     role: ""user""
 ";
-        File.WriteAllText(yamlFilePath, yamlContent);
 
-        Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", testDir);
+        // Mock the file service methods
+        mockFileService.Setup(x => x.GetFullPath("test-config.yaml"))
+            .Returns("/fake/path/test-config.yaml");
+        mockFileService.Setup(x => x.ReadFile("/fake/path/test-config.yaml"))
+            .Returns(yamlContent);
 
-        try
-        {
-            var locationService = new LocationService(mockLogger.Object);
+        var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
 
-            // Act
-            var result = locationService.SearchYamlFile("test-config.yaml", "$.application.name");
+        // Act
+        var result = locationService.SearchYamlFile("test-config.yaml", "$.application.name");
 
-            // Assert
-            Assert.NotNull(result);
-            Assert.Contains("TestApp", result);
-        }
-        finally
-        {
-            // Cleanup
-            Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", originalDir);
-            if (Directory.Exists(testDir))
-            {
-                Directory.Delete(testDir, true);
-            }
-        }
+        // Assert
+        Assert.NotNull(result);
+        Assert.Contains("TestApp", result);
     }
 
     [Fact]
@@ -137,18 +134,9 @@ users:
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockFileService = new Mock<IFileService>();
 
-        // Create a temporary directory for this test
-        var testDir = Path.Combine(Path.GetTempPath(), $"mcp-xslt-test-{Guid.NewGuid()}");
-        Directory.CreateDirectory(testDir);
-
-        var originalDir = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
-        Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", testDir);
-
-        try
-        {
-            // Create test XML file
-            var xmlContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+        var xmlContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <catalog>
     <book id=""1"">
         <title>The Great Gatsby</title>
@@ -166,11 +154,7 @@ users:
     </book>
 </catalog>";
 
-            var xmlFilePath = Path.Combine(testDir, "test-data.xml");
-            File.WriteAllText(xmlFilePath, xmlContent);
-
-            // Create test XSLT file
-            var xsltContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+        var xsltContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <xsl:stylesheet version=""1.0"" xmlns:xsl=""http://www.w3.org/1999/XSL/Transform"">
     <xsl:output method=""xml"" indent=""yes""/>
     
@@ -187,10 +171,24 @@ users:
     </xsl:template>
 </xsl:stylesheet>";
 
+        // Create a temporary directory for this test
+        var testDir = Path.Combine(Path.GetTempPath(), $"mcp-xslt-test-{Guid.NewGuid()}");
+        Directory.CreateDirectory(testDir);
+
+        try
+        {
+            // Create test files
+            var xmlFilePath = Path.Combine(testDir, "test-data.xml");
             var xsltFilePath = Path.Combine(testDir, "test-transform.xslt");
+            File.WriteAllText(xmlFilePath, xmlContent);
             File.WriteAllText(xsltFilePath, xsltContent);
 
-            var locationService = new LocationService(mockLogger.Object);
+            // Mock the file service methods
+            mockFileService.Setup(x => x.GetWorkspaceRoot()).Returns(testDir);
+            mockFileService.Setup(x => x.ReadFile(xmlFilePath)).Returns(xmlContent);
+            mockFileService.Setup(x => x.ReadFile(xsltFilePath)).Returns(xsltContent);
+
+            var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
 
             // Act
             var result = locationService.TransformXmlWithXslt("test-data.xml", "test-transform.xslt");
@@ -204,9 +202,6 @@ users:
         }
         finally
         {
-            // Restore original environment variable
-            Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", originalDir);
-
             // Clean up test directory
             if (Directory.Exists(testDir))
             {
@@ -220,7 +215,7 @@ users:
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object);
+        var locationService = new LocationService(mockLogger.Object, new Mock<IFileService>().Object);
 
         // Act
         var result = locationService.TransformXmlWithXslt(string.Empty, "transform-to-html.xslt");
@@ -234,7 +229,7 @@ users:
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object);
+        var locationService = new LocationService(mockLogger.Object, new Mock<IFileService>().Object);
 
         // Act
         var result = locationService.TransformXmlWithXslt("test-data.xml", string.Empty);
@@ -248,7 +243,7 @@ users:
     {
         // Arrange
         var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object);
+        var locationService = new LocationService(mockLogger.Object, new Mock<IFileService>().Object);
 
         // Act
         var result = locationService.TransformXmlWithXslt("non-existent.xml", "transform-to-html.xslt");
@@ -270,7 +265,7 @@ users:
 
         try
         {
-            var locationService = new LocationService(mockLogger.Object);
+            var locationService = new LocationService(mockLogger.Object, new Mock<IFileService>().Object);
 
             // Act
             var result = locationService.TransformXmlWithXslt("test-data.xml", "non-existent.xslt");
@@ -294,7 +289,7 @@ users:
         Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", projectDir);
 
         var logger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(logger.Object);
+        var locationService = new LocationService(logger.Object, new Mock<IFileService>().Object);
         var destinationFile = Path.Combine(projectDir, "output.xml");
 
         try
@@ -302,7 +297,7 @@ users:
             // Verify test files exist
             var xmlFilePath = Path.Combine(projectDir, "test-data.xml");
             var xsltFilePath = Path.Combine(projectDir, "test-transform.xslt");
-            
+
             if (!File.Exists(xmlFilePath) || !File.Exists(xsltFilePath))
             {
                 // Skip this test if the test files don't exist
@@ -323,7 +318,7 @@ users:
             if (result != null)
             {
                 Assert.True(File.Exists(destinationFile), "Destination file should have been created");
-                
+
                 // Clean up
                 if (File.Exists(destinationFile))
                 {

@@ -21,22 +21,18 @@ namespace GitVisionMCP.Services;
 
 
 /// <summary>
-/// Implementation of location service that checks for GIT_REPOSITORY_DIRECTORY environment variable
+/// Implementation of location service that provides search and transformation capabilities
 /// </summary>
 public class LocationService : ILocationService
 
 {
     private readonly ILogger<LocationService> _logger;
-    private readonly string _workspaceRoot;
-    private ExcludeConfiguration _excludeConfiguration;
-    private DateTime _lastExcludeConfigLoad = DateTime.MinValue;
+    private readonly IFileService _fileService;
 
-    public LocationService(ILogger<LocationService> logger)
+    public LocationService(ILogger<LocationService> logger, IFileService fileService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _workspaceRoot = DetermineWorkspaceRoot();
-        _excludeConfiguration = new ExcludeConfiguration();
-
+        _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
     }
 
     /// <summary>
@@ -53,53 +49,6 @@ public class LocationService : ILocationService
         }
         var value = Environment.GetEnvironmentVariable(variableName);
         return value != null ? (object)value : null;
-    }
-
-    /// <summary>
-    /// Reads a file from the workspace root directory
-    /// </summary>
-    /// <param name="fullCsvPath">The full path to the CSV file</param>
-    /// <param name="hasHeaderRecord">Whether the CSV has a header record</param>
-    /// <param name="ignoreBlankLines">Whether to ignore blank lines</param>
-    /// <returns>A list of dynamic objects representing the CSV records</returns>
-    private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, bool ignoreBlankLines)
-    {
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-        {
-            HasHeaderRecord = hasHeaderRecord,
-            IgnoreBlankLines = ignoreBlankLines,
-            TrimOptions = TrimOptions.Trim
-        };
-
-        using var reader = new StreamReader(fullCsvPath);
-        using var csv = new CsvReader(reader, config);
-        return csv.GetRecords<dynamic>().ToList();
-    }
-
-    /// <summary>
-    /// Matches a path against a glob pattern
-    /// </summary>
-    /// <param name="path">The path to check</param>
-    /// <param name="pattern">The glob pattern</param>
-    /// <returns>True if the path matches the pattern</returns>
-    private bool IsPathMatchingPattern(string path, string pattern)
-    {
-        // Convert glob pattern to regex
-        var regexPattern = "^" + Regex.Escape(pattern)
-            .Replace("\\*\\*", ".*")  // ** matches any number of directories
-            .Replace("\\*", "[^/]*")  // * matches any characters except directory separator
-            .Replace("\\?", ".")      // ? matches any single character
-            + "$";
-
-        try
-        {
-            return Regex.IsMatch(path, regexPattern, RegexOptions.IgnoreCase);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error matching pattern {Pattern} against path {Path}", pattern, path);
-            return false;
-        }
     }
     /// <summary>
     /// Formats XML search results into the appropriate output format
@@ -265,75 +214,24 @@ public class LocationService : ILocationService
         return !string.IsNullOrEmpty(lastPart) ? lastPart : "result";
     }
     /// <summary>
-    /// Determines the workspace root directory by checking environment variable first
+    /// Reads a file from the workspace root directory
     /// </summary>
-    /// <returns>The workspace root directory path</returns>
-    private string DetermineWorkspaceRoot()
+    /// <param name="fullCsvPath">The full path to the CSV file</param>
+    /// <param name="hasHeaderRecord">Whether the CSV has a header record</param>
+    /// <param name="ignoreBlankLines">Whether to ignore blank lines</param>
+    /// <returns>A list of dynamic objects representing the CSV records</returns>
+    private List<dynamic> ReadCsvRecords(string fullCsvPath, bool hasHeaderRecord, bool ignoreBlankLines)
     {
-        var gitRepositoryDirectory = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
-
-        if (!string.IsNullOrWhiteSpace(gitRepositoryDirectory))
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            if (Directory.Exists(gitRepositoryDirectory))
-            {
-                _logger.LogInformation("Using GIT_REPOSITORY_DIRECTORY environment variable: {GitRepositoryDirectory}", gitRepositoryDirectory);
-                return gitRepositoryDirectory;
-            }
-            else
-            {
-                _logger.LogWarning("GIT_REPOSITORY_DIRECTORY environment variable is set but directory does not exist: {GitRepositoryDirectory}. Falling back to current directory.", gitRepositoryDirectory);
-            }
-        }
+            HasHeaderRecord = hasHeaderRecord,
+            IgnoreBlankLines = ignoreBlankLines,
+            TrimOptions = TrimOptions.Trim
+        };
 
-        var currentDirectory = Environment.CurrentDirectory;
-        _logger.LogInformation("Using current directory as workspace root: {CurrentDirectory}", currentDirectory);
-        return currentDirectory;
-    }
-
-    /// <summary>
-    /// Loads the exclude configuration from .gitvision/exclude.json
-    /// </summary>
-    /// <returns>The exclude configuration or null if not found or invalid</returns>
-    private async Task<ExcludeConfiguration?> LoadExcludeConfigurationAsync()
-    {
-        try
-        {
-            var excludeConfigPath = Path.Combine(_workspaceRoot, ".gitvision", "exclude.json");
-            var fullPath = GetFullPath(excludeConfigPath);
-            if (string.IsNullOrEmpty(fullPath))
-            {
-                _logger.LogInformation("Exclude configuration file not found at: {ExcludeConfigPath}", excludeConfigPath);
-                return null;
-            }
-
-            var lastWriteTime = File.GetLastWriteTime(fullPath);
-
-            // Check if we need to reload the configuration
-            if (_excludeConfiguration != null && _lastExcludeConfigLoad >= lastWriteTime)
-            {
-                return _excludeConfiguration;
-            }
-
-            var jsonContent = await File.ReadAllTextAsync(fullPath);
-            var configuration = JsonConvert.DeserializeObject<ExcludeConfiguration>(jsonContent);
-            if (configuration == null)
-            {
-                _logger.LogWarning("Exclude configuration is null after deserialization");
-                return null;
-            }
-            _excludeConfiguration = configuration;
-            _lastExcludeConfigLoad = lastWriteTime;
-
-            _logger.LogInformation("Loaded exclude configuration with {PatternCount} patterns from: {ExcludeConfigPath}",
-                configuration?.ExcludePatterns?.Count ?? 0, excludeConfigPath);
-
-            return configuration;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error loading exclude configuration");
-            return null;
-        }
+        using var reader = new StreamReader(fullCsvPath);
+        using var csv = new CsvReader(reader, config);
+        return csv.GetRecords<dynamic>().ToList();
     }
     /// <summary>
     /// Extracts JSON tokens from a JSON string using a JSONPath query
@@ -442,186 +340,10 @@ public class LocationService : ILocationService
         return true;
     }
 
-    /// <summary>
-    /// Gets the workspace root directory
-    /// </summary>
-    /// <returns>The workspace root directory path</returns>
-    public string GetWorkspaceRoot()
-    {
-        return _workspaceRoot;
-    }
-    public List<WorkspaceFileInfo> GetAllFilesMatching(string searchPattern)
-    {
-        var files = new List<WorkspaceFileInfo>();
 
-        try
-        {
-            var workspaceRoot = new DirectoryInfo(_workspaceRoot);
-            var allFiles = workspaceRoot.GetFiles(searchPattern, SearchOption.AllDirectories);
 
-            foreach (var file in allFiles)
-            {
-                var relativePath = Path.GetRelativePath(_workspaceRoot, file.FullName);
-                var fileType = Path.GetExtension(file.Name).ToLowerInvariant();
 
-                files.Add(new WorkspaceFileInfo
-                {
-                    RelativePath = relativePath,
-                    FileType = string.IsNullOrEmpty(fileType) ? "no extension" : fileType.TrimStart('.'),
-                    FullPath = file.FullName,
-                    Size = file.Length,
-                    LastModified = file.LastWriteTime
-                });
-            }
 
-            _logger.LogInformation("Retrieved {FileCount} files from workspace root: {WorkspaceRoot}", files.Count, _workspaceRoot);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving files from workspace root: {WorkspaceRoot}", _workspaceRoot);
-        }
-
-        return files;
-    }
-    /// <summary>
-    /// Gets all files in the workspace with relative paths, file types, and exclude filtering applied.
-    /// </summary>
-    /// <returns>A list of WorkspaceFileInfo objects for all files, excluding those matching exclude patterns</returns>
-    public async Task<List<WorkspaceFileInfo>> GetAllFilesAsync()
-    {
-        var files = new List<WorkspaceFileInfo>();
-
-        try
-        {
-            var workspaceRoot = new DirectoryInfo(_workspaceRoot);
-            var allFiles = workspaceRoot.GetFiles("*", SearchOption.AllDirectories);
-
-            foreach (var file in allFiles)
-            {
-                var relativePath = Path.GetRelativePath(_workspaceRoot, file.FullName);
-
-                // Check if file should be excluded
-                if (await IsFileExcludedAsync(relativePath))
-                {
-                    continue;
-                }
-
-                var fileType = Path.GetExtension(file.Name).ToLowerInvariant();
-
-                files.Add(new WorkspaceFileInfo
-                {
-                    RelativePath = relativePath,
-                    FileType = string.IsNullOrEmpty(fileType) ? "no extension" : fileType.TrimStart('.'),
-                    FullPath = file.FullName,
-                    Size = file.Length,
-                    LastModified = file.LastWriteTime
-                });
-            }
-
-            _logger.LogInformation("Retrieved {FileCount} files from workspace root (after exclusions): {WorkspaceRoot}", files.Count, _workspaceRoot);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving files from workspace root: {WorkspaceRoot}", _workspaceRoot);
-        }
-
-        return files;
-    }
-
-    /// <summary>
-    /// Gets all files in the workspace (synchronous version, does not apply exclude filtering for backward compatibility)
-    /// </summary>
-    /// <returns>A list of WorkspaceFileInfo objects for all files</returns>
-    public List<WorkspaceFileInfo> GetAllFiles()
-    {
-        var files = new List<WorkspaceFileInfo>();
-
-        try
-        {
-            var workspaceRoot = new DirectoryInfo(_workspaceRoot);
-            var allFiles = workspaceRoot.GetFiles("*", SearchOption.AllDirectories);
-
-            foreach (var file in allFiles)
-            {
-                var relativePath = Path.GetRelativePath(_workspaceRoot, file.Name);
-                var fileType = Path.GetExtension(file.Name).ToLowerInvariant();
-
-                files.Add(new WorkspaceFileInfo
-                {
-                    RelativePath = relativePath,
-                    FileType = string.IsNullOrEmpty(fileType) ? "no extension" : fileType.TrimStart('.'),
-                    FullPath = file.FullName,
-                    Size = file.Length,
-                    LastModified = file.LastWriteTime
-                });
-            }
-
-            _logger.LogInformation("Retrieved {FileCount} files from workspace root: {WorkspaceRoot}", files.Count, _workspaceRoot);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving files from workspace root: {WorkspaceRoot}", _workspaceRoot);
-        }
-
-        return files;
-    }
-
-    /// <summary>
-    /// Saves the output of GetAllFiles() to an XML file
-    /// </summary>
-    /// <param name="xmlFilePath">The path where the XML file will be saved</param>
-    /// <returns>True if the file was saved successfully, false otherwise</returns>
-    public bool SaveAllFilesToXml(string xmlFilePath)
-    {
-        if (string.IsNullOrWhiteSpace(xmlFilePath))
-        {
-            _logger.LogError("XML file path cannot be null or empty");
-            return false;
-        }
-
-        try
-        {
-            var files = GetAllFiles();
-            var xmlContent = new System.Text.StringBuilder();
-
-            xmlContent.AppendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
-            xmlContent.AppendLine("<WorkspaceFiles>");
-            xmlContent.AppendLine($"  <WorkspaceRoot>{System.Security.SecurityElement.Escape(_workspaceRoot)}</WorkspaceRoot>");
-            xmlContent.AppendLine($"  <GeneratedAt>{DateTime.UtcNow:yyyy-MM-ddTHH:mm:ssZ}</GeneratedAt>");
-            xmlContent.AppendLine($"  <FileCount>{files.Count}</FileCount>");
-            xmlContent.AppendLine("  <Files>");
-
-            foreach (var file in files)
-            {
-                xmlContent.AppendLine("    <File>");
-                xmlContent.AppendLine($"      <RelativePath>{System.Security.SecurityElement.Escape(file.RelativePath)}</RelativePath>");
-                xmlContent.AppendLine($"      <FileType>{System.Security.SecurityElement.Escape(file.FileType)}</FileType>");
-                xmlContent.AppendLine($"      <FullPath>{System.Security.SecurityElement.Escape(file.FullPath)}</FullPath>");
-                xmlContent.AppendLine($"      <Size>{file.Size}</Size>");
-                xmlContent.AppendLine($"      <LastModified>{file.LastModified:yyyy-MM-ddTHH:mm:ssZ}</LastModified>");
-                xmlContent.AppendLine("    </File>");
-            }
-
-            xmlContent.AppendLine("  </Files>");
-            xmlContent.AppendLine("</WorkspaceFiles>");
-
-            // Create directory if it doesn't exist
-            var directory = Path.GetDirectoryName(xmlFilePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
-
-            File.WriteAllText(xmlFilePath, xmlContent.ToString());
-            _logger.LogInformation("Successfully saved {FileCount} files to XML file: {XmlFilePath}", files.Count, xmlFilePath);
-            return true;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error saving files to XML file: {XmlFilePath}", xmlFilePath);
-            return false;
-        }
-    }
 
     /// <summary>
     /// Reads a file from the Prompts directory within the workspace root
@@ -638,7 +360,7 @@ public class LocationService : ILocationService
 
         try
         {
-            var promptsDirectory = Path.Combine(_workspaceRoot, ".github/prompts");
+            var promptsDirectory = Path.Combine(_fileService.GetWorkspaceRoot(), ".github/prompts");
             var filePath = Path.Combine(promptsDirectory, filename);
             if (string.IsNullOrEmpty(filePath))
             {
@@ -646,7 +368,7 @@ public class LocationService : ILocationService
                 return null;
             }
 
-            var content = ReadFile(filePath);
+            var content = _fileService.ReadFile(filePath);
             _logger.LogInformation("Successfully read prompt file: {FilePath}", filePath);
             return content;
         }
@@ -668,7 +390,7 @@ public class LocationService : ILocationService
             }
 
             // Read the entire content of the JSON file into a string
-            var filePath = GetFullPath(jsonFilePath);
+            var filePath = _fileService.GetFullPath(jsonFilePath);
 
             if (string.IsNullOrEmpty(filePath))
             {
@@ -680,7 +402,7 @@ public class LocationService : ILocationService
                 _logger.LogError("JSONPath cannot be null or empty");
                 return null;
             }
-            var jsonContent = ReadFile(filePath);
+            var jsonContent = _fileService.ReadFile(filePath);
 
             if (string.IsNullOrWhiteSpace(jsonContent))
             {
@@ -771,7 +493,7 @@ public class LocationService : ILocationService
     {
         if (!ValidateInputs(csvFilePath, jsonPath)) return null;
 
-        var fullCsvPath = GetFullPath(csvFilePath);
+        var fullCsvPath = _fileService.GetFullPath(csvFilePath);
         if (string.IsNullOrEmpty(fullCsvPath))
         {
             _logger.LogWarning("CSV file does not exist: {CsvFilePath}", csvFilePath);
@@ -865,8 +587,8 @@ public class LocationService : ILocationService
             }
 
             // Read the entire content of the XML file into a string
-            var filePath = Path.Combine(_workspaceRoot, xmlFilePath);
-            var xmlContent = ReadFile(filePath);
+            var filePath = Path.Combine(_fileService.GetWorkspaceRoot(), xmlFilePath);
+            var xmlContent = _fileService.ReadFile(filePath);
 
             if (string.IsNullOrWhiteSpace(xmlContent))
             {
@@ -949,8 +671,8 @@ public class LocationService : ILocationService
             }
 
             // Get full paths relative to workspace root
-            var fullXmlPath = Path.Combine(_workspaceRoot, xmlFilePath);
-            var fullXsltPath = Path.Combine(_workspaceRoot, xsltFilePath);
+            var fullXmlPath = Path.Combine(_fileService.GetWorkspaceRoot(), xmlFilePath);
+            var fullXsltPath = Path.Combine(_fileService.GetWorkspaceRoot(), xsltFilePath);
 
             // Check if XML file exists
             if (!File.Exists(fullXmlPath))
@@ -989,7 +711,7 @@ public class LocationService : ILocationService
                 {
                     var fullDestinationPath = Path.IsPathRooted(destinationFilePath)
                         ? destinationFilePath
-                        : Path.Combine(_workspaceRoot, destinationFilePath);
+                        : Path.Combine(_fileService.GetWorkspaceRoot(), destinationFilePath);
 
                     // Create directory if it doesn't exist
                     var directory = Path.GetDirectoryName(fullDestinationPath);
@@ -1056,13 +778,13 @@ public class LocationService : ILocationService
             }
 
             // Read the entire content of the YAML file into a string
-            var filePath = GetFullPath(yamlFilePath);
+            var filePath = _fileService.GetFullPath(yamlFilePath);
             if (string.IsNullOrEmpty(filePath))
             {
                 _logger.LogWarning("YAML file does not exist: {YamlFilePath}", yamlFilePath);
                 return null;
             }
-            var yamlContent = ReadFile(filePath);
+            var yamlContent = _fileService.ReadFile(filePath);
 
             if (string.IsNullOrWhiteSpace(yamlContent))
             {
@@ -1167,152 +889,11 @@ public class LocationService : ILocationService
         }
     }
 
-    public string? ReadFile(string filePath)
-    {
-        if (string.IsNullOrWhiteSpace(filePath))
-        {
-            _logger.LogError("Filename cannot be null or empty");
-            return null;
-        }
 
-        try
-        {
-            var fullPath = GetFullPath(filePath);
-            if (string.IsNullOrEmpty(fullPath))
-            {
-                _logger.LogWarning("ReadFile: file does not exist: {FilePath}", filePath);
-                return null;
-            }
-
-            var content = File.ReadAllText(fullPath);
-            _logger.LogInformation("Successfully read file: {FilePath}", filePath);
-
-            return content;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "ReadFile: Error reading file: {Filename}", filePath);
-            return null;
-        }
-    }
-
-
-    public string? GetFullPath(string relativePath)
-    {
-        if (string.IsNullOrWhiteSpace(relativePath))
-        {
-            _logger.LogError("GetFileFullPath: Filename cannot be null or empty");
-            return null;
-        }
-
-        try
-        {
-            string fullPath;
-
-            // If path is already absolute, use it as-is
-            if (Path.IsPathRooted(relativePath))
-            {
-                fullPath = relativePath;
-            }
-            else
-            {
-                // If relative, combine with workspace root
-                fullPath = Path.Combine(_workspaceRoot, relativePath);
-            }
-
-            if (!File.Exists(fullPath))
-            {
-                _logger.LogInformation("GetFileFullPath: file not found at: {FullPath}", fullPath);
-                return null;
-            }
-            return fullPath;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "GetFileFullPath: Error processing file path: {RelativePath}", relativePath);
-            return null;
-        }
-    }
-
-    /// <summary>
-    /// Checks if a file path should be excluded based on the exclude patterns
-    /// </summary>
-    /// <param name="relativePath">The relative path to check</param>
-    /// <returns>True if the file should be excluded, false otherwise</returns>
-    public async Task<bool> IsFileExcludedAsync(string relativePath)
-    {
-        var excludeConfig = await LoadExcludeConfigurationAsync();
-
-        if (excludeConfig?.ExcludePatterns == null || !excludeConfig.ExcludePatterns.Any())
-        {
-            return false;
-        }
-
-        var normalizedPath = relativePath.Replace('\\', '/');
-
-        foreach (var pattern in excludeConfig.ExcludePatterns)
-        {
-            if (IsPathMatchingPattern(normalizedPath, pattern))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
 
     public async Task<List<Models.FileContentInfo>> GetFileContentsAsync(List<WorkspaceFileInfo> workspaceFileList)
     {
-        if (workspaceFileList == null || !workspaceFileList.Any())
-        {
-            _logger.LogWarning("GetFileContentsAsync: No files provided to read");
-            return new List<Models.FileContentInfo>();
-        }
-
-        var fileContents = new List<Models.FileContentInfo>();
-
-        foreach (var file in workspaceFileList)
-        {
-            try
-            {
-                var fullPath = file.FullPath;
-                if (string.IsNullOrEmpty(fullPath) || !File.Exists(fullPath))
-                {
-                    _logger.LogWarning("GetFileContentsAsync: file does not exist: {FilePath}", file.RelativePath);
-                    fileContents.Add(new Models.FileContentInfo
-                    {
-                        RelativePath = file.RelativePath,
-                        FileType = file.FileType,
-                        IsError = true,
-                        ErrorMessage = "File does not exist"
-                    });
-                    continue;
-                }
-
-                var content = ReadFile(fullPath);
-                fileContents.Add(new Models.FileContentInfo
-                {
-                    RelativePath = file.RelativePath,
-                    FullPath = file.FullPath,
-                    FileType = file.FileType,
-                    Content = content,
-                    IsError = false
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "GetFileContentsAsync: Error reading file: {FilePath}", file.RelativePath);
-                fileContents.Add(new Models.FileContentInfo
-                {
-                    RelativePath = file.RelativePath,
-                    FileType = file.FileType,
-                    IsError = true,
-                    ErrorMessage = $"Error reading file: {ex.Message}"
-                });
-            }
-        }
-
-        return fileContents;
+        return await _fileService.GetFileContentsAsync(workspaceFileList);
     }
     /// <summary>
     /// Searches for values in an Excel file (.xlsx) using JSONPath queries by converting worksheet data to JSON.
@@ -1325,7 +906,7 @@ public class LocationService : ILocationService
     {
         if (!ValidateInputs(excelFilePath, jsonPath)) return null;
 
-        var fullExcelPath = GetFullPath(excelFilePath);
+        var fullExcelPath = _fileService.GetFullPath(excelFilePath);
         if (string.IsNullOrEmpty(fullExcelPath))
         {
             _logger.LogWarning("Excel file does not exist: {ExcelFilePath}", excelFilePath);

@@ -4,6 +4,7 @@ This index lists all markdown documentation files available in the `Documentatio
 
 ## Documentation Files
 
+- [ARCHITECTURE.md](ARCHITECTURE.md): Overview of the system architecture and component interactions.
 - [DECONSTRUCTION_SERVICE.md](DECONSTRUCTION_SERVICE.md): Service for deconstructing C# files and extracting architecture.
 - [DOCKER.md](DOCKER.md): Docker setup and usage instructions for GitVisionMCP.
 - [EXAMPLES.md](EXAMPLES.md): Comprehensive usage examples for MCP tools and integrations.

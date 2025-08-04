@@ -22,6 +22,7 @@ public class McpHandler : IMcpHandler
     private readonly IConfiguration _configuration;
     private readonly IGitService _gitService;
     private readonly ILocationService _locationService;
+    private readonly IFileService _fileService;
     private readonly IGitServiceTools _gitServiceTools;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly JsonSerializerOptions _outputJsonOptions;
@@ -32,6 +33,7 @@ public class McpHandler : IMcpHandler
         IConfiguration configuration,
         IGitService gitService,
         ILocationService locationService,
+        IFileService fileService,
         IGitServiceTools gitServiceTools)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -39,6 +41,7 @@ public class McpHandler : IMcpHandler
         _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
         _locationService = locationService ?? throw new ArgumentNullException(nameof(locationService));
         _gitServiceTools = gitServiceTools ?? throw new ArgumentNullException(nameof(gitServiceTools));
+        _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -741,7 +744,7 @@ public class McpHandler : IMcpHandler
     {
         try
         {
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var maxCommits = GetArgumentValue(toolRequest.Arguments, "maxCommits", 50);
             var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
 
@@ -778,7 +781,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var maxCommits = GetArgumentValue(toolRequest.Arguments, "maxCommits", 50);
             var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
 
@@ -829,11 +832,11 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
 
             // Make path relative to workspace if not absolute
-            var fullPath = _locationService.GetFullPath(filePath);
+            var fullPath = _fileService.GetFullPath(filePath);
             if (string.IsNullOrEmpty(fullPath))
             {
                 return new CallToolResponse
@@ -885,13 +888,13 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
 
 
 
             // Make path relative to workspace if not absolute
-            var fullPath = _locationService.GetFullPath(filePath);
+            var fullPath = _fileService.GetFullPath(filePath);
             if (string.IsNullOrEmpty(fullPath))
             {
                 return new CallToolResponse
@@ -929,7 +932,7 @@ public class McpHandler : IMcpHandler
     {
         try
         {
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var count = GetArgumentValue(toolRequest.Arguments, "count", 10);
 
             var commits = await _gitService.GetRecentCommitsAsync(workspaceRoot, count);
@@ -968,7 +971,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var changedFiles = await _gitService.GetChangedFilesBetweenCommitsAsync(workspaceRoot, commit1, commit2);
             var filesList = string.Join("\n", changedFiles.Select(f => $"• {f}"));
 
@@ -1004,7 +1007,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var specificFilesArg = GetArgumentValue<object?>(toolRequest.Arguments, "specificFiles", null);
             List<string>? specificFiles = null;
 
@@ -1047,7 +1050,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var diffInfo = await _gitService.GetCommitDiffInfoAsync(workspaceRoot, commit1, commit2);
 
             var summary = $"Commit Diff Summary ({commit1[..8]} → {commit2[..8]}):\n\n" +
@@ -1090,7 +1093,7 @@ public class McpHandler : IMcpHandler
     {
         try
         {
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var localBranches = await _gitService.GetLocalBranchesAsync(workspaceRoot);
             var branchList = string.Join("\n", localBranches.Select(b => $"• {b}"));
 
@@ -1114,7 +1117,7 @@ public class McpHandler : IMcpHandler
     {
         try
         {
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var remoteBranches = await _gitService.GetRemoteBranchesAsync(workspaceRoot);
             var branchList = string.Join("\n", remoteBranches.Select(b => $"• {b}"));
 
@@ -1138,7 +1141,7 @@ public class McpHandler : IMcpHandler
     {
         try
         {
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var allBranches = await _gitService.GetAllBranchesAsync(workspaceRoot);
             var branchList = string.Join("\n", allBranches.Select(b => $"• {b}"));
 
@@ -1162,7 +1165,7 @@ public class McpHandler : IMcpHandler
     {
         try
         {
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var currentBranch = await _gitService.GetCurrentBranchAsync(workspaceRoot);
 
             return new CallToolResponse
@@ -1185,7 +1188,7 @@ public class McpHandler : IMcpHandler
     {
         try
         {
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var remoteName = GetArgumentValue(toolRequest.Arguments, "remoteName", "origin");
             var success = await _gitService.FetchFromRemoteAsync(workspaceRoot, remoteName);
 
@@ -1226,7 +1229,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var outputFormat = GetArgumentValue(toolRequest.Arguments, "outputFormat", "markdown");
             var fetchRemote = GetArgumentValue(toolRequest.Arguments, "fetchRemote", true);
 
@@ -1275,7 +1278,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var maxCommits = GetArgumentValue(toolRequest.Arguments, "maxCommits", 100);
 
             var searchResults = await _gitService.SearchCommitsForStringAsync(workspaceRoot, searchString, maxCommits);
@@ -1375,7 +1378,7 @@ public class McpHandler : IMcpHandler
             {
                 myPath = relativePath;
             }
-            var allFiles = _locationService.GetAllFilesMatching(myPath);
+            var allFiles = _fileService.GetAllFilesMatching(myPath);
 
             // Capture the total count before filtering
             var totalCount = allFiles.Count;
@@ -1497,7 +1500,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             // Make path relative to workspace if not absolute
             if (!Path.IsPathRooted(csvFilePath))
             {
@@ -1537,7 +1540,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             // Make path relative to workspace if not absolute
             if (!Path.IsPathRooted(excelFilePath))
             {
@@ -1969,8 +1972,8 @@ public class McpHandler : IMcpHandler
 
 
             var results = new List<ConflictResult>();
-            var workspaceFileList = await _locationService.GetAllFilesAsync();
-            var fileContents = await _locationService.GetFileContentsAsync(workspaceFileList);
+            var workspaceFileList = await _fileService.GetAllFilesAsync();
+            var fileContents = await _fileService.GetFileContentsAsync(workspaceFileList);
             results = await _gitService.FindAllGitConflictMarkers(fileContents);
 
             if (results == null || !results.Any())
@@ -2108,7 +2111,7 @@ public class McpHandler : IMcpHandler
                 return CreateErrorResponse(request.Id, -32602, "Invalid prompt request");
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var commits = await _gitService.GetGitLogsAsync(workspaceRoot, 50);
 
             var promptContent = promptRequest.Name switch
@@ -2151,7 +2154,7 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            var workspaceRoot = _locationService.GetWorkspaceRoot();
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
             var lineDiff = await _gitService.GetFileLineDiffBetweenCommitsAsync(workspaceRoot, commit1, commit2, filePath);
 
             return new CallToolResponse

@@ -16,13 +16,15 @@ public class GitServiceTools : IGitServiceTools
 {
     private readonly IGitService _gitService;
     private readonly ILocationService _locationService;
+    private readonly IFileService _fileService;
     private readonly IDeconstructionService _deconstructionService;
     private readonly ILogger<GitServiceTools> _logger;
 
-    public GitServiceTools(IGitService gitService, ILocationService locationService, IDeconstructionService deconstructionService, ILogger<GitServiceTools> logger)
+    public GitServiceTools(IGitService gitService, ILocationService locationService, IFileService fileService, IDeconstructionService deconstructionService, ILogger<GitServiceTools> logger)
     {
         _gitService = gitService;
         _locationService = locationService;
+        _fileService = fileService;
         _deconstructionService = deconstructionService;
         _logger = logger;
     }
@@ -34,7 +36,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             return await _gitService.FetchFromRemoteAsync(repoPath, remoteName ?? "origin");
         }
         catch (Exception ex)
@@ -61,7 +63,7 @@ public class GitServiceTools : IGitServiceTools
                 commitCount = 50;
             }
 
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Generating git documentation for last {CommitCount} commits in {Format} format",
                 commitCount, outputFormat);
 
@@ -141,7 +143,7 @@ public class GitServiceTools : IGitServiceTools
             outputFormat = ValidateOutputFormat(outputFormat);
             var commitCount = maxCommits ?? 50;
 
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Generating git documentation to file {FilePath} for last {CommitCount} commits",
                 filePath, commitCount);
 
@@ -250,7 +252,7 @@ public class GitServiceTools : IGitServiceTools
             // Ensure directory exists
             EnsureDirectoryExists(filePath);
 
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Comparing branches {Branch1} and {Branch2}, writing to {FilePath}",
                 branch1, branch2, filePath);
 
@@ -340,7 +342,7 @@ public class GitServiceTools : IGitServiceTools
             // Ensure directory exists
             EnsureDirectoryExists(filePath);
 
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Comparing branches {Branch1} and {Branch2} with remote support, writing to {FilePath}",
                 branch1, branch2, filePath);
 
@@ -435,7 +437,7 @@ public class GitServiceTools : IGitServiceTools
             // Ensure directory exists
             EnsureDirectoryExists(filePath);
 
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Comparing commits {Commit1} and {Commit2}, writing to {FilePath}",
                 commit1, commit2, filePath);
 
@@ -501,7 +503,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             return await _gitService.GetRecentCommitsAsync(repoPath, count ?? 10);
         }
         catch (Exception ex)
@@ -517,7 +519,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             return await _gitService.GetLocalBranchesAsync(repoPath);
         }
         catch (Exception ex)
@@ -533,7 +535,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             return await _gitService.GetRemoteBranchesAsync(repoPath);
         }
         catch (Exception ex)
@@ -549,7 +551,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             return await _gitService.GetAllBranchesAsync(repoPath);
         }
         catch (Exception ex)
@@ -565,7 +567,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             return await _gitService.GetCurrentBranchAsync(repoPath);
         }
         catch (Exception ex)
@@ -596,7 +598,7 @@ public class GitServiceTools : IGitServiceTools
 
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Getting changed files between commits {Commit1} and {Commit2}",
                 commit1, commit2);
 
@@ -648,7 +650,7 @@ public class GitServiceTools : IGitServiceTools
 
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Getting diff info between commits {Commit1} and {Commit2}",
                 commit1, commit2);
 
@@ -710,7 +712,7 @@ public class GitServiceTools : IGitServiceTools
 
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
 
             if (specificFiles != null && specificFiles.Count > 0)
             {
@@ -787,7 +789,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Searching for '{SearchString}' in last {CommitCount} commits",
                 searchString, commitCount);
 
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
 
             // Check if repository exists
             if (!Directory.Exists(Path.Combine(repoPath, ".git")))
@@ -852,7 +854,7 @@ public class GitServiceTools : IGitServiceTools
 
         try
         {
-            var repoPath = _locationService.GetWorkspaceRoot();
+            var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Getting line-by-line diff for file {FilePath} between commits {Commit1} and {Commit2}",
                 filePath, commit1, commit2);
 
@@ -906,7 +908,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var allFiles = await _locationService.GetAllFilesAsync();
+            var allFiles = await _fileService.GetAllFilesAsync();
             var filteredFiles = allFiles.AsEnumerable();
 
             // Apply file type filter
@@ -1040,7 +1042,7 @@ public class GitServiceTools : IGitServiceTools
             filteredFiles = filteredFiles.Take(fileLimit).ToList();
 
             var result = new List<Models.FileContentInfo>();
-            result = await _locationService.GetFileContentsAsync(filteredFiles);
+            result = await _fileService.GetFileContentsAsync(filteredFiles);
 
 
             _logger.LogInformation("Read {ReadCount} files out of {FilteredCount} filtered files",
@@ -1063,8 +1065,8 @@ public class GitServiceTools : IGitServiceTools
         try
         {
             var results = new List<ConflictResult>();
-            var workspaceFileList = await _locationService.GetAllFilesAsync();
-            var fileContents = await _locationService.GetFileContentsAsync(workspaceFileList);
+            var workspaceFileList = await _fileService.GetAllFilesAsync();
+            var fileContents = await _fileService.GetFileContentsAsync(workspaceFileList);
             results = await _gitService.FindAllGitConflictMarkers(fileContents);
 
             _logger.LogInformation("Found merge conflicts in workspace");

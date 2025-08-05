@@ -8,57 +8,62 @@ This document explains the functional differences between `GitServiceTools` and 
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
-        VSCode[VS Code + Copilot]
-        HTTPClient[HTTP Client]
+    subgraph "Client Layer (mcp.json)"
+        VSCode[STDIO Configuration<br/>command line run]
+        HTTPClient[HTTP Configuration<br/>url http\://ip\:port\/mcp]
     end
-    
+
     subgraph "Transport Layer"
         STDIO[STDIO Transport]
         HTTP[HTTP Transport]
     end
-    
+
     subgraph "Protocol Layer"
         McpHandler[McpHandler<br/>JSON-RPC Handler]
         McpFramework[MCP Framework<br/>Built-in Routing]
     end
-    
+
     subgraph "Business Logic Layer"
         GitServiceTools[GitServiceTools<br/>Tool Implementations]
     end
-    
+
     subgraph "Service Layer"
         GitService[GitService]
         FileService[FileService]
         LocationService[LocationService]
         DeconstructionService[DeconstructionService]
     end
-    
+    subgraph "Repository Layer"
+        FileRepository[FileRepository]
+        GitRepository[GitCommandRepository]
+    end
     VSCode -.->|JSON-RPC over STDIO| STDIO
     HTTPClient -.->|JSON-RPC over HTTP| HTTP
-    
+
     STDIO --> McpHandler
     HTTP --> McpFramework
-    
+
     McpHandler --> GitServiceTools
     McpFramework --> GitServiceTools
-    
+
     GitServiceTools --> GitService
     GitServiceTools --> FileService
     GitServiceTools --> LocationService
     GitServiceTools --> DeconstructionService
-    
-    style GitServiceTools fill:#e1f5fe
-    style McpHandler fill:#fff3e0
-    style McpFramework fill:#f3e5f5
+    FileService --> FileRepository
+    GitService --> GitRepository
+
+
 ```
 
 ## Component Responsibilities
 
 ### GitServiceTools
+
 **Purpose**: Business logic layer containing MCP tool implementations
 
 **Key Characteristics**:
+
 - **Transport Agnostic**: Works with both STDIO and HTTP transports
 - **Business Logic**: Contains actual implementation of git operations, file operations, etc.
 - **MCP Annotations**: Decorated with `[McpServerToolAttribute]` for automatic discovery
@@ -78,37 +83,39 @@ classDiagram
         -ValidateOutputFormat()
         -EnsureDirectoryExists()
     }
-    
+
     class IGitService {
         <<Interface>>
         +GetGitLogsAsync()
         +GenerateCommitDocumentationAsync()
         +FetchFromRemoteAsync()
     }
-    
+
     class IFileService {
         <<Interface>>
         +GetWorkspaceRoot()
         +GetAllFilesAsync()
         +GetFileContentsAsync()
     }
-    
+
     class ILocationService {
         <<Interface>>
         +SearchJsonFile()
         +SearchXmlFile()
         +GetAppVersion()
     }
-    
+
     GitServiceTools --> IGitService
     GitServiceTools --> IFileService
     GitServiceTools --> ILocationService
 ```
 
 ### McpHandler
+
 **Purpose**: STDIO-specific protocol handler for JSON-RPC communication
 
 **Key Characteristics**:
+
 - **Transport Specific**: Only used for STDIO transport
 - **Protocol Handler**: Manages JSON-RPC message parsing and routing
 - **No Business Logic**: Routes requests to GitServiceTools
@@ -128,24 +135,24 @@ classDiagram
         -CreateErrorResponse()
         -SendErrorResponseAsync()
     }
-    
+
     class JsonRpcRequest {
         +Id: object
         +Method: string
         +Params: object
     }
-    
+
     class JsonRpcResponse {
         +Id: object
         +Result: object
         +Error: object
     }
-    
+
     class CallToolRequest {
         +Name: string
         +Arguments: object
     }
-    
+
     McpHandler --> JsonRpcRequest
     McpHandler --> JsonRpcResponse
     McpHandler --> CallToolRequest
@@ -162,7 +169,7 @@ sequenceDiagram
     participant Handler as McpHandler
     participant Tools as GitServiceTools
     participant Service as GitService
-    
+
     Client->>Handler: JSON-RPC via STDIO
     Handler->>Handler: Parse JSON-RPC Request
     Handler->>Handler: Route to Tool Method
@@ -182,7 +189,7 @@ sequenceDiagram
     participant Framework as MCP Framework
     participant Tools as GitServiceTools
     participant Service as GitService
-    
+
     Client->>Framework: HTTP JSON-RPC Request
     Framework->>Framework: Parse & Route Request
     Framework->>Tools: Call Tool Method Directly
@@ -202,7 +209,7 @@ flowchart TD
     A[Client Requests tools/list] --> B[McpHandler.HandleToolsListAsync]
     B --> C[Hardcoded Tool Definitions]
     C --> D[Return Tool Schema]
-    
+
     E[Client Calls Tool] --> F[McpHandler.HandleToolCallAsync]
     F --> G[Parse Tool Name & Arguments]
     G --> H[Route to GitServiceTools Method]
@@ -217,9 +224,9 @@ flowchart TD
     B --> C[Find Classes with McpServerToolType]
     C --> D[Discover Methods with McpServerToolAttribute]
     D --> E[Build Tool Registry]
-    
+
     F[Client Requests tools/list] --> G[Framework Returns Discovered Tools]
-    
+
     H[Client Calls Tool] --> I[Framework Routes Directly to Method]
     I --> J[Execute Business Logic]
 ```
@@ -229,22 +236,22 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[Application Starts] --> B{Check GITVISION_MCP_TRANSPORT}
-    
+
     B -->|"http"| C[Configure HTTP Transport]
     B -->|"stdio"| D[Configure STDIO Transport]
     B -->|"unset" or invalid| E[Default to STDIO]
-    
+
     C --> F[builder.Services.AddMcpServer().WithHttpTransport()]
     C --> G[Add HTTP Middleware & Controllers]
     C --> H[app.MapMcp("/mcp")]
     C --> I[app.Run()]
-    
+
     D --> J[builder.Services.AddMcpServer().WithStdioServerTransport()]
     E --> J
     J --> K[Register IMcpHandler as McpHandler]
     J --> L[Get IMcpServer Service]
     L --> M[await mcpServer.RunAsync()]
-    
+
     style C fill:#e8f5e8
     style D fill:#fff2cc
     style F fill:#e8f5e8
@@ -253,15 +260,15 @@ flowchart TD
 
 ## Key Differences Summary
 
-| Aspect | GitServiceTools | McpHandler |
-|--------|-----------------|------------|
-| **Purpose** | Business logic implementation | Protocol communication handler |
-| **Transport Support** | Both HTTP and STDIO | STDIO only |
-| **Responsibilities** | Tool functionality, validation, error handling | JSON-RPC parsing, routing, serialization |
-| **Dependencies** | Service layer (GitService, FileService, etc.) | GitServiceTools for actual work |
-| **Discovery** | MCP attributes for auto-discovery | Manual tool registration |
-| **Lifecycle** | Transient per request | Singleton for application lifetime |
-| **Error Handling** | Business logic errors | Protocol and communication errors |
+| Aspect                | GitServiceTools                                | McpHandler                               |
+| --------------------- | ---------------------------------------------- | ---------------------------------------- |
+| **Purpose**           | Business logic implementation                  | Protocol communication handler           |
+| **Transport Support** | Both HTTP and STDIO                            | STDIO only                               |
+| **Responsibilities**  | Tool functionality, validation, error handling | JSON-RPC parsing, routing, serialization |
+| **Dependencies**      | Service layer (GitService, FileService, etc.)  | GitServiceTools for actual work          |
+| **Discovery**         | MCP attributes for auto-discovery              | Manual tool registration                 |
+| **Lifecycle**         | Transient per request                          | Singleton for application lifetime       |
+| **Error Handling**    | Business logic errors                          | Protocol and communication errors        |
 
 ## Redundancy Analysis
 
@@ -275,6 +282,7 @@ flowchart TD
 ## Best Practices Observed
 
 ### GitServiceTools Implementation
+
 - ✅ Comprehensive input validation with detailed error messages
 - ✅ Structured logging with contextual information
 - ✅ Proper exception handling with specific exception types
@@ -282,6 +290,7 @@ flowchart TD
 - ✅ Defensive programming with null checks and boundary validation
 
 ### McpHandler Implementation
+
 - ✅ Protocol-specific error handling for JSON-RPC
 - ✅ Proper resource management and cleanup
 - ✅ Cancellation token support for graceful shutdown

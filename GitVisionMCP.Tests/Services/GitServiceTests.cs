@@ -15,6 +15,7 @@ namespace GitVisionMCP.Tests.Services
     public class GitServiceTests : IDisposable
     {
         private readonly Mock<ILogger<GitService>> _mockLogger;
+        private readonly Mock<IGitCommandRepository> _mockGitCommandRepository;
         private readonly GitService _gitService;
         private readonly string _testRepoPath;
         private readonly string _invalidRepoPath;
@@ -23,7 +24,8 @@ namespace GitVisionMCP.Tests.Services
         {
             _mockLogger = new Mock<ILogger<GitService>>();
             var mockLocationService = new Mock<ILocationService>();
-            _gitService = new GitService(_mockLogger.Object, mockLocationService.Object);
+            _mockGitCommandRepository = new Mock<IGitCommandRepository>();
+            _gitService = new GitService(_mockLogger.Object, mockLocationService.Object, _mockGitCommandRepository.Object);
             _testRepoPath = Path.Combine(Path.GetTempPath(), "test-git-repo-" + Guid.NewGuid().ToString());
             _invalidRepoPath = Path.Combine(Path.GetTempPath(), "invalid-repo-" + Guid.NewGuid().ToString());
 
@@ -169,7 +171,16 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsAsync_WithValidRepository_ReturnsCommits()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedCommits = new List<GitCommitInfo>
+            {
+                new GitCommitInfo { Message = "Third commit - added new file", Hash = "abc123" },
+                new GitCommitInfo { Message = "Second commit", Hash = "def456" },
+                new GitCommitInfo { Message = "Initial commit", Hash = "ghi789" }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsAsync(_testRepoPath, 10))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
@@ -177,17 +188,17 @@ namespace GitVisionMCP.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.Equal(3, result.Count);
-
-            // Check that all expected commits are present (order might vary)
-            var messages = result.Select(r => r.Message.Trim()).ToList();
-            Assert.Contains("Third commit - added new file", messages);
-            Assert.Contains("Second commit", messages);
-            Assert.Contains("Initial commit", messages);
+            Assert.Equal(expectedCommits, result);
         }
 
         [Fact]
         public async Task GetGitLogsAsync_WithNullRepositoryPath_ThrowsArgumentException()
         {
+            // Arrange
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsAsync(null!, It.IsAny<int>()))
+                .ThrowsAsync(new ArgumentException("Repository path cannot be null or empty"));
+
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() =>
                 _gitService.GetGitLogsAsync(null!, 10));
@@ -196,6 +207,11 @@ namespace GitVisionMCP.Tests.Services
         [Fact]
         public async Task GetGitLogsAsync_WithEmptyRepositoryPath_ThrowsArgumentException()
         {
+            // Arrange
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsAsync("", It.IsAny<int>()))
+                .ThrowsAsync(new ArgumentException("Repository path cannot be null or empty"));
+
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() =>
                 _gitService.GetGitLogsAsync("", 10));
@@ -204,6 +220,11 @@ namespace GitVisionMCP.Tests.Services
         [Fact]
         public async Task GetGitLogsAsync_WithNonExistentPath_ThrowsDirectoryNotFoundException()
         {
+            // Arrange
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsAsync("/non/existent/path", It.IsAny<int>()))
+                .ThrowsAsync(new DirectoryNotFoundException("Repository path does not exist"));
+
             // Act & Assert
             await Assert.ThrowsAsync<DirectoryNotFoundException>(() =>
                 _gitService.GetGitLogsAsync("/non/existent/path", 10));
@@ -212,6 +233,11 @@ namespace GitVisionMCP.Tests.Services
         [Fact]
         public async Task GetGitLogsAsync_WithInvalidRepository_ThrowsInvalidOperationException()
         {
+            // Arrange
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsAsync(_invalidRepoPath, It.IsAny<int>()))
+                .ThrowsAsync(new InvalidOperationException("Path is not a valid git repository"));
+
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() =>
                 _gitService.GetGitLogsAsync(_invalidRepoPath, 10));
@@ -221,7 +247,15 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsAsync_WithMaxCommitsLimit_ReturnsLimitedResults()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedCommits = new List<GitCommitInfo>
+            {
+                new() { Message = "Commit 1", Hash = "abc123" },
+                new() { Message = "Commit 2", Hash = "def456" }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsAsync(_testRepoPath, 2))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetGitLogsAsync(_testRepoPath, 2);
@@ -235,7 +269,15 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetRecentCommitsAsync_WithValidRepository_ReturnsRecentCommits()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedCommits = new List<GitCommitInfo>
+            {
+                new() { Message = "Recent commit 1", Hash = "abc123" },
+                new() { Message = "Recent commit 2", Hash = "def456" }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetRecentCommitsAsync(_testRepoPath, 2))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetRecentCommitsAsync(_testRepoPath, 2);
@@ -243,23 +285,18 @@ namespace GitVisionMCP.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-
-            // Check that the recent commits are present
-            var messages = result.Select(r => r.Message.Trim()).ToList();
-            Assert.True(messages.Count == 2);
-
-            // Since we're getting 2 recent commits, verify we get the right ones
-            // The test is showing we get "Third commit" and "Initial commit" which suggests the "Second commit" is missing
-            // Let's verify that at least one of the expected newer commits is there
-            Assert.True(messages.Contains("Third commit - added new file") || messages.Contains("Second commit"),
-                $"Expected recent commits but got: {string.Join(", ", messages)}");
+            Assert.Equal(expectedCommits, result);
         }
 
         [Fact]
         public async Task GetLocalBranchesAsync_WithValidRepository_ReturnsBranches()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedBranches = new List<string> { "main" };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetLocalBranchesAsync(_testRepoPath))
+                .ReturnsAsync(expectedBranches);
 
             // Act
             var result = await _gitService.GetLocalBranchesAsync(_testRepoPath);
@@ -267,14 +304,18 @@ namespace GitVisionMCP.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.Single(result);
-            Assert.Contains("master", result[0]); // Git default branch is master, not main
+            Assert.Contains("main", result);
         }
 
         [Fact]
         public async Task GetRemoteBranchesAsync_WithValidRepository_ReturnsRemoteBranches()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedBranches = new List<string>();
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetRemoteBranchesAsync(_testRepoPath))
+                .ReturnsAsync(expectedBranches);
 
             // Act
             var result = await _gitService.GetRemoteBranchesAsync(_testRepoPath);
@@ -289,7 +330,11 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetAllBranchesAsync_WithValidRepository_ReturnsAllBranches()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedBranches = new List<string> { "main" };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetAllBranchesAsync(_testRepoPath))
+                .ReturnsAsync(expectedBranches);
 
             // Act
             var result = await _gitService.GetAllBranchesAsync(_testRepoPath);
@@ -303,8 +348,14 @@ namespace GitVisionMCP.Tests.Services
         public async Task GenerateDocumentationAsync_WithValidCommits_ReturnsMarkdownDocumentation()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
+            var commits = new List<GitCommitInfo>
+            {
+                new() { Message = "Test commit", Hash = "abc123", Author = "Test Author" }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GenerateCommitDocumentationAsync(commits, "markdown"))
+                .ReturnsAsync("# Git Commit Documentation\n\nTest commit");
 
             // Act
             var result = await _gitService.GenerateCommitDocumentationAsync(commits, "markdown");
@@ -312,16 +363,23 @@ namespace GitVisionMCP.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.NotEmpty(result);
-            Assert.Contains("# Git Commit Documentation", result); // Actual service uses "Commit" not "Repository"
-            Assert.Contains("Third commit - added new file", result);
+            Assert.Contains("# Git Commit Documentation", result);
+            Assert.Contains("Test commit", result);
         }
 
         [Fact]
         public async Task GenerateDocumentationAsync_WithHtmlFormat_ReturnsHtmlDocumentation()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
+            var commits = new List<GitCommitInfo>
+            {
+                new() { Message = "Test commit", Hash = "abc123", Author = "Test Author", Date = DateTime.Now }
+            };
+            var expectedResult = "<!DOCTYPE html><html><head><title>Git Commit Documentation</title></head><body><h1>Git Commit Documentation</h1></body></html>";
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GenerateCommitDocumentationAsync(commits, "html"))
+                .ReturnsAsync(expectedResult);
 
             // Act
             var result = await _gitService.GenerateCommitDocumentationAsync(commits, "html");
@@ -337,8 +395,15 @@ namespace GitVisionMCP.Tests.Services
         public async Task GenerateDocumentationAsync_WithTextFormat_ReturnsTextDocumentation()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
+            var commits = new List<GitCommitInfo>
+            {
+                new() { Message = "Third commit - added new file", Hash = "abc123", Author = "Test Author", Date = DateTime.Now }
+            };
+            var expectedResult = "GIT COMMIT DOCUMENTATION\n\nThird commit - added new file";
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GenerateCommitDocumentationAsync(commits, "text"))
+                .ReturnsAsync(expectedResult);
 
             // Act
             var result = await _gitService.GenerateCommitDocumentationAsync(commits, "text");
@@ -354,8 +419,15 @@ namespace GitVisionMCP.Tests.Services
         public async Task GenerateDocumentationAsync_WithInvalidFormat_DefaultsToMarkdown()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
+            var commits = new List<GitCommitInfo>
+            {
+                new() { Message = "Test commit", Hash = "abc123", Author = "Test Author", Date = DateTime.Now }
+            };
+            var expectedResult = "# Git Commit Documentation\n\nTest commit";
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GenerateCommitDocumentationAsync(commits, "invalid"))
+                .ReturnsAsync(expectedResult);
 
             // Act
             var result = await _gitService.GenerateCommitDocumentationAsync(commits, "invalid");
@@ -373,25 +445,15 @@ namespace GitVisionMCP.Tests.Services
             var content = "Test documentation content";
             var tempFile = Path.Combine(Path.GetTempPath(), "test-doc-" + Guid.NewGuid().ToString() + ".md");
 
-            try
-            {
-                // Act
-                var result = await _gitService.WriteDocumentationToFileAsync(content, tempFile);
+            _mockGitCommandRepository
+                .Setup(repo => repo.WriteDocumentationToFileAsync(content, tempFile))
+                .ReturnsAsync(true);
 
-                // Assert
-                Assert.True(result);
-                Assert.True(File.Exists(tempFile));
-                var fileContent = await File.ReadAllTextAsync(tempFile);
-                Assert.Equal(content, fileContent);
-            }
-            finally
-            {
-                // Cleanup
-                if (File.Exists(tempFile))
-                {
-                    File.Delete(tempFile);
-                }
-            }
+            // Act
+            var result = await _gitService.WriteDocumentationToFileAsync(content, tempFile);
+
+            // Assert
+            Assert.True(result);
         }
 
         [Fact]
@@ -402,54 +464,47 @@ namespace GitVisionMCP.Tests.Services
             var tempDir = Path.Combine(Path.GetTempPath(), "test-dir-" + Guid.NewGuid().ToString());
             var tempFile = Path.Combine(tempDir, "test-doc.md");
 
-            try
-            {
-                // Act
-                var result = await _gitService.WriteDocumentationToFileAsync(content, tempFile);
+            _mockGitCommandRepository
+                .Setup(repo => repo.WriteDocumentationToFileAsync(content, tempFile))
+                .ReturnsAsync(true);
 
-                // Assert
-                Assert.True(result);
-                Assert.True(Directory.Exists(tempDir));
-                Assert.True(File.Exists(tempFile));
-                var fileContent = await File.ReadAllTextAsync(tempFile);
-                Assert.Equal(content, fileContent);
-            }
-            finally
-            {
-                // Cleanup
-                if (Directory.Exists(tempDir))
-                {
-                    Directory.Delete(tempDir, true);
-                }
-            }
+            // Act
+            var result = await _gitService.WriteDocumentationToFileAsync(content, tempFile);
+
+            // Assert
+            Assert.True(result);
         }
 
         [Fact]
         public async Task GetChangedFilesBetweenCommitsAsync_WithValidCommits_ReturnsChangedFiles()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var commit1 = commits[2].Hash; // Initial commit
-            var commit2 = commits[0].Hash; // Latest commit
+            var commit1 = "abc123";
+            var commit2 = "def456";
+            var expectedFiles = new List<string> { "file1.txt", "file2.txt" };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetChangedFilesBetweenCommitsAsync(_testRepoPath, commit1, commit2))
+                .ReturnsAsync(expectedFiles);
 
             // Act
             var result = await _gitService.GetChangedFilesBetweenCommitsAsync(_testRepoPath, commit1, commit2);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Contains("file2.txt", result); // file2.txt was added between commits
-            // Note: file1.txt might not show up as changed between initial and latest if only file2 was added in latest
+            Assert.Equal(expectedFiles, result);
         }
 
         [Fact]
         public async Task GetChangedFilesBetweenCommitsAsync_WithInvalidCommit_ThrowsArgumentException()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var validCommit = commits[0].Hash;
+            var validCommit = "abc123";
             var invalidCommit = "invalid-commit-hash";
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetChangedFilesBetweenCommitsAsync(_testRepoPath, validCommit, invalidCommit))
+                .ThrowsAsync(new ArgumentException("Invalid commit hash"));
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -460,10 +515,21 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetCommitDiffInfoAsync_WithValidCommits_ReturnsDiffInfo()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var commit1 = commits[2].Hash; // Initial commit
-            var commit2 = commits[0].Hash; // Latest commit
+            var commit1 = "abc123";
+            var commit2 = "def456";
+            var expectedDiffInfo = new GitCommitDiffInfo
+            {
+                Commit1 = commit1,
+                Commit2 = commit2,
+                AddedFiles = new List<string> { "file2.txt" },
+                ModifiedFiles = new List<string> { "file1.txt" },
+                DeletedFiles = new List<string>(),
+                RenamedFiles = new List<string>()
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetCommitDiffInfoAsync(_testRepoPath, commit1, commit2))
+                .ReturnsAsync(expectedDiffInfo);
 
             // Act
             var result = await _gitService.GetCommitDiffInfoAsync(_testRepoPath, commit1, commit2);
@@ -472,8 +538,7 @@ namespace GitVisionMCP.Tests.Services
             Assert.NotNull(result);
             Assert.Equal(commit1, result.Commit1);
             Assert.Equal(commit2, result.Commit2);
-            Assert.Contains("file2.txt", result.AddedFiles); // file2.txt was added
-            // Note: file1.txt modifications might be in different commits
+            Assert.Contains("file2.txt", result.AddedFiles);
             Assert.True(result.TotalChanges > 0);
         }
 
@@ -481,10 +546,13 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetDetailedDiffBetweenCommitsAsync_WithValidCommits_ReturnsDiffText()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var commit1 = commits[2].Hash; // Initial commit
-            var commit2 = commits[0].Hash; // Latest commit
+            var commit1 = "abc123";
+            var commit2 = "def456";
+            var expectedDiff = "diff --git a/file1.txt b/file1.txt\n--- a/file1.txt\n+++ b/file1.txt\n@@ -1 +1 @@\n-old content\n+new content";
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetDetailedDiffBetweenCommitsAsync(_testRepoPath, commit1, commit2, null))
+                .ReturnsAsync(expectedDiff);
 
             // Act
             var result = await _gitService.GetDetailedDiffBetweenCommitsAsync(_testRepoPath, commit1, commit2);
@@ -499,28 +567,30 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetDetailedDiffBetweenCommitsAsync_WithSpecificFiles_ReturnsFilteredDiff()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-
-            // Use adjacent commits to ensure there are actual changes
-            var newerCommit = commits[0].Hash; // Most recent
-            var olderCommit = commits[1].Hash; // Second most recent
+            var newerCommit = "def456";
+            var olderCommit = "abc123";
             var specificFiles = new List<string> { "file1.txt" };
+            var expectedDiff = "diff --git a/file1.txt b/file1.txt\n--- a/file1.txt\n+++ b/file1.txt\n@@ -1 +1 @@\n-old content\n+new content";
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetDetailedDiffBetweenCommitsAsync(_testRepoPath, olderCommit, newerCommit, specificFiles))
+                .ReturnsAsync(expectedDiff);
 
             // Act
             var result = await _gitService.GetDetailedDiffBetweenCommitsAsync(_testRepoPath, olderCommit, newerCommit, specificFiles);
 
             // Assert
             Assert.NotNull(result);
-            // The diff might be empty if the specific file wasn't changed between these commits
-            // Just ensure the method doesn't throw and returns a string
+            Assert.Contains("file1.txt", result);
         }
 
         [Fact]
         public async Task FetchFromRemoteAsync_WithValidRepositoryNoRemote_ReturnsFalse()
         {
             // Arrange
-            CreateTestRepository();
+            _mockGitCommandRepository
+                .Setup(repo => repo.FetchFromRemoteAsync(_testRepoPath, "origin"))
+                .ReturnsAsync(false);
 
             // Act
             var result = await _gitService.FetchFromRemoteAsync(_testRepoPath, "origin");
@@ -534,8 +604,27 @@ namespace GitVisionMCP.Tests.Services
         public async Task SearchCommitsForStringAsync_WithValidSearchString_ReturnsResults()
         {
             // Arrange
-            CreateTestRepository();
             var searchString = "commit";
+            var expectedResults = new CommitSearchResponse
+            {
+                SearchString = searchString,
+                TotalCommitsSearched = 5,
+                Results = new List<CommitSearchResult>
+                {
+                    new CommitSearchResult
+                    {
+                        CommitHash = "abc123",
+                        Author = "Test Author",
+                        CommitMessage = "Test commit message",
+                        Timestamp = DateTime.Now,
+                        FileMatches = new List<FileSearchMatch>()
+                    }
+                }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.SearchCommitsForStringAsync(_testRepoPath, searchString, 100))
+                .ReturnsAsync(expectedResults);
 
             // Act
             var result = await _gitService.SearchCommitsForStringAsync(_testRepoPath, searchString, 100);
@@ -552,8 +641,17 @@ namespace GitVisionMCP.Tests.Services
         public async Task SearchCommitsForStringAsync_WithNonExistentString_ReturnsEmptyResults()
         {
             // Arrange
-            CreateTestRepository();
             var searchString = "nonexistent-string-12345";
+            var expectedResults = new CommitSearchResponse
+            {
+                SearchString = searchString,
+                TotalCommitsSearched = 3,
+                Results = new List<CommitSearchResult>()
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.SearchCommitsForStringAsync(_testRepoPath, searchString, 100))
+                .ReturnsAsync(expectedResults);
 
             // Act
             var result = await _gitService.SearchCommitsForStringAsync(_testRepoPath, searchString, 100);
@@ -570,11 +668,24 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetFileLineDiffBetweenCommitsAsync_WithValidCommitsAndFile_ReturnsDiffInfo()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var commit1 = commits[2].Hash; // Initial commit
-            var commit2 = commits[1].Hash; // Second commit
+            var commit1 = "abc123"; // Initial commit
+            var commit2 = "def456"; // Second commit
             var filePath = "file1.txt";
+            var expectedDiffInfo = new FileLineDiffInfo
+            {
+                FilePath = filePath,
+                Commit1 = commit1,
+                Commit2 = commit2,
+                FileExistsInBothCommits = true,
+                TotalLines = 10,
+                AddedLines = 2,
+                DeletedLines = 1,
+                ModifiedLines = 3
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetFileLineDiffBetweenCommitsAsync(_testRepoPath, commit1, commit2, filePath))
+                .ReturnsAsync(expectedDiffInfo);
 
             // Act
             var result = await _gitService.GetFileLineDiffBetweenCommitsAsync(_testRepoPath, commit1, commit2, filePath);
@@ -591,17 +702,22 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsBetweenCommitsAsync_WithValidCommits_ReturnsCommitsBetween()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var commit1 = commits[2].Hash; // Initial commit
-            var commit2 = commits[0].Hash; // Latest commit
+            var commit1 = "abc123";
+            var commit2 = "def456";
+            var expectedCommits = new List<GitCommitInfo>
+            {
+                new GitCommitInfo { Hash = "def456", Message = "Latest commit" }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsBetweenCommitsAsync(_testRepoPath, commit1, commit2))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetGitLogsBetweenCommitsAsync(_testRepoPath, commit1, commit2);
 
             // Assert
             Assert.NotNull(result);
-            // Should return commits between (exclusive of commit1, inclusive of commit2)
             Assert.True(result.Count > 0);
             Assert.DoesNotContain(result, c => c.Hash == commit1);
         }
@@ -610,9 +726,12 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsBetweenCommitsAsync_WithInvalidCommits_ThrowsArgumentException()
         {
             // Arrange
-            CreateTestRepository();
             var validCommit = "valid-commit-hash";
             var invalidCommit = "invalid-commit-hash";
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsBetweenCommitsAsync(_testRepoPath, validCommit, invalidCommit))
+                .ThrowsAsync(new ArgumentException("Invalid commit hash"));
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -623,7 +742,14 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsBetweenBranchesAsync_WithValidBranches_ReturnsCommitsBetween()
         {
             // Arrange
-            CreateTestRepositoryWithBranches();
+            var expectedCommits = new List<GitCommitInfo>
+            {
+                new() { Hash = "abc123", Message = "Feature commit on test branch" }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsBetweenBranchesAsync(_testRepoPath, "master", "feature/test-branch"))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetGitLogsBetweenBranchesAsync(_testRepoPath, "master", "feature/test-branch");
@@ -638,7 +764,9 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsBetweenBranchesAsync_WithNonExistentBranch_ThrowsArgumentException()
         {
             // Arrange
-            CreateTestRepositoryWithBranches();
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsBetweenBranchesAsync(_testRepoPath, "master", "non-existent-branch"))
+                .ThrowsAsync(new ArgumentException("Branch does not exist"));
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() =>
@@ -649,7 +777,14 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsBetweenBranchesWithRemoteAsync_WithValidBranches_ReturnsCommitsBetween()
         {
             // Arrange
-            CreateTestRepositoryWithBranches();
+            var expectedCommits = new List<GitCommitInfo>
+            {
+                new() { Hash = "abc123", Message = "Feature commit" }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsBetweenBranchesWithRemoteAsync(_testRepoPath, "master", "feature/test-branch", false))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetGitLogsBetweenBranchesWithRemoteAsync(_testRepoPath, "master", "feature/test-branch", false);
@@ -663,7 +798,11 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetLocalBranchesAsync_WithMultipleBranches_ReturnsAllLocalBranches()
         {
             // Arrange
-            CreateTestRepositoryWithBranches();
+            var expectedBranches = new List<string> { "master", "feature/test-branch" };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetLocalBranchesAsync(_testRepoPath))
+                .ReturnsAsync(expectedBranches);
 
             // Act
             var result = await _gitService.GetLocalBranchesAsync(_testRepoPath);
@@ -679,7 +818,11 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetAllBranchesAsync_WithMultipleBranches_ReturnsAllBranches()
         {
             // Arrange
-            CreateTestRepositoryWithBranches();
+            var expectedBranches = new List<string> { "master", "feature/test-branch" };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetAllBranchesAsync(_testRepoPath))
+                .ReturnsAsync(expectedBranches);
 
             // Act
             var result = await _gitService.GetAllBranchesAsync(_testRepoPath);
@@ -695,8 +838,21 @@ namespace GitVisionMCP.Tests.Services
         public async Task SearchCommitsForStringAsync_WithSpecificMessageContent_ReturnsMatchingCommits()
         {
             // Arrange
-            CreateTestRepositoryWithBranches();
             var searchString = "Feature";
+            var expectedResults = new CommitSearchResponse
+            {
+                SearchString = searchString,
+                TotalCommitsSearched = 5,
+                Results = new List<CommitSearchResult>
+                {
+                    new() { CommitHash = "abc123", CommitMessage = "Feature commit", Author = "Test Author", Timestamp = DateTime.Now },
+                    new() { CommitHash = "def456", CommitMessage = "Add feature file", Author = "Test Author", Timestamp = DateTime.Now }
+                }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.SearchCommitsForStringAsync(_testRepoPath, searchString, 100))
+                .ReturnsAsync(expectedResults);
 
             // Act
             var result = await _gitService.SearchCommitsForStringAsync(_testRepoPath, searchString, 100);
@@ -715,8 +871,22 @@ namespace GitVisionMCP.Tests.Services
         public async Task GenerateDocumentationAsync_WithDifferentFormats_ReturnsCorrectFormat(string format)
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
+            var commits = new List<GitCommitInfo>
+            {
+                new() { Message = "Test commit", Hash = "abc123", Author = "Test Author", Date = DateTime.Now }
+            };
+
+            var expectedResult = format.ToLower() switch
+            {
+                "markdown" => "# Git Commit Documentation\n\nTest commit",
+                "html" => "<!DOCTYPE html><html><head><title>Git Commit Documentation</title></head><body><h1>Git Commit Documentation</h1></body></html>",
+                "text" => "GIT COMMIT DOCUMENTATION\n\nTest commit",
+                _ => "# Git Commit Documentation\n\nTest commit"
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GenerateCommitDocumentationAsync(commits, format))
+                .ReturnsAsync(expectedResult);
 
             // Act
             var result = await _gitService.GenerateCommitDocumentationAsync(commits, format);
@@ -743,9 +913,20 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetCommitDiffInfoAsync_WithSameCommit_ReturnsEmptyDiff()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var commit = commits[0].Hash;
+            var commit = "abc123";
+            var expectedDiffInfo = new GitCommitDiffInfo
+            {
+                Commit1 = commit,
+                Commit2 = commit,
+                AddedFiles = [],
+                ModifiedFiles = [],
+                DeletedFiles = [],
+                RenamedFiles = []
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetCommitDiffInfoAsync(_testRepoPath, commit, commit))
+                .ReturnsAsync(expectedDiffInfo);
 
             // Act
             var result = await _gitService.GetCommitDiffInfoAsync(_testRepoPath, commit, commit);
@@ -762,11 +943,20 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetFileLineDiffBetweenCommitsAsync_WithNonExistentFile_ReturnsErrorInfo()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var commit1 = commits[2].Hash;
-            var commit2 = commits[0].Hash;
+            var commit1 = "abc123";
+            var commit2 = "def456";
             var nonExistentFile = "non-existent-file.txt";
+            var expectedDiffInfo = new FileLineDiffInfo
+            {
+                FilePath = nonExistentFile,
+                Commit1 = commit1,
+                Commit2 = commit2,
+                FileExistsInBothCommits = false
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetFileLineDiffBetweenCommitsAsync(_testRepoPath, commit1, commit2, nonExistentFile))
+                .ReturnsAsync(expectedDiffInfo);
 
             // Act
             var result = await _gitService.GetFileLineDiffBetweenCommitsAsync(_testRepoPath, commit1, commit2, nonExistentFile);
@@ -795,11 +985,14 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetDetailedDiffBetweenCommitsAsync_WithEmptySpecificFilesList_ReturnsAllDiffs()
         {
             // Arrange
-            CreateTestRepository();
-            var commits = await _gitService.GetGitLogsAsync(_testRepoPath, 10);
-            var commit1 = commits[2].Hash;
-            var commit2 = commits[0].Hash;
+            var commit1 = "abc123";
+            var commit2 = "def456";
             var emptyList = new List<string>();
+            var expectedDiff = "";
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetDetailedDiffBetweenCommitsAsync(_testRepoPath, commit1, commit2, emptyList))
+                .ReturnsAsync(expectedDiff);
 
             // Act
             var result = await _gitService.GetDetailedDiffBetweenCommitsAsync(_testRepoPath, commit1, commit2, emptyList);
@@ -814,7 +1007,14 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsAsync_WithZeroMaxCommits_ReturnsOneCommit()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedCommits = new List<GitCommitInfo>
+            {
+                new() { Message = "Single commit", Hash = "abc123", Author = "Test Author", Date = DateTime.Now }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsAsync(_testRepoPath, 0))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetGitLogsAsync(_testRepoPath, 0);
@@ -828,7 +1028,14 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetGitLogsAsync_WithNegativeMaxCommits_ReturnsOneCommit()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedCommits = new List<GitCommitInfo>
+            {
+                new() { Message = "Single commit", Hash = "abc123", Author = "Test Author", Date = DateTime.Now }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetGitLogsAsync(_testRepoPath, -5))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetGitLogsAsync(_testRepoPath, -5);
@@ -842,7 +1049,11 @@ namespace GitVisionMCP.Tests.Services
         public async Task GetRecentCommitsAsync_WithZeroCount_ReturnsEmpty()
         {
             // Arrange
-            CreateTestRepository();
+            var expectedCommits = new List<GitCommitInfo>();
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.GetRecentCommitsAsync(_testRepoPath, 0))
+                .ReturnsAsync(expectedCommits);
 
             // Act
             var result = await _gitService.GetRecentCommitsAsync(_testRepoPath, 0);
@@ -856,8 +1067,22 @@ namespace GitVisionMCP.Tests.Services
         public async Task SearchCommitsForStringAsync_WithEmptySearchString_ReturnsAllCommits()
         {
             // Arrange
-            CreateTestRepository();
             var searchString = "";
+            var expectedResults = new CommitSearchResponse
+            {
+                SearchString = searchString,
+                TotalCommitsSearched = 3,
+                Results = new List<CommitSearchResult>
+                {
+                    new() { CommitHash = "abc123", CommitMessage = "Test commit 1", Author = "Test Author", Timestamp = DateTime.Now },
+                    new() { CommitHash = "def456", CommitMessage = "Test commit 2", Author = "Test Author", Timestamp = DateTime.Now },
+                    new() { CommitHash = "ghi789", CommitMessage = "Test commit 3", Author = "Test Author", Timestamp = DateTime.Now }
+                }
+            };
+
+            _mockGitCommandRepository
+                .Setup(repo => repo.SearchCommitsForStringAsync(_testRepoPath, searchString, 100))
+                .ReturnsAsync(expectedResults);
 
             // Act
             var result = await _gitService.SearchCommitsForStringAsync(_testRepoPath, searchString, 100);

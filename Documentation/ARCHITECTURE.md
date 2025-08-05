@@ -33,7 +33,10 @@ graph TB
         LocationService[LocationService]
         DeconstructionService[DeconstructionService]
     end
-
+    subgraph "Repository Layer"
+        FileRepository[FileRepository]
+        GitRepository[GitCommandRepository]
+    end
     VSCode -.->|JSON-RPC over STDIO| STDIO
     HTTPClient -.->|JSON-RPC over HTTP| HTTP
 
@@ -47,10 +50,10 @@ graph TB
     GitServiceTools --> FileService
     GitServiceTools --> LocationService
     GitServiceTools --> DeconstructionService
+    FileService --> FileRepository
+    GitService --> GitRepository
 
-    style GitServiceTools fill:#e1f5fe
-    style McpHandler fill:#fff3e0
-    style McpFramework fill:#f3e5f5
+
 ```
 
 ## Component Responsibilities

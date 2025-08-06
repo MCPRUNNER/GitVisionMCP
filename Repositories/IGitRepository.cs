@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using GitVisionMCP.Models;
 namespace GitVisionMCP.Services;
 
-public interface IGitCommandRepository
+public interface IGitRepository
 {
     Task<List<GitCommitInfo>> GetGitLogsAsync(string repositoryPath, int maxCommits = 50);
     Task<List<GitCommitInfo>> GetGitLogsBetweenBranchesAsync(string repositoryPath, string branch1, string branch2);

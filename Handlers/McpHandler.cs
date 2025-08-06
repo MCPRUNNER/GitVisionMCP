@@ -21,9 +21,10 @@ public class McpHandler : IMcpHandler
     private readonly ILogger<McpHandler> _logger;
     private readonly IConfiguration _configuration;
     private readonly IGitService _gitService;
-    private readonly ILocationService _locationService;
+    private readonly IWorkspaceService _workspaceService;
     private readonly IFileService _fileService;
     private readonly IGitServiceTools _gitServiceTools;
+    private readonly IUtilityService _utilityService;
     private readonly JsonSerializerOptions _jsonOptions;
     private readonly JsonSerializerOptions _outputJsonOptions;
     private bool _isRunning;
@@ -32,16 +33,17 @@ public class McpHandler : IMcpHandler
         ILogger<McpHandler> logger,
         IConfiguration configuration,
         IGitService gitService,
-        ILocationService locationService,
+        IWorkspaceService workspaceService,
         IFileService fileService,
-        IGitServiceTools gitServiceTools)
+        IGitServiceTools gitServiceTools, IUtilityService utilityService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _gitService = gitService ?? throw new ArgumentNullException(nameof(gitService));
-        _locationService = locationService ?? throw new ArgumentNullException(nameof(locationService));
+        _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
         _gitServiceTools = gitServiceTools ?? throw new ArgumentNullException(nameof(gitServiceTools));
         _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+        _utilityService = utilityService ?? throw new ArgumentNullException(nameof(utilityService));    
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -170,7 +172,7 @@ public class McpHandler : IMcpHandler
     private async Task<JsonRpcResponse> HandleInitializeAsync(JsonRpcRequest request)
     {
         _logger.LogDebug("Handling initialize request");
-        var appVersion = _locationService.GetAppVersion("GitVisionMCP.csproj");
+        var appVersion = _utilityService.GetAppVersion("GitVisionMCP.csproj");
         var initResponse = new InitializeResponse
         {
             ProtocolVersion = "2024-11-05",
@@ -1708,7 +1710,7 @@ public class McpHandler : IMcpHandler
                 });
             }
 
-            var result = _locationService.SearchYamlFile(yamlFilePath, jsonPath, indented, showKeyPaths);
+            var result = _workspaceService.SearchYamlFile(yamlFilePath, jsonPath, indented, showKeyPaths);
             if (result == null)
             {
                 return Task.FromResult(new CallToolResponse
@@ -1850,7 +1852,7 @@ public class McpHandler : IMcpHandler
             var projectFile = GetArgumentValue(toolRequest.Arguments, "projectFile", string.Empty);
             // Call the location service to get the version
 
-            var version = _locationService.GetAppVersion(projectFile) ?? string.Empty;
+            var version = _utilityService.GetAppVersion(projectFile) ?? string.Empty;
             var response = new CallToolResponse
             {
                 IsError = false,

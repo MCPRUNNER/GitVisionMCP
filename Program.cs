@@ -91,9 +91,12 @@ else
 
 // Add our GitVision MCP services
 builder.Services.AddSingleton<IFileRepository, FileRepository>();
-builder.Services.AddSingleton<IGitCommandRepository, GitCommandRepository>();
+builder.Services.AddSingleton<IGitRepository, GitRepository>();
+builder.Services.AddSingleton<IUtilityRepository, UtilityRepository>();
+
+builder.Services.AddSingleton<IUtilityService, UtilityService>();
 builder.Services.AddSingleton<IFileService, FileService>();
-builder.Services.AddSingleton<ILocationService, LocationService>();
+builder.Services.AddSingleton<IWorkspaceService, WorkspaceService>();
 builder.Services.AddSingleton<IGitService, GitService>();
 builder.Services.AddSingleton<IDeconstructionService, DeconstructionService>();
 

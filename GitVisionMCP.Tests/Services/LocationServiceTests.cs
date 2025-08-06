@@ -11,8 +11,9 @@ public class LocationServiceTests
     public void ReadPromptFile_WithValidFilename_ReturnsContent()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
         var mockFileService = new Mock<IFileService>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
 
         // Set the GIT_REPOSITORY_DIRECTORY environment variable to point to the main project directory
         var originalDir = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
@@ -24,7 +25,7 @@ public class LocationServiceTests
 
         try
         {
-            var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
+            var locationService = new WorkspaceService(mockLogger.Object, mockFileService.Object, mockUtilityRepository.Object);
             var promptFilename = "ReleaseNotesPrompt.md";
 
             // Act
@@ -46,13 +47,14 @@ public class LocationServiceTests
     public void ReadPromptFile_WithInvalidFilename_ReturnsNull()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
         var mockFileService = new Mock<IFileService>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
 
         // Mock FileService to return null for ReadFile
         mockFileService.Setup(x => x.ReadFile(It.IsAny<string>())).Returns((string?)null);
 
-        var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
+        var locationService = new WorkspaceService(mockLogger.Object, mockFileService.Object, mockUtilityRepository.Object);
         var promptFilename = "NonExistentFile.md";
 
         // Act
@@ -66,9 +68,10 @@ public class LocationServiceTests
     public void ReadPromptFile_WithEmptyFilename_ReturnsNull()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
         var mockFileService = new Mock<IFileService>();
-        var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
+        var locationService = new WorkspaceService(mockLogger.Object, mockFileService.Object, mockUtilityRepository.Object);
 
         // Act
         var content = locationService.GetGitHubPromptFileContent("");
@@ -81,9 +84,10 @@ public class LocationServiceTests
     public void ReadPromptFile_WithNullFilename_ReturnsNull()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
         var mockFileService = new Mock<IFileService>();
-        var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
+        var locationService = new WorkspaceService(mockLogger.Object, mockFileService.Object, mockUtilityRepository.Object);
 
         // Act
         var content = locationService.GetGitHubPromptFileContent(null!);
@@ -96,8 +100,9 @@ public class LocationServiceTests
     public void SearchYamlFile_WithValidYamlContent_ReturnsSearchResult()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
         var mockFileService = new Mock<IFileService>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
 
         var yamlContent = @"
 application:
@@ -119,7 +124,7 @@ users:
         mockFileService.Setup(x => x.ReadFile("/fake/path/test-config.yaml"))
             .Returns(yamlContent);
 
-        var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
+        var locationService = new WorkspaceService(mockLogger.Object, mockFileService.Object, mockUtilityRepository.Object);
 
         // Act
         var result = locationService.SearchYamlFile("test-config.yaml", "$.application.name");
@@ -133,8 +138,9 @@ users:
     public void TransformXmlWithXslt_WithValidFiles_ReturnsTransformedResult()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
         var mockFileService = new Mock<IFileService>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
 
         var xmlContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
 <catalog>
@@ -188,7 +194,7 @@ users:
             mockFileService.Setup(x => x.ReadFile(xmlFilePath)).Returns(xmlContent);
             mockFileService.Setup(x => x.ReadFile(xsltFilePath)).Returns(xsltContent);
 
-            var locationService = new LocationService(mockLogger.Object, mockFileService.Object);
+            var locationService = new WorkspaceService(mockLogger.Object, mockFileService.Object, mockUtilityRepository.Object);
 
             // Act
             var result = locationService.TransformXmlWithXslt("test-data.xml", "test-transform.xslt");
@@ -214,8 +220,9 @@ users:
     public void TransformXmlWithXslt_WithNullXmlPath_ReturnsNull()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object, new Mock<IFileService>().Object);
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
+        var locationService = new WorkspaceService(mockLogger.Object, new Mock<IFileService>().Object, mockUtilityRepository.Object);
 
         // Act
         var result = locationService.TransformXmlWithXslt(string.Empty, "transform-to-html.xslt");
@@ -228,8 +235,9 @@ users:
     public void TransformXmlWithXslt_WithNullXsltPath_ReturnsNull()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object, new Mock<IFileService>().Object);
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
+        var locationService = new WorkspaceService(mockLogger.Object, new Mock<IFileService>().Object, mockUtilityRepository.Object);
 
         // Act
         var result = locationService.TransformXmlWithXslt("test-data.xml", string.Empty);
@@ -242,8 +250,9 @@ users:
     public void TransformXmlWithXslt_WithNonExistentXmlFile_ReturnsNull()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(mockLogger.Object, new Mock<IFileService>().Object);
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
+        var locationService = new WorkspaceService(mockLogger.Object, new Mock<IFileService>().Object, mockUtilityRepository.Object);
 
         // Act
         var result = locationService.TransformXmlWithXslt("non-existent.xml", "transform-to-html.xslt");
@@ -256,7 +265,8 @@ users:
     public void TransformXmlWithXslt_WithNonExistentXsltFile_ReturnsNull()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger<LocationService>>();
+        var mockLogger = new Mock<ILogger<WorkspaceService>>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
 
         // Set the GIT_REPOSITORY_DIRECTORY environment variable to point to the main project directory
         var originalDir = Environment.GetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY");
@@ -265,7 +275,7 @@ users:
 
         try
         {
-            var locationService = new LocationService(mockLogger.Object, new Mock<IFileService>().Object);
+            var locationService = new WorkspaceService(mockLogger.Object, new Mock<IFileService>().Object, mockUtilityRepository.Object);
 
             // Act
             var result = locationService.TransformXmlWithXslt("test-data.xml", "non-existent.xslt");
@@ -288,8 +298,9 @@ users:
         var projectDir = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "..");
         Environment.SetEnvironmentVariable("GIT_REPOSITORY_DIRECTORY", projectDir);
 
-        var logger = new Mock<ILogger<LocationService>>();
-        var locationService = new LocationService(logger.Object, new Mock<IFileService>().Object);
+        var logger = new Mock<ILogger<WorkspaceService>>();
+        var mockUtilityRepository = new Mock<GitVisionMCP.Repositories.IUtilityRepository>();
+        var locationService = new WorkspaceService(logger.Object, new Mock<IFileService>().Object, mockUtilityRepository.Object);
         var destinationFile = Path.Combine(projectDir, "output.xml");
 
         try

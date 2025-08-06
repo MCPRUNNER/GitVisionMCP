@@ -5,15 +5,15 @@ namespace GitVisionMCP.Services;
 
 
 
-public class GitCommandRepository : IGitCommandRepository
+public class GitRepository : IGitRepository
 {
-    private readonly ILogger<GitCommandRepository> _logger;
-    private readonly ILocationService _locationService;
+    private readonly ILogger<GitRepository> _logger;
+    private readonly IWorkspaceService _workspaceService;
 
-    public GitCommandRepository(ILogger<GitCommandRepository> logger, ILocationService locationService)
+    public GitRepository(ILogger<GitRepository> logger, IWorkspaceService workspaceService)
     {
         _logger = logger;
-        _locationService = locationService;
+        _workspaceService = workspaceService;
     }
     public async Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
     {
@@ -232,7 +232,7 @@ public class GitCommandRepository : IGitCommandRepository
         try
         {
             _logger.LogInformation("Generating documentation for {Count} commits in {Format} format", commits.Count, format);
-            var sysPrompt = _locationService.GetGitHubPromptFileContent("GenerateDocumentation.md");
+            var sysPrompt = _workspaceService.GetGitHubPromptFileContent("GenerateDocumentation.md");
             var documentation = format.ToLower() switch
             {
                 "markdown" => await GenerateCommitMarkdownDocumentationAsync(commits),

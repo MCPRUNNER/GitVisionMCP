@@ -15,7 +15,7 @@ namespace GitVisionMCP.Tests.Services
     public class GitServiceTests : IDisposable
     {
         private readonly Mock<ILogger<GitService>> _mockLogger;
-        private readonly Mock<IGitCommandRepository> _mockGitCommandRepository;
+        private readonly Mock<IGitRepository> _mockGitCommandRepository;
         private readonly GitService _gitService;
         private readonly string _testRepoPath;
         private readonly string _invalidRepoPath;
@@ -23,8 +23,8 @@ namespace GitVisionMCP.Tests.Services
         public GitServiceTests()
         {
             _mockLogger = new Mock<ILogger<GitService>>();
-            var mockLocationService = new Mock<ILocationService>();
-            _mockGitCommandRepository = new Mock<IGitCommandRepository>();
+            var mockLocationService = new Mock<IWorkspaceService>();
+            _mockGitCommandRepository = new Mock<IGitRepository>();
             _gitService = new GitService(_mockLogger.Object, mockLocationService.Object, _mockGitCommandRepository.Object);
             _testRepoPath = Path.Combine(Path.GetTempPath(), "test-git-repo-" + Guid.NewGuid().ToString());
             _invalidRepoPath = Path.Combine(Path.GetTempPath(), "invalid-repo-" + Guid.NewGuid().ToString());

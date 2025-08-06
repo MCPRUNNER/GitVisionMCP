@@ -5,18 +5,8 @@ using Newtonsoft.Json.Linq;
 using GitVisionMCP.Models;
 namespace GitVisionMCP.Services;
 
-public interface ILocationService
+public interface IWorkspaceService
 {
-
-
-    /// <summary>
-    /// Extracts version information from a project file (e.g., .csproj) using XPath.
-    /// </summary>
-    /// <param name="projectFile">The path to the project file</param>
-    /// <returns>The version string, or null if not found</returns>
-    public string? GetAppVersion(string? projectFile);
-
-
 
 
     /// <summary>
@@ -94,10 +84,5 @@ public interface ILocationService
     /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
     string? GetGitHubPromptFileContent(string filename);
 
-    /// <summary>
-    /// Gets the value of an environment variable by name and returns it as an object.
-    /// </summary>
-    /// <param name="variableName">The name of the environment variable</param>
-    /// <returns>The value of the environment variable as an object, or null if not set</returns>
-    object? GetEnvironmentVariableValue(string variableName);
+   
 }

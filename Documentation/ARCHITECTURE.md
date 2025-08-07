@@ -8,54 +8,58 @@ This document explains the functional differences between `GitServiceTools` and 
 
 ```mermaid
 graph TB
-    subgraph "Client Layer (mcp.json)"
+    subgraph "IDE/Chat-Client Layer"
         VSCode[STDIO Configuration<br/>command line run]
         HTTPClient[HTTP Configuration<br/>url http\://ip\:port\/mcp]
     end
 
-    subgraph "Transport Layer"
-        STDIO[STDIO Transport]
-        HTTP[HTTP Transport]
+    subgraph MCP["MCP Server"]
+        subgraph "Transport Layer"
+            STDIO[STDIO Transport]
+            HTTP[HTTP Transport]
+        end
+
+        subgraph "<center>Protocol Layer</center>"
+            McpHandler[McpHandler<br/>JSON-RPC Handler]
+            McpFramework[MCP Framework<br/>Built-in Routing]
+        end
+
+        subgraph "<center>Business Logic Layer</center>"
+            GitServiceTools[GitServiceTools<br/>Tool Implementations]
+        end
+
+        subgraph "<center>Service Layer</center>"
+            GitService[GitService]
+            FileService[FileService]
+            UtilityService[UtilityService]
+            DeconstructionService[DeconstructionService]
+            WorkspaceService[WorkspaceService]
+        end
+
+        subgraph "<center>Repository Layer</center>"
+            FileRepository[FileRepository]
+            GitRepository[GitRepository]
+            UtilityRepository[UtilityRepository]
+        end
+
+        STDIO --> McpHandler
+        HTTP --> McpFramework
+
+        McpHandler --> GitServiceTools
+        McpFramework --> GitServiceTools
+
+        GitServiceTools --> GitService
+        GitServiceTools --> FileService
+        GitServiceTools --> UtilityService
+        GitServiceTools --> DeconstructionService
+        GitServiceTools --> WorkspaceService
+        FileService --> FileRepository
+        GitService --> GitRepository
+        UtilityService --> UtilityRepository
     end
 
-    subgraph "Protocol Layer"
-        McpHandler[McpHandler<br/>JSON-RPC Handler]
-        McpFramework[MCP Framework<br/>Built-in Routing]
-    end
-
-    subgraph "Business Logic Layer"
-        GitServiceTools[GitServiceTools<br/>Tool Implementations]
-    end
-
-    subgraph "Service Layer"
-        GitService[GitService]
-        FileService[FileService]
-        UtilityService[UtilityService]
-        DeconstructionService[DeconstructionService]
-        WorkspaceService[WorkspaceService]
-    end
-    subgraph "Repository Layer"
-        FileRepository[FileRepository]
-        GitRepository[GitRepository]
-        UtilityRepository[UtilityRepository]
-    end
     VSCode -.->|JSON-RPC over STDIO| STDIO
     HTTPClient -.->|JSON-RPC over HTTP| HTTP
-
-    STDIO --> McpHandler
-    HTTP --> McpFramework
-
-    McpHandler --> GitServiceTools
-    McpFramework --> GitServiceTools
-
-    GitServiceTools --> GitService
-    GitServiceTools --> FileService
-    GitServiceTools --> UtilityService
-    GitServiceTools --> DeconstructionService
-    GitServiceTools --> WorkspaceService
-    FileService --> FileRepository
-    GitService --> GitRepository
-    UtilityService --> UtilityRepository
 
 
 ```

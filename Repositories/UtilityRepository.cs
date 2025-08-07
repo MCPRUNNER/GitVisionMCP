@@ -4,21 +4,22 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using System.Xml.XPath;
 using GitVisionMCP.Services;
 using Microsoft.Extensions.Logging;
 
 namespace GitVisionMCP.Repositories;
+
 public class UtilityRepository : IUtilityRepository
 {
     private readonly ILogger<UtilityRepository> _logger;
     private readonly IFileService _fileService;
-    private readonly IWorkspaceService _workspaceService;
 
-    public UtilityRepository(ILogger<UtilityRepository> logger, IFileService fileService, IWorkspaceService workspaceService)
+    public UtilityRepository(ILogger<UtilityRepository> logger, IFileService fileService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
-        _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
     }
 
     /// <summary>
@@ -50,13 +51,37 @@ public class UtilityRepository : IUtilityRepository
                 return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? string.Empty;
             }
 
-            var version = _workspaceService.SearchXmlFile(projectFile, "/Project/PropertyGroup/Version/text()");
-            return version;
+            // Read the project file directly using IFileService
+            var filePath = _fileService.GetFullPath(projectFile);
+            if (string.IsNullOrEmpty(filePath))
+            {
+                _logger.LogWarning("Project file does not exist: {ProjectFile}", projectFile);
+                return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? string.Empty;
+            }
+
+            var xmlContent = _fileService.ReadFile(filePath);
+            if (string.IsNullOrWhiteSpace(xmlContent))
+            {
+                _logger.LogWarning("Project file content is empty: {ProjectFile}", projectFile);
+                return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? string.Empty;
+            }
+
+            // Parse XML and extract version using XPath
+            var xmlDoc = XDocument.Parse(xmlContent);
+            var versionElement = xmlDoc.XPathSelectElement("/Project/PropertyGroup/Version");
+
+            if (versionElement != null && !string.IsNullOrWhiteSpace(versionElement.Value))
+            {
+                return versionElement.Value.Trim();
+            }
+
+            // Fallback to assembly version
+            return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? string.Empty;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting application version");
-            return "Unknown Version";
+            _logger.LogError(ex, "Error getting application version from project file: {ProjectFile}", projectFile);
+            return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? "Unknown Version";
         }
     }
 }

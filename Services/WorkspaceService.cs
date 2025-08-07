@@ -15,6 +15,7 @@ using CsvHelper.Configuration;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
+using GitVisionMCP.Repositories;
 
 namespace GitVisionMCP.Services;
 
@@ -23,33 +24,21 @@ namespace GitVisionMCP.Services;
 /// <summary>
 /// Implementation of location service that provides search and transformation capabilities
 /// </summary>
-public class LocationService : ILocationService
+public class WorkspaceService : IWorkspaceService
 
 {
-    private readonly ILogger<LocationService> _logger;
+    private readonly ILogger<WorkspaceService> _logger;
     private readonly IFileService _fileService;
+    private readonly IUtilityRepository _utilityRepository;
 
-    public LocationService(ILogger<LocationService> logger, IFileService fileService)
+    public WorkspaceService(ILogger<WorkspaceService> logger, IFileService fileService, IUtilityRepository utilityRepository)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+        _utilityRepository = utilityRepository ?? throw new ArgumentNullException(nameof(utilityRepository));
     }
 
-    /// <summary>
-    /// Gets the value of an environment variable by name and returns it as an object.
-    /// </summary>
-    /// <param name="variableName">The name of the environment variable</param>
-    /// <returns>The value of the environment variable as an object, or null if not set</returns>
-    public object? GetEnvironmentVariableValue(string variableName)
-    {
-        if (string.IsNullOrWhiteSpace(variableName))
-        {
-            _logger.LogError("Environment variable name cannot be null or empty");
-            return null;
-        }
-        var value = Environment.GetEnvironmentVariable(variableName);
-        return value != null ? (object)value : null;
-    }
+ 
     /// <summary>
     /// Formats XML search results into the appropriate output format
     /// </summary>
@@ -538,29 +527,7 @@ public class LocationService : ILocationService
     }
 
 
-    /// <summary>
-    /// Extracts version information from a project file (e.g., .csproj) using XPath.
-    /// </summary>
-    /// <param name="projectFile"></param>
-    /// <returns></returns>
-    public string? GetAppVersion(string? projectFile)
-    {
-        try
-        {
-            if (string.IsNullOrEmpty(projectFile))
-            {
-                return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? string.Empty;
-            }
 
-            var version = SearchXmlFile(projectFile, "/Project/PropertyGroup/Version/text()");
-            return version;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting application version");
-            return "Unknown Version";
-        }
-    }
 
     /// <summary>
     /// Searches for XML values in an XML file using XPath queries with support for namespaces and structured results.

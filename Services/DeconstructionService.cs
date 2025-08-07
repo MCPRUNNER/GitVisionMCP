@@ -18,10 +18,10 @@ namespace GitVisionMCP.Services;
 public class DeconstructionService : IDeconstructionService
 {
     private readonly ILogger<DeconstructionService> _logger;
-    private readonly ILocationService _locationService;
+    private readonly IWorkspaceService _locationService;
     private readonly IFileService _fileService;
 
-    public DeconstructionService(ILogger<DeconstructionService> logger, ILocationService locationService, IFileService fileService)
+    public DeconstructionService(ILogger<DeconstructionService> logger, IWorkspaceService locationService, IFileService fileService)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _locationService = locationService ?? throw new ArgumentNullException(nameof(locationService));

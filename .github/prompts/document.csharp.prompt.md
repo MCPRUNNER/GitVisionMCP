@@ -66,11 +66,11 @@ Generate a high-level overview including:
 
 #### Controller Analysis
 
-Use the GitVisionMCP `DeconstructToFile` tool to extract detailed controller information:
+Use the GitVisionMCP `deconstruct_to_file` tool to extract detailed controller information:
 
 For each controller file found in the project:
 
-1. **Extract Controller Structure**: Use `mcp_gitvisionmcp_DeconstructToFile` to analyze controller files and save the analysis to JSON files
+1. **Extract Controller Structure**: Use `deconstruct_to_file` to analyze controller files and save the analysis to JSON files
 2. **Review JSON Analysis**: Examine the generated JSON files to understand controller structure, endpoints, and parameters
 3. **Document Controller Architecture**: Use the JSON analysis to create comprehensive controller documentation
 4. **Endpoint Mermaid Dataflow Diagram**: For each endpoint, document:
@@ -290,7 +290,7 @@ When analyzing the C# application source code:
 
 1. **Start with Program.cs**: Understand the application startup and configuration
 2. **Examine Project Files**: Analyze .csproj files for dependencies and target frameworks
-3. **Extract Controller Information**: Use `mcp_gitvisionmcp_AnalyzeControllerToFile` tool to analyze all controller files and generate JSON analysis files
+3. **Extract Controller Information**: Use `deconstruct_to_file` tool to analyze all controller files and generate JSON analysis files
 4. **Review Controller Analysis**: Examine the generated JSON files to understand API structure, endpoints, parameters, and authentication requirements
 5. **Map the Architecture**: Identify controllers, services, repositories, and data models
 6. **Trace Request Flow**: For web applications, follow the request pipeline from controllers through services
@@ -307,9 +307,9 @@ When analyzing the C# application source code:
 For ASP.NET Core Web Applications and Web APIs:
 
 1. **Locate Controllers**: Find all controller files (typically in Controllers/ folder)
-2. **Analyze Each Controller**: Use `mcp_gitvisionmcp_AnalyzeControllerToFile` for each controller file:
+2. **Analyze Each Controller**: Use `deconstruct_to_file` for each controller file:
    ```
-   Tool: mcp_gitvisionmcp_AnalyzeControllerToFile
+   Tool: deconstruct_to_file
    Parameters:
    - filePath: "Controllers/[ControllerName].cs"
    - outputFileName: "[ControllerName]_analysis.json" (optional)

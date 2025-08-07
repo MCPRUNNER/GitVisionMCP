@@ -15,18 +15,20 @@ namespace GitVisionMCP.Tools;
 public class GitServiceTools : IGitServiceTools
 {
     private readonly IGitService _gitService;
-    private readonly ILocationService _locationService;
+    private readonly IWorkspaceService _locationService;
     private readonly IFileService _fileService;
+    private readonly IUtilityService _utilityService;
     private readonly IDeconstructionService _deconstructionService;
     private readonly ILogger<GitServiceTools> _logger;
 
-    public GitServiceTools(IGitService gitService, ILocationService locationService, IFileService fileService, IDeconstructionService deconstructionService, ILogger<GitServiceTools> logger)
+    public GitServiceTools(IGitService gitService, IWorkspaceService locationService, IFileService fileService, IDeconstructionService deconstructionService, ILogger<GitServiceTools> logger, IUtilityService utilityService)
     {
         _gitService = gitService;
         _locationService = locationService;
         _fileService = fileService;
         _deconstructionService = deconstructionService;
         _logger = logger;
+        _utilityService = utilityService;
     }
 
     [McpServerToolAttribute(Name = "fetch_from_remote")]
@@ -195,8 +197,8 @@ public class GitServiceTools : IGitServiceTools
                [Description("Maximum number of tokens to generate")] int maxTokens = 1000)
         {
             // Create messages list with system prompt and user message
-            var sysPrompt = _locationService.GetGitHubPromptFileContent(system_prompt);
-            var userPrompt = _locationService.GetGitHubPromptFileContent(user_prompt);
+            var sysPrompt = _workspaceService.GetGitHubPromptFileContent(system_prompt);
+            var userPrompt = _workspaceService.GetGitHubPromptFileContent(user_prompt);
             var messages = new List<ChatMessage>
             {
                 new(ChatRole.System, sysPrompt ?? "Default system prompt"),
@@ -1555,7 +1557,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
-            var version = _locationService.GetAppVersion(projectFile);
+            var version = _utilityService.GetAppVersion(projectFile);
             return Task.FromResult<string?>(version);
         }
         catch (Exception ex)

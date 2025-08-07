@@ -8,50 +8,58 @@ This document explains the functional differences between `GitServiceTools` and 
 
 ```mermaid
 graph TB
-    subgraph "Client Layer (mcp.json)"
+    subgraph "IDE/Chat-Client Layer"
         VSCode[STDIO Configuration<br/>command line run]
         HTTPClient[HTTP Configuration<br/>url http\://ip\:port\/mcp]
     end
 
-    subgraph "Transport Layer"
-        STDIO[STDIO Transport]
-        HTTP[HTTP Transport]
+    subgraph MCP["MCP Server"]
+        subgraph "Transport Layer"
+            STDIO[STDIO Transport]
+            HTTP[HTTP Transport]
+        end
+
+        subgraph "<center>Protocol Layer</center>"
+            McpHandler[McpHandler<br/>JSON-RPC Handler]
+            McpFramework[MCP Framework<br/>Built-in Routing]
+        end
+
+        subgraph "<center>Business Logic Layer</center>"
+            GitServiceTools[GitServiceTools<br/>Tool Implementations]
+        end
+
+        subgraph "<center>Service Layer</center>"
+            GitService[GitService]
+            FileService[FileService]
+            UtilityService[UtilityService]
+            DeconstructionService[DeconstructionService]
+            WorkspaceService[WorkspaceService]
+        end
+
+        subgraph "<center>Repository Layer</center>"
+            FileRepository[FileRepository]
+            GitRepository[GitRepository]
+            UtilityRepository[UtilityRepository]
+        end
+
+        STDIO --> McpHandler
+        HTTP --> McpFramework
+
+        McpHandler --> GitServiceTools
+        McpFramework --> GitServiceTools
+
+        GitServiceTools --> GitService
+        GitServiceTools --> FileService
+        GitServiceTools --> UtilityService
+        GitServiceTools --> DeconstructionService
+        GitServiceTools --> WorkspaceService
+        FileService --> FileRepository
+        GitService --> GitRepository
+        UtilityService --> UtilityRepository
     end
 
-    subgraph "Protocol Layer"
-        McpHandler[McpHandler<br/>JSON-RPC Handler]
-        McpFramework[MCP Framework<br/>Built-in Routing]
-    end
-
-    subgraph "Business Logic Layer"
-        GitServiceTools[GitServiceTools<br/>Tool Implementations]
-    end
-
-    subgraph "Service Layer"
-        GitService[GitService]
-        FileService[FileService]
-        LocationService[LocationService]
-        DeconstructionService[DeconstructionService]
-    end
-    subgraph "Repository Layer"
-        FileRepository[FileRepository]
-        GitRepository[GitCommandRepository]
-    end
     VSCode -.->|JSON-RPC over STDIO| STDIO
     HTTPClient -.->|JSON-RPC over HTTP| HTTP
-
-    STDIO --> McpHandler
-    HTTP --> McpFramework
-
-    McpHandler --> GitServiceTools
-    McpFramework --> GitServiceTools
-
-    GitServiceTools --> GitService
-    GitServiceTools --> FileService
-    GitServiceTools --> LocationService
-    GitServiceTools --> DeconstructionService
-    FileService --> FileRepository
-    GitService --> GitRepository
 
 
 ```
@@ -87,8 +95,14 @@ classDiagram
     class IGitService {
         <<Interface>>
         +GetGitLogsAsync()
+        +GetRecentCommitsAsync()
+        +GetGitLogsBetweenBranchesAsync()
+        +GetGitLogsBetweenCommitsAsync()
         +GenerateCommitDocumentationAsync()
         +FetchFromRemoteAsync()
+        +SearchCommitsForStringAsync()
+        +GetCommitDiffInfoAsync()
+        +GetFileLineDiffBetweenCommitsAsync()
     }
 
     class IFileService {
@@ -96,18 +110,23 @@ classDiagram
         +GetWorkspaceRoot()
         +GetAllFilesAsync()
         +GetFileContentsAsync()
+        +ReadFilteredWorkspaceFilesAsync()
     }
 
-    class ILocationService {
+    class IUtilityService {
         <<Interface>>
         +SearchJsonFile()
         +SearchXmlFile()
+        +SearchYamlFile()
+        +SearchCsvFile()
+        +SearchExcelFile()
         +GetAppVersion()
+        +TransformXmlWithXslt()
     }
 
     GitServiceTools --> IGitService
     GitServiceTools --> IFileService
-    GitServiceTools --> ILocationService
+    GitServiceTools --> IUtilityService
 ```
 
 ### McpHandler
@@ -241,16 +260,16 @@ flowchart TD
     B -->|"stdio"| D[Configure STDIO Transport]
     B -->|"unset" or invalid| E[Default to STDIO]
 
-    C --> F[builder.Services.AddMcpServer().WithHttpTransport()]
+    C --> F["builder.Services.AddMcpServer().WithHttpTransport()"]
     C --> G[Add HTTP Middleware & Controllers]
-    C --> H[app.MapMcp("/mcp")]
-    C --> I[app.Run()]
+    C --> H["app.MapMcp('/mcp')"]
+    C --> I["app.Run()"]
 
-    D --> J[builder.Services.AddMcpServer().WithStdioServerTransport()]
+    D --> J["builder.Services.AddMcpServer().WithStdioServerTransport()"]
     E --> J
     J --> K[Register IMcpHandler as McpHandler]
     J --> L[Get IMcpServer Service]
-    L --> M[await mcpServer.RunAsync()]
+    L --> M["await mcpServer.RunAsync()"]
 
     style C fill:#e8f5e8
     style D fill:#fff2cc
@@ -258,17 +277,71 @@ flowchart TD
     style J fill:#fff2cc
 ```
 
+## Repository Pattern Architecture
+
+The project implements a clean repository pattern with clear separation of concerns:
+
+### Service Layer
+
+- **GitService**: Orchestrates git operations through delegation to GitRepository
+- **FileService**: Manages file system operations through FileRepository
+- **UtilityService**: Handles specialized operations (JSON/XML/YAML parsing) through UtilityRepository
+- **DeconstructionService**: Provides C# code analysis capabilities
+- **WorkspaceService**: Manages workspace-related operations
+
+### Repository Layer
+
+- **GitRepository**: Direct interaction with LibGit2Sharp for git operations
+- **FileRepository**: Direct file system I/O operations
+- **UtilityRepository**: Direct interaction with parsing libraries (Newtonsoft.Json, System.Xml, etc.)
+
+### Benefits of This Architecture
+
+- **Separation of Concerns**: Business logic separated from data access
+- **Testability**: Services can be unit tested with mocked repositories
+- **Maintainability**: Changes to git operations only affect the repository layer
+- **Dependency Inversion**: Services depend on interfaces, not concrete implementations
+
+```mermaid
+classDiagram
+    class GitService {
+        -IGitRepository _gitRepository
+        -IWorkspaceService _workspaceService
+        +GetGitLogsAsync()
+        +GenerateCommitDocumentationAsync()
+        +SearchCommitsForStringAsync()
+    }
+
+    class GitRepository {
+        -LibGit2Sharp.Repository
+        +GetGitLogsAsync()
+        +GetCommitDiffInfoAsync()
+        +FetchFromRemoteAsync()
+    }
+
+    class IGitRepository {
+        <<interface>>
+        +GetGitLogsAsync()
+        +GetCommitDiffInfoAsync()
+        +FetchFromRemoteAsync()
+    }
+
+    GitService --> IGitRepository
+    GitRepository ..|> IGitRepository
+    GitRepository --> LibGit2Sharp : uses
+```
+
 ## Key Differences Summary
 
-| Aspect                | GitServiceTools                                | McpHandler                               |
-| --------------------- | ---------------------------------------------- | ---------------------------------------- |
-| **Purpose**           | Business logic implementation                  | Protocol communication handler           |
-| **Transport Support** | Both HTTP and STDIO                            | STDIO only                               |
-| **Responsibilities**  | Tool functionality, validation, error handling | JSON-RPC parsing, routing, serialization |
-| **Dependencies**      | Service layer (GitService, FileService, etc.)  | GitServiceTools for actual work          |
-| **Discovery**         | MCP attributes for auto-discovery              | Manual tool registration                 |
-| **Lifecycle**         | Transient per request                          | Singleton for application lifetime       |
-| **Error Handling**    | Business logic errors                          | Protocol and communication errors        |
+| Aspect                | GitServiceTools                                                                                                               | McpHandler                               |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| **Purpose**           | Business logic implementation                                                                                                 | Protocol communication handler           |
+| **Transport Support** | Both HTTP and STDIO                                                                                                           | STDIO only                               |
+| **Responsibilities**  | Tool functionality, validation, error handling                                                                                | JSON-RPC parsing, routing, serialization |
+| **Dependencies**      | Service layer interfaces (IGitService, IFileService, IUtilityService, etc.) and repository layer through dependency injection | GitServiceTools for actual work          |
+| **Discovery**         | MCP attributes for auto-discovery                                                                                             | Manual tool registration                 |
+| **Lifecycle**         | Transient per request                                                                                                         | Singleton for application lifetime       |
+| **Error Handling**    | Business logic errors                                                                                                         | Protocol and communication errors        |
 
 ## Redundancy Analysis
 
@@ -277,7 +350,25 @@ flowchart TD
 1. **GitServiceTools** contains the actual business logic and tool implementations
 2. **McpHandler** provides STDIO-specific communication protocol handling
 3. **HTTP transport** bypasses McpHandler entirely and uses the MCP framework's built-in routing
-4. **Both are necessary** for supporting multiple transport protocols
+4. **Service Layer** provides business logic orchestration and validation
+5. **Repository Layer** provides direct data access and external library interaction
+6. **All components are necessary** for supporting multiple transport protocols and maintaining clean architecture
+
+## Architectural Benefits
+
+### Repository Pattern Implementation
+
+- ✅ **Clean Separation**: Business logic (services) separated from data access (repositories)
+- ✅ **Testability**: Services can be unit tested with mocked repositories
+- ✅ **Dependency Inversion**: Services depend on interfaces, enabling flexibility
+- ✅ **Single Responsibility**: Each repository handles one type of data access
+
+### Service Layer Benefits
+
+- ✅ **Orchestration**: Services coordinate between multiple repositories
+- ✅ **Business Logic**: Complex operations span multiple data sources
+- ✅ **Validation**: Input validation and business rule enforcement
+- ✅ **Error Handling**: Centralized exception handling and logging
 
 ## Best Practices Observed
 
@@ -298,4 +389,18 @@ flowchart TD
 
 ## Conclusion
 
-GitServiceTools and McpHandler serve complementary but distinct roles in the MCP server architecture. GitServiceTools provides transport-agnostic business logic, while McpHandler provides STDIO-specific protocol handling. This separation enables the application to support multiple transport protocols efficiently without
+The GitVisionMCP project implements a robust, multi-layered architecture that successfully separates concerns across four distinct layers:
+
+1. **Tool Layer (GitServiceTools)**: Transport-agnostic business logic for MCP tool implementations
+2. **Protocol Layer (McpHandler)**: STDIO-specific JSON-RPC communication handling
+3. **Service Layer**: Business logic orchestration and coordination between repositories
+4. **Repository Layer**: Direct data access and external library interaction
+
+This architecture enables:
+
+- **Multiple Transport Support**: Both HTTP and STDIO protocols
+- **Clean Testing**: Unit tests with proper mocking at each layer
+- **Maintainable Code**: Clear separation of concerns and dependency inversion
+- **Extensible Design**: Easy addition of new repositories and services
+
+The repository pattern refactoring has eliminated code duplication, improved testability, and created a more maintainable codebase that follows SOLID principles and clean architecture guidelines.

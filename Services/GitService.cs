@@ -7,14 +7,14 @@ namespace GitVisionMCP.Services;
 public class GitService : IGitService
 {
     private readonly ILogger<GitService> _logger;
-    private readonly ILocationService _locationService;
-    private readonly IGitCommandRepository _gitCommandRepository;
+    private readonly IWorkspaceService _workspaceService;
+    private readonly IGitRepository _gitCommandRepository;
 
 
-    public GitService(ILogger<GitService> logger, ILocationService locationService, IGitCommandRepository gitCommandRepository)
+    public GitService(ILogger<GitService> logger, IWorkspaceService workspaceService, IGitRepository gitCommandRepository)
     {
         _logger = logger;
-        _locationService = locationService;
+        _workspaceService = workspaceService;
         _gitCommandRepository = gitCommandRepository;
     }
     public async Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)

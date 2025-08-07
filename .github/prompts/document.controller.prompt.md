@@ -12,7 +12,7 @@ Your task is to analyze and document C# Web API applications, producing professi
 
 ## Restrictions
 
-- Only analyze and document controllers discovered via the the `mcp_gitvisionmcp_ReadFilteredWorkspaceFiles` and `mcp_gitvisionmcp_DeconstructToFile` tools.
+- Only analyze and document controllers discovered via the `read_filtered_workspace_files` and `deconstruct_to_file` tools.
 - Do not include sensitive information such as API keys, passwords, or personal data in the documentation.
 - Ensure that all code snippets are properly attributed and comply with licensing requirements.
 - Avoid making assumptions about the reader's prior knowledge; provide sufficient context and explanations.
@@ -23,14 +23,14 @@ Your task is to analyze and document C# Web API applications, producing professi
 
 **Step 1: Controller Discovery**
 
-- Use `mcp_gitvisionmcp_ListWorkspaceFiles` with filter `"relativePath": "Controller.cs"` to identify all controller files in the workspace
-- Only catalog files that match the naming convention for controllers (e.g., `*Controller.cs`) in the `mcp_gitvisionmcp_ReadFilteredWorkspaceFiles` tool
+- Use `list_workspace_files` with filter `"relativePath": "Controller.cs"` to identify all controller files in the workspace
+- Only catalog files that match the naming convention for controllers (e.g., `*Controller.cs`) in the `read_filtered_workspace_files` tool
 - Log the total number of controllers found
 
 **Step 2: Controller Analysis**
 
-- For each discovered controller file, use `mcp_gitvisionmcp_DeconstructToFile` tool to extract detailed controller information where `filePath` equals the `relativePath` of the controller file
-- Use `mcp_gitvisionmcp_DeconstructToFile` to save analysis results as JSON files for reference
+- For each discovered controller file, use `deconstruct_to_file` tool to extract detailed controller information where `filePath` equals the `relativePath` of the controller file
+- Use `deconstruct_to_json` to save analysis results as JSON files for reference
 - Verify all controller files have been successfully analyzed
 
 **Step 3: Data Validation**

@@ -20,9 +20,10 @@ public class McpServerTests : IDisposable
     private readonly Mock<ILogger<McpHandler>> _mockLogger;
     private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly Mock<IGitService> _mockGitService;
-    private readonly Mock<ILocationService> _mockLocationService;
+    private readonly Mock<IWorkspaceService> _mockLocationService;
     private readonly Mock<IFileService> _mockFileService;
     private readonly Mock<IGitServiceTools> _mockGitServiceTools;
+    private readonly Mock<IUtilityService> _mockUtilityService;
     private readonly McpHandler _mcpServer;
     private readonly string _testWorkingDirectory;
 
@@ -31,8 +32,9 @@ public class McpServerTests : IDisposable
         _mockLogger = new Mock<ILogger<McpHandler>>();
         _mockConfiguration = new Mock<IConfiguration>();
         _mockGitService = new Mock<IGitService>();
-        _mockLocationService = new Mock<ILocationService>();
+        _mockLocationService = new Mock<IWorkspaceService>();
         _mockFileService = new Mock<IFileService>();
+        _mockUtilityService = new Mock<IUtilityService>();
         _mockGitServiceTools = new Mock<IGitServiceTools>();
 
         // Set up a test working directory
@@ -49,7 +51,8 @@ public class McpServerTests : IDisposable
             _mockGitService.Object,
             _mockLocationService.Object,
             _mockFileService.Object,
-            _mockGitServiceTools.Object);
+            _mockGitServiceTools.Object,
+            _mockUtilityService.Object);
     }
 
     public void Dispose()
@@ -71,7 +74,7 @@ public class McpServerTests : IDisposable
     public void Constructor_WithValidParameters_CreatesInstance()
     {
         // Arrange & Act
-        var server = new McpHandler(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, _mockGitServiceTools.Object);
+        var server = new McpHandler(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, _mockGitServiceTools.Object, _mockUtilityService.Object);
 
         // Assert
         Assert.NotNull(server);
@@ -82,7 +85,7 @@ public class McpServerTests : IDisposable
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new McpHandler(null!, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, _mockGitServiceTools.Object));
+            new McpHandler(null!, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, _mockGitServiceTools.Object, _mockUtilityService.Object));
     }
 
     [Fact]
@@ -90,7 +93,7 @@ public class McpServerTests : IDisposable
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new McpHandler(_mockLogger.Object, null!, _mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, _mockGitServiceTools.Object));
+            new McpHandler(_mockLogger.Object, null!, _mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, _mockGitServiceTools.Object, _mockUtilityService.Object));
     }
 
     [Fact]
@@ -98,7 +101,7 @@ public class McpServerTests : IDisposable
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new McpHandler(_mockLogger.Object, _mockConfiguration.Object, null!, _mockLocationService.Object, _mockFileService.Object, _mockGitServiceTools.Object));
+            new McpHandler(_mockLogger.Object, _mockConfiguration.Object, null!, _mockLocationService.Object, _mockFileService.Object, _mockGitServiceTools.Object, _mockUtilityService.Object));
     }
 
     [Fact]
@@ -106,7 +109,7 @@ public class McpServerTests : IDisposable
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new McpHandler(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, null!, _mockFileService.Object, _mockGitServiceTools.Object));
+            new McpHandler(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, null!, _mockFileService.Object, _mockGitServiceTools.Object, _mockUtilityService.Object));
     }
 
     [Fact]
@@ -114,7 +117,7 @@ public class McpServerTests : IDisposable
     {
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new McpHandler(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, null!));
+            new McpHandler(_mockLogger.Object, _mockConfiguration.Object, _mockGitService.Object, _mockLocationService.Object, _mockFileService.Object, null!, _mockUtilityService.Object));
     }
 
     [Fact]

@@ -8,12 +8,10 @@ namespace GitVisionMCP.Services;
 public class GitRepository : IGitRepository
 {
     private readonly ILogger<GitRepository> _logger;
-    private readonly IWorkspaceService _workspaceService;
 
     public GitRepository(ILogger<GitRepository> logger, IWorkspaceService workspaceService)
     {
         _logger = logger;
-        _workspaceService = workspaceService;
     }
     public async Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
     {
@@ -232,7 +230,6 @@ public class GitRepository : IGitRepository
         try
         {
             _logger.LogInformation("Generating documentation for {Count} commits in {Format} format", commits.Count, format);
-            var sysPrompt = _workspaceService.GetGitHubPromptFileContent("GenerateDocumentation.md");
             var documentation = format.ToLower() switch
             {
                 "markdown" => await GenerateCommitMarkdownDocumentationAsync(commits),

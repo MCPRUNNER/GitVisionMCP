@@ -235,6 +235,11 @@ public class FileRepository : IFileRepository
                 var relativePath = Path.GetRelativePath(_workspaceRoot, file.FullName);
                 var fileType = Path.GetExtension(file.Name).ToLowerInvariant();
 
+                // Check if file should be excluded
+                if (IsFileExcludedAsync(relativePath).Result)
+                {
+                    continue;
+                }
                 files.Add(new WorkspaceFileInfo
                 {
                     RelativePath = relativePath,

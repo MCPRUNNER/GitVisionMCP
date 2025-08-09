@@ -1,4 +1,4 @@
-# GitVisionMCP 1.0.7
+# GitVisionMCP 1.0.8
 
 > **🚀 Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documentation**
 
@@ -68,19 +68,19 @@ GitVisionMCP provides **29 powerful tools** for git analysis, documentation gene
 
 ## Available Tools
 
-### 📝 **Documentation & Analysis** (7 tools)
+### 📝 **Documentation & Analysis**
 
-| Tool                                 | Description                                                |
-| ------------------------------------ | ---------------------------------------------------------- |
-| `generate_git_documentation`         | Generate comprehensive documentation from git logs         |
-| `generate_git_documentation_to_file` | Generate docs and save to specified file                   |
-| `compare_branches_documentation`     | Compare two local branches with detailed analysis          |
-| `compare_branches_with_remote`       | Compare branches with full remote support (GitHub, GitLab) |
-| `compare_commits_documentation`      | Generate detailed diff between two commits                 |
-| `get_recent_commits`                 | Retrieve recent commits with metadata                      |
-| `get_commit_diff_info`               | Get comprehensive diff statistics                          |
+| Tool                                         | Description                                                                           |
+| -------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `generate_git_commit_report`                 | Generate git commit report for current branch                                         |
+| `generate_git_commit_report_to_file`         | Generate git commit report for current branch and write to a file                     |
+| `compare_branches_documentation`             | Generate documentation comparing differences between two branches                     |
+| `compare_branches_with_remote_documentation` | Generate documentation comparing differences between two branches with remote support |
+| `compare_commits_documentation`              | Generate documentation comparing differences between two commits                      |
+| `get_recent_commits`                         | Get recent commits from the current repository                                        |
+| `get_commit_diff_info`                       | Get comprehensive diff information between two commits                                |
 
-### 🔍 **Search & Discovery** (11 tools)
+### 🔍 **Search & Discovery**
 
 | Tool                                    | Description                              | Query Language |
 | --------------------------------------- | ---------------------------------------- | -------------- |
@@ -96,26 +96,26 @@ GitVisionMCP provides **29 powerful tools** for git analysis, documentation gene
 | `read_filtered_workspace_files`         | Bulk file reading with limits            | Filters        |
 | `git_find_merge_conflicts`              | Locate Git merge conflicts in code       | Text search    |
 
-### 🌿 **Branch & Repository Management** (5 tools)
+### 🌿 **Branch & Repository Management**
 
-| Tool                  | Description                              |
-| --------------------- | ---------------------------------------- |
-| `get_local_branches`  | List all local branches                  |
-| `get_remote_branches` | List all remote branches                 |
-| `get_all_branches`    | Combined local and remote branch listing |
-| `get_current_branch`  | Get the current active branch            |
-| `fetch_from_remote`   | Sync with remote repositories            |
+| Tool                  | Description                                                   |
+| --------------------- | ------------------------------------------------------------- |
+| `get_local_branches`  | Get list of local branches in the repository                  |
+| `get_remote_branches` | Get list of remote branches in the repository                 |
+| `get_all_branches`    | Get list of all branches (local and remote) in the repository |
+| `get_current_branch`  | Get the current active branch in the repository               |
+| `fetch_from_remote`   | Fetch latest changes from remote repository                   |
 
-### ⚡ **Advanced Analysis** (6 tools)
+### ⚡ **Advanced Analysis**
 
-| Tool                                 | Description                          |
-| ------------------------------------ | ------------------------------------ |
-| `get_changed_files_between_commits`  | Track file changes between commits   |
-| `get_detailed_diff_between_commits`  | Get complete diff content            |
-| `get_file_line_diff_between_commits` | Line-by-line diff for specific files |
-| `deconstruct_to_json`                | ASP.NET Core controller analysis     |
-| `deconstruct_to_file`                | Save controller analysis to file     |
-| `get_app_version`                    | Extract version from project files   |
+| Tool                                 | Description                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------ |
+| `get_changed_files_between_commits`  | Get list of files changed between two commits                            |
+| `get_detailed_diff_between_commits`  | Get detailed diff content between two commits                            |
+| `get_file_line_diff_between_commits` | Get line-by-line file diff between two commits                           |
+| `deconstruct_to_json`                | Deconstruct a C# file and save structure to a JSON file                  |
+| `deconstruct_to_file`                | Deconstruct a C# Service, Repository or Controller file and returns JSON |
+| `get_app_version`                    | Extract application version from a project file                          |
 
 ---
 

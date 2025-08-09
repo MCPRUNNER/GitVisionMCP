@@ -18,12 +18,12 @@ public interface IGitServiceTools
     /// <summary>
     /// Generate documentation from git logs for the current workspace
     /// </summary>
-    Task<string> GenerateGitDocumentationAsync(int? maxCommits = 50, string? outputFormat = "markdown");
+    Task<string> CreateGitCommitReportAsync(int? maxCommits = 50, string? outputFormat = "markdown");
 
     /// <summary>
     /// Generate documentation from git logs and write to a file
     /// </summary>
-    Task<string> GenerateGitDocumentationToFileAsync(string filePath, int? maxCommits = 50, string? outputFormat = "markdown");
+    Task<string> ExportGitCommitsToFileAsync(string filePath, int? maxCommits = 50, string? outputFormat = "markdown");
 
     /// <summary>
     /// Generate documentation comparing differences between two branches

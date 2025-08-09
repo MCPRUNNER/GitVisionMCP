@@ -605,6 +605,7 @@ public class GitRepository : IGitRepository
 
             if (commit.Changes.Any())
             {
+
                 markdown.AppendLine($"**Changes:**");
                 foreach (var change in commit.Changes)
                 {

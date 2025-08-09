@@ -48,9 +48,9 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
-    [McpServerToolAttribute(Name = "generate_git_documentation")]
-    [Description("Generate documentation from git logs for the current workspace")]
-    public async Task<string> GenerateGitDocumentationAsync(
+    [McpServerToolAttribute(Name = "generate_git_commit_report")]
+    [Description("Generate git commit report for current branch")]
+    public async Task<string> CreateGitCommitReportAsync(
         [Description("Maximum number of commits to include (default: 50)")] int? maxCommits = 50,
         [Description("Output format: markdown, html, or text (default: markdown)")] string? outputFormat = "markdown")
     {
@@ -122,9 +122,9 @@ public class GitServiceTools : IGitServiceTools
         return outputFormat;
     }
 
-    [McpServerToolAttribute(Name = "generate_git_documentation_to_file")]
-    [Description("Generate documentation from git logs and write to a file")]
-    public async Task<string> GenerateGitDocumentationToFileAsync(
+    [McpServerToolAttribute(Name = "generate_git_commit_report_to_file")]
+    [Description("Generate git commit report for current branch and write to a file")]
+    public async Task<string> ExportGitCommitsToFileAsync(
         [Description("Path where to save the documentation file")] string filePath,
         [Description("Maximum number of commits to include (default: 50)")] int? maxCommits = 50,
         [Description("Output format: markdown, html, or text (default: markdown)")] string? outputFormat = "markdown")

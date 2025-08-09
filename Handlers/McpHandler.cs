@@ -43,7 +43,7 @@ public class McpHandler : IMcpHandler
         _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
         _gitServiceTools = gitServiceTools ?? throw new ArgumentNullException(nameof(gitServiceTools));
         _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
-        _utilityService = utilityService ?? throw new ArgumentNullException(nameof(utilityService));    
+        _utilityService = utilityService ?? throw new ArgumentNullException(nameof(utilityService));
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -236,8 +236,8 @@ public class McpHandler : IMcpHandler
         {
             new Tool
             {
-                Name = "generate_git_documentation",
-                Description = "Generate documentation from git logs for the current workspace",
+                Name = "generate_git_commit_report",
+                Description = "Generate git commit report for current branch",
                 InputSchema = new
                 {
                     type = "object",
@@ -250,8 +250,8 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "generate_git_documentation_to_file",
-                Description = "Generate documentation from git logs and write to a file",
+                Name = "generate_git_commit_report_to_file",
+                Description = "Generate git commit report for current branch and write to a file",
                 InputSchema = new
                 {
                     type = "object",

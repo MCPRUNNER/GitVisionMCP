@@ -30,15 +30,17 @@ public class WorkspaceService : IWorkspaceService
     private readonly ILogger<WorkspaceService> _logger;
     private readonly IFileService _fileService;
     private readonly IUtilityRepository _utilityRepository;
+    private readonly string _workspaceRoot;
 
     public WorkspaceService(ILogger<WorkspaceService> logger, IFileService fileService, IUtilityRepository utilityRepository)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         _utilityRepository = utilityRepository ?? throw new ArgumentNullException(nameof(utilityRepository));
+        _workspaceRoot = _fileService.GetWorkspaceRoot();
     }
 
- 
+
     /// <summary>
     /// Formats XML search results into the appropriate output format
     /// </summary>
@@ -349,7 +351,7 @@ public class WorkspaceService : IWorkspaceService
 
         try
         {
-            var promptsDirectory = Path.Combine(_fileService.GetWorkspaceRoot(), ".github/prompts");
+            var promptsDirectory = Path.Combine(_workspaceRoot, ".github/prompts");
             var filePath = Path.Combine(promptsDirectory, filename);
             if (string.IsNullOrEmpty(filePath))
             {
@@ -554,7 +556,7 @@ public class WorkspaceService : IWorkspaceService
             }
 
             // Read the entire content of the XML file into a string
-            var filePath = Path.Combine(_fileService.GetWorkspaceRoot(), xmlFilePath);
+            var filePath = Path.Combine(_workspaceRoot, xmlFilePath);
             var xmlContent = _fileService.ReadFile(filePath);
 
             if (string.IsNullOrWhiteSpace(xmlContent))
@@ -638,8 +640,8 @@ public class WorkspaceService : IWorkspaceService
             }
 
             // Get full paths relative to workspace root
-            var fullXmlPath = Path.Combine(_fileService.GetWorkspaceRoot(), xmlFilePath);
-            var fullXsltPath = Path.Combine(_fileService.GetWorkspaceRoot(), xsltFilePath);
+            var fullXmlPath = _fileService.GetFullPath(xmlFilePath);
+            var fullXsltPath = _fileService.GetFullPath(xsltFilePath);
 
             // Check if XML file exists
             if (!File.Exists(fullXmlPath))
@@ -678,7 +680,7 @@ public class WorkspaceService : IWorkspaceService
                 {
                     var fullDestinationPath = Path.IsPathRooted(destinationFilePath)
                         ? destinationFilePath
-                        : Path.Combine(_fileService.GetWorkspaceRoot(), destinationFilePath);
+                        : Path.Combine(_workspaceRoot, destinationFilePath);
 
                     // Create directory if it doesn't exist
                     var directory = Path.GetDirectoryName(fullDestinationPath);

@@ -6,6 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
+
+using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
+using GitVisionMCP.Models;
 using GitVisionMCP.Services;
 using Microsoft.Extensions.Logging;
 
@@ -38,7 +43,8 @@ public class UtilityRepository : IUtilityRepository
         return value != null ? (object)value : null;
     }
     /// <summary>
-    /// Extracts version information from a project file (e.g., .csproj) using XPath.
+    /// Extracts version information from a project file (e.g., .csproj) using XPath. 
+    /// Defaults to version of GitVisionMCP if the Project file is not passed.
     /// </summary>
     /// <param name="projectFile"></param>
     /// <returns></returns>
@@ -52,6 +58,8 @@ public class UtilityRepository : IUtilityRepository
             }
 
             // Read the project file directly using IFileService
+            // If projectFile is not provided, fall back to the executing assembly version of GitVisionMCP
+
             var filePath = _fileService.GetFullPath(projectFile);
             if (string.IsNullOrEmpty(filePath))
             {
@@ -84,4 +92,7 @@ public class UtilityRepository : IUtilityRepository
             return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? "Unknown Version";
         }
     }
+
+
+
 }

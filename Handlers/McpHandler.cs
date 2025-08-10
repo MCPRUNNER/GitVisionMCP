@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using GitVisionMCP.Models; // For CallToolRequest, CallToolResponse, ToolContent, etc.
@@ -25,8 +26,8 @@ public class McpHandler : IMcpHandler
     private readonly IFileService _fileService;
     private readonly IGitServiceTools _gitServiceTools;
     private readonly IUtilityService _utilityService;
-    private readonly JsonSerializerOptions _jsonOptions;
-    private readonly JsonSerializerOptions _outputJsonOptions;
+    private readonly JsonSerializerSettings _jsonSettings;
+    private readonly JsonSerializerSettings _outputJsonSettings;
     private bool _isRunning;
 
     public McpHandler(
@@ -43,22 +44,19 @@ public class McpHandler : IMcpHandler
         _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
         _gitServiceTools = gitServiceTools ?? throw new ArgumentNullException(nameof(gitServiceTools));
         _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
-        _utilityService = utilityService ?? throw new ArgumentNullException(nameof(utilityService));    
-        _jsonOptions = new JsonSerializerOptions
+        _utilityService = utilityService ?? throw new ArgumentNullException(nameof(utilityService));
+        _jsonSettings = new JsonSerializerSettings
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            WriteIndented = false
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore,
+            Formatting = Formatting.None
         };
-        _outputJsonOptions = new JsonSerializerOptions
+        _outputJsonSettings = new JsonSerializerSettings
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            WriteIndented = false
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            NullValueHandling = NullValueHandling.Ignore,
+            Formatting = Formatting.None
         };
-
-        // Debug: Force explicit settings to ensure no indentation
-        _outputJsonOptions.WriteIndented = false;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken = default)
@@ -114,7 +112,7 @@ public class McpHandler : IMcpHandler
 
             _logger.LogTrace("Received request: {Input}", input);
 
-            var request = JsonSerializer.Deserialize<JsonRpcRequest>(input, _jsonOptions);
+            var request = JsonConvert.DeserializeObject<JsonRpcRequest>(input, _jsonSettings);
             if (request == null)
             {
                 await SendErrorResponseAsync(null, -32700, "Parse error");
@@ -217,7 +215,7 @@ public class McpHandler : IMcpHandler
             ServerInfo = new ServerInfo
             {
                 Name = "GitVisionMCP",
-                Version = appVersion ?? "0.0.0"
+                Version = appVersion ?? "1.0.8"
             }
         };
 
@@ -236,8 +234,8 @@ public class McpHandler : IMcpHandler
         {
             new Tool
             {
-                Name = "generate_git_documentation",
-                Description = "Generate documentation from git logs for the current workspace",
+                Name = "gv_generate_git_commit_report",
+                Description = "Generate git commit report for current branch",
                 InputSchema = new
                 {
                     type = "object",
@@ -250,8 +248,8 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "generate_git_documentation_to_file",
-                Description = "Generate documentation from git logs and write to a file",
+                Name = "gv_generate_git_commit_report_to_file",
+                Description = "Generate git commit report for current branch and write to a file",
                 InputSchema = new
                 {
                     type = "object",
@@ -266,7 +264,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "compare_branches_documentation",
+                Name = "gv_compare_branches_documentation",
                 Description = "Generate documentation comparing differences between two branches",
                 InputSchema = new
                 {
@@ -283,7 +281,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "compare_commits_documentation",
+                Name = "gv_compare_commits_documentation",
                 Description = "Generate documentation comparing differences between two commits",
                 InputSchema = new
                 {
@@ -300,7 +298,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_recent_commits",
+                Name = "gv_get_recent_commits",
                 Description = "Get recent commits from the current repository",
                 InputSchema = new
                 {
@@ -313,7 +311,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_changed_files_between_commits",
+                Name = "gv_get_changed_files_between_commits",
                 Description = "Get list of files changed between two commits",
                 InputSchema = new
                 {
@@ -328,7 +326,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_detailed_diff_between_commits",
+                Name = "gv_get_detailed_diff_between_commits",
                 Description = "Get detailed diff content between two commits",
                 InputSchema = new
                 {
@@ -344,7 +342,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_commit_diff_info",
+                Name = "gv_get_commit_diff_info",
                 Description = "Get comprehensive diff information between two commits including file changes and statistics",
                 InputSchema = new
                 {
@@ -359,7 +357,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_file_line_diff_between_commits",
+                Name = "gv_get_file_line_diff_between_commits",
                 Description = "Get line-by-line file diff between two commits",
                 InputSchema = new
                 {
@@ -375,7 +373,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_local_branches",
+                Name = "gv_get_local_branches",
                 Description = "Get list of local branches in the repository",
                 InputSchema = new
                 {
@@ -385,7 +383,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_remote_branches",
+                Name = "gv_get_remote_branches",
                 Description = "Get list of remote branches in the repository",
                 InputSchema = new
                 {
@@ -395,7 +393,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_all_branches",
+                Name = "gv_get_all_branches",
                 Description = "Get list of all branches (local and remote) in the repository",
                 InputSchema = new
                 {
@@ -405,7 +403,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_current_branch",
+                Name = "gv_get_current_branch",
                 Description = "Get the current active branch in the repository",
                 InputSchema = new
                 {
@@ -415,7 +413,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "fetch_from_remote",
+                Name = "gv_fetch_from_remote",
                 Description = "Fetch latest changes from remote repository",
                 InputSchema = new
                 {
@@ -428,7 +426,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "compare_branches_with_remote",
+                Name = "gv_compare_branches_with_remote",
                 Description = "Generate documentation comparing differences between two branches with remote support",
                 InputSchema = new
                 {
@@ -446,7 +444,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "search_commits_for_string",
+                Name = "gv_search_commits_for_string",
                 Description = "Search all commits for a specific string and return commit details, file names, and line matches",
                 InputSchema = new
                 {
@@ -461,7 +459,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "list_workspace_files",
+                Name = "gv_list_workspace_files",
                 Description = "List all files in the workspace with optional filtering",
                 InputSchema = new
                 {
@@ -478,7 +476,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "read_filtered_workspace_files",
+                Name = "gv_read_filtered_workspace_files",
                 Description = "Read contents of all files from filtered workspace results",
                 InputSchema = new
                 {
@@ -497,7 +495,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "search_json_file",
+                Name = "gv_search_json_file",
                 Description = "Search for JSON values in a JSON file using JSONPath",
                 InputSchema = new
                 {
@@ -514,7 +512,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "search_csv_file",
+                Name = "gv_search_csv_file",
                 Description = "Search for values in a CSV file using a query",
                 InputSchema = new
                 {
@@ -531,7 +529,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "search_yaml_file",
+                Name = "gv_search_yaml_file",
                 Description = "Search for values in a YAML file using a query",
                 InputSchema = new
                 {
@@ -548,7 +546,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "search_xml_file",
+                Name = "gv_search_xml_file",
                 Description = "Search for XML values in an XML file using XPath",
                 InputSchema = new
                 {
@@ -565,7 +563,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "deconstruct_to_json",
+                Name = "gv_deconstruct_to_json",
                 Description = "Deconstructs a C# ASP.NET Service, Controller or repository file and returns its structure as JSON",
                 InputSchema = new
                 {
@@ -579,7 +577,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "deconstruct_to_file",
+                Name = "gv_deconstruct_to_file",
                 Description = "Deconstructs a C# ASP.NET Service, Controller or repository file and saves the structure to a JSON file in the workspace directory",
                 InputSchema = new
                 {
@@ -594,7 +592,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "get_app_version",
+                Name = "gv_get_app_version",
                 Description = "Get the application version from the project file",
                 InputSchema = new
                 {
@@ -608,7 +606,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "search_excel_file",
+                Name = "gv_search_excel_file",
                 Description = "Search for values in an Excel (.xlsx) file using JSONPath. Processes all worksheets and returns results for each.",
                 InputSchema = new
                 {
@@ -623,7 +621,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "list_workspace_files_with_cached_data",
+                Name = "gv_list_workspace_files_with_cached_data",
                 Description = "List workspace files with optional filtering using pre-fetched file data to improve performance",
                 InputSchema = new
                 {
@@ -642,7 +640,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "transform_xml_with_xslt",
+                Name = "gv_transform_xml_with_xslt",
                 Description = "Transform an XML file using an XSLT stylesheet",
                 InputSchema = new
                 {
@@ -658,7 +656,7 @@ public class McpHandler : IMcpHandler
             },
             new Tool
             {
-                Name = "git_find_merge_conflicts",
+                Name = "gv_git_find_merge_conflicts",
                 Description = "Find merge conflict markers in workspace files and return detailed conflict information",
                 InputSchema = new
                 {
@@ -688,8 +686,8 @@ public class McpHandler : IMcpHandler
             return CreateErrorResponse(request.Id, -32602, "Invalid params");
         }
 
-        var toolRequest = JsonSerializer.Deserialize<CallToolRequest>(
-            JsonSerializer.Serialize(request.Params), _jsonOptions);
+        var toolRequest = JsonConvert.DeserializeObject<CallToolRequest>(
+            JsonConvert.SerializeObject(request.Params, _jsonSettings), _jsonSettings);
 
         if (toolRequest == null)
         {
@@ -698,35 +696,35 @@ public class McpHandler : IMcpHandler
 
         var response = toolRequest.Name switch
         {
-            "compare_branches_documentation" => await HandleCompareBranchesDocumentationAsync(toolRequest),
-            "compare_branches_with_remote_documentation" => await HandleCompareBranchesWithRemoteAsync(toolRequest),
-            "compare_commits_documentation" => await HandleCompareCommitsDocumentationAsync(toolRequest),
-            "deconstruct_to_file" => await HandleDeconstructSourceToFileAsync(toolRequest),
-            "deconstruct_to_json" => await HandleDeconstructSourceAsync(toolRequest),
-            "fetch_from_remote" => await HandleFetchFromRemoteAsync(toolRequest),
-            "generate_git_documentation" => await HandleGenerateGitDocumentationAsync(toolRequest),
-            "generate_git_documentation_to_file" => await HandleGenerateGitDocumentationToFileAsync(toolRequest),
-            "get_all_branches" => await HandleGetAllBranchesAsync(toolRequest),
-            "get_app_version" => await HandleGetAppVersionAsync(toolRequest),
-            "get_changed_files_between_commits" => await HandleGetChangedFilesBetweenCommitsAsync(toolRequest),
-            "get_commit_diff_info" => await HandleGetCommitDiffInfoAsync(toolRequest),
-            "get_current_branch" => await HandleGetCurrentBranchAsync(toolRequest),
-            "get_detailed_diff_between_commits" => await HandleGetDetailedDiffBetweenCommitsAsync(toolRequest),
-            "get_file_line_diff_between_commits" => await HandleGetFileLineDiffBetweenCommitsAsync(toolRequest),
-            "get_local_branches" => await HandleGetLocalBranchesAsync(toolRequest),
-            "get_recent_commits" => await HandleGetRecentCommitsAsync(toolRequest),
-            "get_remote_branches" => await HandleGetRemoteBranchesAsync(toolRequest),
-            "git_find_merge_conflicts" => await HandleGitFindMergeConflictsAsync(toolRequest),
-            "list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
-            "list_workspace_files_with_cached_data" => await HandleListWorkspaceFilesWithCachedDataAsync(toolRequest),
-            "read_filtered_workspace_files" => await HandleReadFilteredWorkspaceFilesAsync(toolRequest),
-            "search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
-            "search_csv_file" => await HandleSearchCsvFileAsync(toolRequest),
-            "search_excel_file" => await HandleSearchExcelFileAsync(toolRequest),
-            "search_json_file" => await HandleSearchJsonFileAsync(toolRequest),
-            "search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
-            "search_yaml_file" => await HandleSearchYamlFileAsync(toolRequest),
-            "transform_xml_with_xslt" => await HandleTransformXmlWithXsltAsync(toolRequest),
+            "gv_compare_branches_documentation" => await HandleCompareBranchesDocumentationAsync(toolRequest),
+            "gv_compare_branches_with_remote_documentation" => await HandleCompareBranchesWithRemoteAsync(toolRequest),
+            "gv_compare_commits_documentation" => await HandleCompareCommitsDocumentationAsync(toolRequest),
+            "gv_deconstruct_to_file" => await HandleDeconstructSourceToFileAsync(toolRequest),
+            "gv_deconstruct_to_json" => await HandleDeconstructSourceAsync(toolRequest),
+            "gv_fetch_from_remote" => await HandleFetchFromRemoteAsync(toolRequest),
+            "gv_generate_git_commit_report" => await HandleGenerateGitDocumentationAsync(toolRequest),
+            "gv_generate_git_commit_report_to_file" => await HandleGenerateGitDocumentationToFileAsync(toolRequest),
+            "gv_get_all_branches" => await HandleGetAllBranchesAsync(toolRequest),
+            "gv_get_app_version" => await HandleGetAppVersionAsync(toolRequest),
+            "gv_get_changed_files_between_commits" => await HandleGetChangedFilesBetweenCommitsAsync(toolRequest),
+            "gv_get_commit_diff_info" => await HandleGetCommitDiffInfoAsync(toolRequest),
+            "gv_get_current_branch" => await HandleGetCurrentBranchAsync(toolRequest),
+            "gv_get_detailed_diff_between_commits" => await HandleGetDetailedDiffBetweenCommitsAsync(toolRequest),
+            "gv_get_file_line_diff_between_commits" => await HandleGetFileLineDiffBetweenCommitsAsync(toolRequest),
+            "gv_get_local_branches" => await HandleGetLocalBranchesAsync(toolRequest),
+            "gv_get_recent_commits" => await HandleGetRecentCommitsAsync(toolRequest),
+            "gv_get_remote_branches" => await HandleGetRemoteBranchesAsync(toolRequest),
+            "gv_git_find_merge_conflicts" => await HandleGitFindMergeConflictsAsync(toolRequest),
+            "gv_list_workspace_files" => await HandleListWorkspaceFilesAsync(toolRequest),
+            "gv_list_workspace_files_with_cached_data" => await HandleListWorkspaceFilesWithCachedDataAsync(toolRequest),
+            "gv_read_filtered_workspace_files" => await HandleReadFilteredWorkspaceFilesAsync(toolRequest),
+            "gv_search_commits_for_string" => await HandleSearchCommitsForStringAsync(toolRequest),
+            "gv_search_csv_file" => await HandleSearchCsvFileAsync(toolRequest),
+            "gv_search_excel_file" => await HandleSearchExcelFileAsync(toolRequest),
+            "gv_search_json_file" => await HandleSearchJsonFileAsync(toolRequest),
+            "gv_search_xml_file" => await HandleSearchXmlFileAsync(toolRequest),
+            "gv_search_yaml_file" => await HandleSearchYamlFileAsync(toolRequest),
+            "gv_transform_xml_with_xslt" => await HandleTransformXmlWithXsltAsync(toolRequest),
 
             _ => new CallToolResponse
             {
@@ -1013,9 +1011,13 @@ public class McpHandler : IMcpHandler
             var specificFilesArg = GetArgumentValue<object?>(toolRequest.Arguments, "specificFiles", null);
             List<string>? specificFiles = null;
 
-            if (specificFilesArg is JsonElement jsonArray && jsonArray.ValueKind == JsonValueKind.Array)
+            if (specificFilesArg is JArray jsonArray)
             {
-                specificFiles = jsonArray.EnumerateArray().Select(e => e.GetString() ?? "").Where(s => !string.IsNullOrEmpty(s)).ToList();
+                specificFiles = jsonArray
+                    .Select(e => e.Type == JTokenType.String ? (string?)e : e.ToString())
+                    .Where(s => !string.IsNullOrEmpty(s))
+                    .Select(s => s ?? string.Empty)
+                    .ToList();
             }
 
             var detailedDiff = await _gitService.GetDetailedDiffBetweenCommitsAsync(workspaceRoot, commit1, commit2, specificFiles);
@@ -1403,7 +1405,7 @@ public class McpHandler : IMcpHandler
                     new ToolContent
                     {
                         Type = "text",
-                        Text = JsonSerializer.Serialize(result, _jsonOptions)
+                        Text = JsonConvert.SerializeObject(result, _jsonSettings)
                     }
                 }
             };
@@ -1459,7 +1461,7 @@ public class McpHandler : IMcpHandler
                     new ToolContent
                     {
                         Type = "text",
-                        Text = JsonSerializer.Serialize(result, _jsonOptions)
+                        Text = JsonConvert.SerializeObject(result, _jsonSettings)
                     }
                 }
             };
@@ -1877,7 +1879,7 @@ public class McpHandler : IMcpHandler
         try
         {
             var cachedFilesArg = GetArgumentValue<object?>(toolRequest.Arguments, "cachedFiles", null);
-            if (cachedFilesArg is not JsonElement cachedFilesElement || cachedFilesElement.ValueKind != JsonValueKind.Array)
+            if (cachedFilesArg is not JArray cachedFilesElement)
             {
                 return new CallToolResponse
                 {
@@ -1886,15 +1888,15 @@ public class McpHandler : IMcpHandler
                 };
             }
 
-            // Convert JsonElement array to List<WorkspaceFileInfo>
-            var cachedFiles = cachedFilesElement.EnumerateArray()
+            // Convert JArray to List<WorkspaceFileInfo>
+            var cachedFiles = cachedFilesElement
                 .Select(item => new WorkspaceFileInfo
                 {
-                    RelativePath = item.GetProperty("relativePath").GetString() ?? "",
-                    FullPath = item.GetProperty("fullPath").GetString() ?? "",
-                    FileType = item.GetProperty("fileType").GetString() ?? "",
-                    Size = item.GetProperty("size").GetInt64(),
-                    LastModified = DateTime.TryParse(item.GetProperty("lastModified").GetString(), out var lastModified) ? lastModified : DateTime.MinValue
+                    RelativePath = item["relativePath"]?.ToString() ?? "",
+                    FullPath = item["fullPath"]?.ToString() ?? "",
+                    FileType = item["fileType"]?.ToString() ?? "",
+                    Size = item["size"]?.Value<long>() ?? 0,
+                    LastModified = DateTime.TryParse(item["lastModified"]?.ToString(), out var lastModified) ? lastModified : DateTime.MinValue
                 })
                 .ToList();
 
@@ -1907,7 +1909,7 @@ public class McpHandler : IMcpHandler
             var result = await _gitServiceTools.ListWorkspaceFilesWithCachedDataAsync(
                 cachedFiles, fileType, relativePath, fullPath, lastModifiedAfter, lastModifiedBefore);
 
-            var jsonResult = JsonSerializer.Serialize(result, _outputJsonOptions);
+            var jsonResult = JsonConvert.SerializeObject(result, _outputJsonSettings);
 
             return new CallToolResponse
             {
@@ -1988,7 +1990,7 @@ public class McpHandler : IMcpHandler
             }
 
             var count = results.Count;
-            var jsonResult = JsonSerializer.Serialize(results, _outputJsonOptions);
+            var jsonResult = JsonConvert.SerializeObject(results, _outputJsonSettings);
 
             _logger.LogInformation("Found {ConflictCount} merge conflicts in {FileCount} files", count, workspaceFileList.Count);
 
@@ -2010,23 +2012,28 @@ public class McpHandler : IMcpHandler
 
     private T GetArgumentValue<T>(object? arguments, string key, T defaultValue)
     {
-        if (arguments is JsonElement element && element.ValueKind == JsonValueKind.Object)
+        if (arguments is JObject obj)
         {
-            if (element.TryGetProperty(key, out var property))
+            var property = obj[key];
+            if (property != null)
             {
                 try
                 {
                     if (typeof(T) == typeof(string))
                     {
-                        return (T)(object)(property.GetString() ?? string.Empty);
+                        return (T)(object)(property.Type == JTokenType.Null ? string.Empty : property.ToString());
                     }
                     else if (typeof(T) == typeof(int))
                     {
-                        return (T)(object)property.GetInt32();
+                        if (property.Type == JTokenType.Integer && property.Value<int?>() != null)
+                            return (T)(object)property.Value<int?>().GetValueOrDefault();
+                        return defaultValue;
                     }
                     else if (typeof(T) == typeof(bool))
                     {
-                        return (T)(object)property.GetBoolean();
+                        if (property.Type == JTokenType.Boolean && property.Value<bool?>() != null)
+                            return (T)(object)property.Value<bool?>().GetValueOrDefault();
+                        return defaultValue;
                     }
                     else if (typeof(T) == typeof(object))
                     {
@@ -2037,20 +2044,20 @@ public class McpHandler : IMcpHandler
                         var underlyingType = Nullable.GetUnderlyingType(typeof(T));
                         if (underlyingType == typeof(string))
                         {
-                            var value = property.ValueKind == JsonValueKind.Null ? null : property.GetString();
-                            return property.ValueKind == JsonValueKind.Null ? defaultValue : (T)(object)value!;
+                            var value = property.Type == JTokenType.Null ? null : property.ToString();
+                            return property.Type == JTokenType.Null ? defaultValue : (T)(object)value!;
                         }
                     }
                     // Handle nullable reference types
                     else if (!typeof(T).IsValueType)
                     {
-                        if (property.ValueKind == JsonValueKind.Null)
+                        if (property.Type == JTokenType.Null)
                         {
                             return defaultValue;
                         }
                         if (typeof(T).Name.Contains("String"))
                         {
-                            var value = property.GetString();
+                            var value = property.ToString();
                             return (T)(object)(value ?? string.Empty);
                         }
                         return (T)(object)property;
@@ -2093,7 +2100,7 @@ public class McpHandler : IMcpHandler
 
     private string CreateCompactJsonResponse(JsonRpcResponse response)
     {
-        return JsonSerializer.Serialize(response, _outputJsonOptions);
+        return JsonConvert.SerializeObject(response, _outputJsonSettings);
     }
 
     private async Task<JsonRpcResponse> HandlePromptGetAsync(JsonRpcRequest request)
@@ -2105,8 +2112,8 @@ public class McpHandler : IMcpHandler
                 return CreateErrorResponse(request.Id, -32602, "Invalid params");
             }
 
-            var promptRequest = JsonSerializer.Deserialize<PromptGetRequest>(
-                JsonSerializer.Serialize(request.Params), _jsonOptions);
+            var promptRequest = JsonConvert.DeserializeObject<PromptGetRequest>(
+                JsonConvert.SerializeObject(request.Params, _jsonSettings), _jsonSettings);
 
             if (promptRequest == null || string.IsNullOrEmpty(promptRequest.Name))
             {
@@ -2161,7 +2168,7 @@ public class McpHandler : IMcpHandler
 
             return new CallToolResponse
             {
-                Content = new[] { new ToolContent { Type = "text", Text = JsonSerializer.Serialize(lineDiff, _jsonOptions) } }
+                Content = new[] { new ToolContent { Type = "text", Text = JsonConvert.SerializeObject(lineDiff, _jsonSettings) } }
             };
         }
         catch (Exception ex)

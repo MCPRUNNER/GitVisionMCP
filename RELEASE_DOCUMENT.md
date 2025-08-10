@@ -1,151 +1,63 @@
-# GitVisionMCP (1.0.6) Release Documentation
+# GitVisionMCP (1.0.8) Release Documentation
 
 ## Version and Release Date
 
 - **Application Name:** GitVisionMCP
-- **Version:** 1.0.6
-- **Release Date:** July 27, 2025
-- **Current Branch:** search_csv
+- **Version:** 1.0.8
+- **Release Date:** August 27, 2025
+- **Current Branch:** master
 
 ---
 
 ## Summary of Changes
 
-This release introduces the new SearchCsvFile tool for advanced CSV querying, refines documentation generation, and maintains robust deconstruction features for C# services, repositories, and controllers. No differences were found between the `search_csv` and `master` branches.
+Renaming generate_git_documentation to generate_git_commit_report tool.
 
 ---
 
 ## New Features
 
-- **CSV File Search:**
-
-  - Search for CSV values in a CSV file using JSONPath queries for advanced data extraction and filtering.
-
-- **Deconstruction Tools:**
-
-  - Deconstruct C# Service, Repository, or Controller files and output their structure as JSON.
-  - Save deconstruction analysis directly to a JSON file in the workspace.
-
-- **Branch and Commit Comparison:**
-
-  - Compare branches and commits, generating documentation in markdown, HTML, or text formats.
-  - Support for remote branch comparison with optional fetch.
-
-- **Workspace File Analysis:**
-
-  - List and filter workspace files by type, path, and modification date.
-  - Read contents of filtered files, with binary and size checks.
-
-- **Sampling LLM Integration:**
-  - Run sampling chat using predefined user and system prompts.
-
----
-
-## Enhancements
-
-- Improved error handling and logging across all MCP tools.
-- Output format validation for documentation generation.
-- Directory existence checks before file operations.
-- Enhanced filtering and performance for workspace file listing.
-
----
-
-## Bug Fixes
-
-- Fixed issues with file not found and binary file detection.
-- Improved robustness in commit and branch comparison tools.
-- Addressed edge cases in workspace file filtering and reading.
-
----
-
-## Breaking Changes
-
-- None reported for this release.
-
----
-
-## Deprecated Features
-
-- None reported for this release.
-
----
-
-## Known Issues
-
-- Large binary files are skipped in workspace file reading.
-- Some edge cases in file filtering may require manual review.
-
----
-
-## Installation/Upgrade Instructions
-
-1. Ensure you are in a valid git repository.
-2. Use the provided `mcp.json` configuration for VS Code Copilot Agent integration.
-3. Build the project using:
-   ```
-   dotnet build
-   ```
-4. Run the MCP server with:
-   ```
-   dotnet run --project c:\Users\U00001\source\repos\MCP\GitVisionMCP\GitVisionMCP.csproj --no-build --verbosity quiet
-   ```
-5. For Docker, use the configuration in `.vscode/mcp.json`.
-
 ---
 
 ## MCP Tools Available in This Release
 
-| Tool Name                             | Description                                                                   |
-| ------------------------------------- | ----------------------------------------------------------------------------- |
-| FetchFromRemoteAsync                  | Fetch latest changes from remote repository                                   |
-| GenerateGitDocumentationAsync         | Generate documentation from git logs for the current workspace                |
-| GenerateGitDocumentationToFileAsync   | Generate documentation from git logs and write to a file                      |
-| CompareBranchesDocumentationAsync     | Generate documentation comparing differences between two branches             |
-| CompareBranchesWithRemote             | Generate documentation comparing differences between two branches with remote |
-| CompareCommitsDocumentation           | Generate documentation comparing differences between two commits              |
-| GetRecentCommitsAsync                 | Get recent commits from the current repository                                |
-| GetLocalBranchesAsync                 | Get list of local branches in the repository                                  |
-| GetRemoteBranchesAsync                | Get list of remote branches in the repository                                 |
-| GetAllBranchesAsync                   | Get list of all branches (local and remote) in the repository                 |
-| GetCurrentBranchAsync                 | Get the current active branch in the repository                               |
-| GetChangedFilesBetweenCommits         | Get list of files changed between two commits                                 |
-| GetCommitDiffInfo                     | Get comprehensive diff information between two commits                        |
-| GetDetailedDiffBetweenCommits         | Get detailed diff content between two commits                                 |
-| SearchCommitsForStringAsync           | Search all commits for a specific string                                      |
-| GetFileLineDiffBetweenCommits         | Get line-by-line file diff between two commits                                |
-| ListWorkspaceFilesAsync               | List all files in the workspace with optional filtering                       |
-| ListWorkspaceFilesWithCachedDataAsync | List workspace files with optional filtering using cached data                |
-| ReadFilteredWorkspaceFilesAsync       | Read contents of all files from filtered workspace results                    |
-| SearchJsonFileAsync                   | Search for JSON values in a JSON file using JSONPath                          |
-| SearchXmlFileAsync                    | Search for XML values in an XML file using XPath                              |
-| TransformXmlWithXsltAsync             | Transform an XML file using an XSLT stylesheet                                |
-| SearchYamlFileAsync                   | Search for YAML values in a YAML file using JSONPath                          |
-| SearchCsvFileAsync                    | Search for CSV values in a CSV file using JSONPath                            |
-| DeconstructAsync                      | Deconstruct a C# Service, Repository or Controller file as JSON               |
-| DeconstructToJsonAsync                | Deconstruct a C# file and save structure to a JSON file                       |
-| SamplingLLM                           | Run Sampling chat to process predefined User and System prompts               |
+| Tool Name                                  | Description                                                                   |
+| ------------------------------------------ | ----------------------------------------------------------------------------- |
+| fetch_from_remote                          | Fetch latest changes from remote repository                                   |
+| generate_git_commit_report                 | Generate git commit report for current branch                                 |
+| generate_git_commit_report_to_file         | Generate git commit report for current branch and write to a file             |
+| compare_branches_documentation             | Generate documentation comparing differences between two branches             |
+| compare_branches_with_remote_documentation | Generate documentation comparing differences between two branches with remote |
+| compare_commits_documentation              | Generate documentation comparing differences between two commits              |
+| get_recent_commits                         | Get recent commits from the current repository                                |
+| get_local_branches                         | Get list of local branches in the repository                                  |
+| get_remote_branches                        | Get list of remote branches in the repository                                 |
+| get_all_branches                           | Get list of all branches (local and remote) in the repository                 |
+| get_current_branch                         | Get the current active branch in the repository                               |
+| get_changed_files_between_commits          | Get list of files changed between two commits                                 |
+| get_commit_diff_info                       | Get comprehensive diff information between two commits                        |
+| get_detailed_diff_between_commits          | Get detailed diff content between two commits                                 |
+| search_commits_for_string                  | Search all commits for a specific string                                      |
+| get_file_line_diff_between_commits         | Get line-by-line file diff between two commits                                |
+| list_workspace_files                       | List all files in the workspace with optional filtering                       |
+| list_workspace_files_with_cached_data      | List workspace files with optional filtering using cached data                |
+| read_filtered_workspace_files              | Read contents of all files from filtered workspace results                    |
+| git_find_merge_conflicts                   | Search for Git merge conflicts in source code                                 |
+| search_json_file                           | Search for JSON values in a JSON file using JSONPath                          |
+| search_xml_file                            | Search for XML values in an XML file using XPath                              |
+| transform_xml_with_xslt                    | Transform an XML file using an XSLT stylesheet                                |
+| search_yaml_file                           | Search for YAML values in a YAML file using JSONPath                          |
+| search_csv_file                            | Search for CSV values in a CSV file using JSONPath                            |
+| search_excel_file                          | Search for values in an Excel (.xlsx) file using JSONPath                     |
+| deconstruct_to_file                        | Deconstruct a C# Service, Repository or Controller file and returns JSON      |
+| deconstruct_to_json                        | Deconstruct a C# file and save structure to a JSON file                       |
+| get_app_version                            | Extract application version from a project file                               |
 
 ---
 
-## Workspace Architecture (Mermaid Flowchart)
+## Architecture and Process Flow
 
-```mermaid
-flowchart TD
-    Program.cs --> Services.DeconstructionService.cs
-    Program.cs --> Services.GitService.cs
-    Program.cs --> Services.LocationService.cs
-    Program.cs --> Services.McpServer.cs
-    Program.cs --> Tools.GitServiceTools.cs
-    Program.cs --> Prompts.ReleaseDocumentPrompts.cs
-    Services.DeconstructionService.cs --> Models.DeconstructorModel.cs
-    Services.DeconstructionService.cs --> Models.DeconstructorActionModel.cs
-    Services.DeconstructionService.cs --> Models.DeconstructorPropertyModel.cs
-    Services.DeconstructionService.cs --> Models.DeconstructionActionParameterModel.cs
-    Services.GitService.cs --> Models.McpModels.cs
-    Tools.GitServiceTools.cs --> Services.GitService.cs
-    Tools.GitServiceTools.cs --> Services.LocationService.cs
-    Tools.GitServiceTools.cs --> Services.DeconstructionService.cs
-```
+[Note: The Documentation/ARCHITECTURE.md illustrates the architecture of the GitVisionMCP workspace, showing the relationships between various services, tools and models, along with their http vs stdio process flows.](Documentation/ARCHITECTURE.md)
 
 ---
 

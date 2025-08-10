@@ -5,9 +5,15 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using GitVisionMCP.Services;
+
+using System;
+using System.IO;
+using System.Text.RegularExpressions;
+
 using Microsoft.Extensions.Logging;
 
 namespace GitVisionMCP.Services;
+
 public class UtilityService : IUtilityService
 {
     private readonly ILogger<UtilityService> _logger;
@@ -38,6 +44,7 @@ public class UtilityService : IUtilityService
     }
     /// <summary>
     /// Extracts version information from a project file (e.g., .csproj) using XPath.
+    /// Defaults to version of GitVisionMCP if the Project file is not passed.
     /// </summary>
     /// <param name="projectFile"></param>
     /// <returns></returns>
@@ -59,4 +66,8 @@ public class UtilityService : IUtilityService
             return "Unknown Version";
         }
     }
+
+
+
+
 }

@@ -193,6 +193,9 @@ users:
             mockFileService.Setup(x => x.GetWorkspaceRoot()).Returns(testDir);
             mockFileService.Setup(x => x.ReadFile(xmlFilePath)).Returns(xmlContent);
             mockFileService.Setup(x => x.ReadFile(xsltFilePath)).Returns(xsltContent);
+            // Mock GetFullPath to return the actual temp file paths
+            mockFileService.Setup(x => x.GetFullPath("test-data.xml")).Returns(xmlFilePath);
+            mockFileService.Setup(x => x.GetFullPath("test-transform.xslt")).Returns(xsltFilePath);
 
             var locationService = new WorkspaceService(mockLogger.Object, mockFileService.Object, mockUtilityRepository.Object);
 

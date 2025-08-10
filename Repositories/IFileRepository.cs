@@ -6,7 +6,7 @@ public interface IFileRepository
 {
     List<WorkspaceFileInfo> GetAllFiles();
     Task<List<WorkspaceFileInfo>> GetAllFilesAsync();
-    List<WorkspaceFileInfo> GetAllFilesMatching(string searchPattern);
+    Task<List<WorkspaceFileInfo>> GetAllFilesMatching(string searchPattern);
     Task<List<FileContentInfo>> GetFileContentsAsync(List<WorkspaceFileInfo> workspaceFileList);
     string? GetFullPath(string relativePath);
     string GetWorkspaceRoot();

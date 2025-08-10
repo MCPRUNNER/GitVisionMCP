@@ -221,7 +221,7 @@ public class FileRepository : IFileRepository
     /// </summary>
     /// <param name="searchPattern">The search pattern to match files against</param>
     /// <returns>A list of file information for files matching the pattern</returns>
-    public List<WorkspaceFileInfo> GetAllFilesMatching(string searchPattern)
+    public async Task<List<WorkspaceFileInfo>> GetAllFilesMatching(string searchPattern)
     {
         var files = new List<WorkspaceFileInfo>();
 

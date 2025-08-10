@@ -1382,7 +1382,7 @@ public class McpHandler : IMcpHandler
             {
                 myPath = relativePath;
             }
-            var allFiles = _fileService.GetAllFilesMatching(myPath);
+            var allFiles = await _fileService.GetAllFilesMatching(myPath);
 
             // Capture the total count before filtering
             var totalCount = allFiles.Count;

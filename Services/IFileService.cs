@@ -45,7 +45,7 @@ public interface IFileService
     /// </summary>
     /// <param name="searchPattern">The search pattern to match files against</param>
     /// <returns>A list of file information for files matching the pattern</returns>
-    List<WorkspaceFileInfo> GetAllFilesMatching(string searchPattern);
+    Task<List<WorkspaceFileInfo>> GetAllFilesMatching(string searchPattern);
 
     /// <summary>
     /// Saves the output of GetAllFiles() to an XML file

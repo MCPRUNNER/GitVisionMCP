@@ -4,7 +4,7 @@ namespace GitVisionMCP.Models;
 
 public class ApiConfig
 {
-    public Dictionary<string, ApiConnection> ApiConnect
+    public List<ApiConnection>? ApiConnect
     {
         get; set;
     }

@@ -1,8 +1,14 @@
 namespace GitVisionMCP.Models;
- 
-    public class ApiAuthentication
+
+public class ApiAuthentication
+{
+    public string? User
     {
-        public string User { get; set; }
-        public string Password { get; set; }
+        get; set;
     }
- 
+    public string? Password
+    {
+        get; set;
+    }
+}
+

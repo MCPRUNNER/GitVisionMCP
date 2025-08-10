@@ -1,6 +1,7 @@
 {
-  "ApiConnect": {
-    "NewsApi1": {
+  "ApiConnect": [
+      {
+      "Name": "NewsApi1",
       "Description": "News API 1 Description",
       "BaseUrl": "https://api.news.com",
       "Headers": {
@@ -8,7 +9,8 @@
         "Accept": "application/json, application/stream+json"
       }
     },
-    "NewsApi2": {
+     {
+      "Name": "NewsApi2",
       "Description": "News API 2 Description",
       "BaseUrl": "https://api.news.com",
       "Authentication": {
@@ -19,7 +21,8 @@
         "Accept": "application/json"
       }
     },
-    "NewsApi3": {
+    {
+      "Name": "NewsApi3",
       "Description": "News API 3 Description",
       "BaseUrl": "https://api.news.com",
       "Headers": {
@@ -27,5 +30,5 @@
         "Accept": "application/json, application/stream+json"
       }
     }
-  }
+  ]
 }

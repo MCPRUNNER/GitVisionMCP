@@ -7,19 +7,23 @@ namespace GitVisionMCP.Models;
 /// </summary>
 public class ApiConnection
 {
-    public string Description
+    public string? Name
     {
         get; set;
     }
-    public string BaseUrl
+    public string? Description
     {
         get; set;
     }
-    public Dictionary<string, string> Headers
+    public string? BaseUrl
     {
         get; set;
     }
-    public ApiAuthentication Authentication
+    public Dictionary<string, string>? Headers
+    {
+        get; set;
+    }
+    public ApiAuthentication? Authentication
     {
         get; set;
     }

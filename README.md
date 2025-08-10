@@ -1,4 +1,4 @@
-# GitVisionMCP 1.0.8
+# GitVisionMCP 1.0.8 (Beta)
 
 > **🚀 Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documentation**
 
@@ -7,6 +7,16 @@
 [![MCP](https://img.shields.io/badge/protocol-MCP-purple)](https://modelcontextprotocol.io/)
 
 ---
+
+## About
+
+GitVisionMCP is designed to enhance the productivity of software development teams by providing powerful tools for git analysis and source documentation. By leveraging the Model Context Protocol (MCP), it enables seamless integration with various APIs and services, streamlining workflows and improving collaboration.
+
+## GitVisionMCP Benefits
+
+1. **_Cost Reduction_** by minimizing tokens sent to your LLM. Instead of uploading entire files, only relevant snippets are sent.
+1. **_Enhanced LLM Security_** by restricting access to sensitive data, including source code and configuration files. Deconstructor and Search capabilities help achieve this.
+1. **_Facilitated Supportability_** by automating documentation for code, processes, and workflows.
 
 ## Table of Contents
 
@@ -70,52 +80,52 @@ GitVisionMCP provides **29 powerful tools** for git analysis, documentation gene
 
 ### 📝 **Documentation & Analysis**
 
-| Tool                                         | Description                                                                           |
-| -------------------------------------------- | ------------------------------------------------------------------------------------- |
-| `generate_git_commit_report`                 | Generate git commit report for current branch                                         |
-| `generate_git_commit_report_to_file`         | Generate git commit report for current branch and write to a file                     |
-| `compare_branches_documentation`             | Generate documentation comparing differences between two branches                     |
-| `compare_branches_with_remote_documentation` | Generate documentation comparing differences between two branches with remote support |
-| `compare_commits_documentation`              | Generate documentation comparing differences between two commits                      |
-| `get_recent_commits`                         | Get recent commits from the current repository                                        |
-| `get_commit_diff_info`                       | Get comprehensive diff information between two commits                                |
+| Tool                                            | Description                                                                           |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `gv_generate_git_commit_report`                 | Generate git commit report for current branch                                         |
+| `gv_generate_git_commit_report_to_file`         | Generate git commit report for current branch and write to a file                     |
+| `gv_compare_branches_documentation`             | Generate documentation comparing differences between two branches                     |
+| `gv_compare_branches_with_remote_documentation` | Generate documentation comparing differences between two branches with remote support |
+| `gv_compare_commits_documentation`              | Generate documentation comparing differences between two commits                      |
+| `gv_get_recent_commits`                         | Get recent commits from the current repository                                        |
+| `gv_get_commit_diff_info`                       | Get comprehensive diff information between two commits                                |
 
 ### 🔍 **Search & Discovery**
 
-| Tool                                    | Description                              | Query Language |
-| --------------------------------------- | ---------------------------------------- | -------------- |
-| `search_commits_for_string`             | Search all commits for specific text     | Text search    |
-| `search_json_file`                      | Query JSON files with advanced filtering | JSONPath       |
-| `search_yaml_file`                      | Query YAML files (Docker, K8s, CI/CD)    | JSONPath       |
-| `search_xml_file`                       | Query XML with element/attribute access  | XPath          |
-| `search_csv_file`                       | Query CSV data with header support       | JSONPath       |
-| `search_excel_file`                     | Multi-sheet Excel analysis               | JSONPath       |
-| `transform_xml_with_xslt`               | Transform XML with XSLT stylesheets      | XSLT           |
-| `list_workspace_files`                  | Smart file discovery with exclusions     | Glob patterns  |
-| `list_workspace_files_with_cached_data` | High-performance file operations         | Filters        |
-| `read_filtered_workspace_files`         | Bulk file reading with limits            | Filters        |
-| `git_find_merge_conflicts`              | Locate Git merge conflicts in code       | Text search    |
+| Tool                                       | Description                              | Query Language |
+| ------------------------------------------ | ---------------------------------------- | -------------- |
+| `gv_search_commits_for_string`             | Search all commits for specific text     | Text search    |
+| `gv_search_json_file`                      | Query JSON files with advanced filtering | JSONPath       |
+| `gv_search_yaml_file`                      | Query YAML files (Docker, K8s, CI/CD)    | JSONPath       |
+| `gv_search_xml_file`                       | Query XML with element/attribute access  | XPath          |
+| `gv_search_csv_file`                       | Query CSV data with header support       | JSONPath       |
+| `gv_search_excel_file`                     | Multi-sheet Excel analysis               | JSONPath       |
+| `gv_transform_xml_with_xslt`               | Transform XML with XSLT stylesheets      | XSLT           |
+| `gv_list_workspace_files`                  | Smart file discovery with exclusions     | Glob patterns  |
+| `gv_list_workspace_files_with_cached_data` | High-performance file operations         | Filters        |
+| `gv_read_filtered_workspace_files`         | Bulk file reading with limits            | Filters        |
+| `gv_git_find_merge_conflicts`              | Locate Git merge conflicts in code       | Text search    |
 
 ### 🌿 **Branch & Repository Management**
 
-| Tool                  | Description                                                   |
-| --------------------- | ------------------------------------------------------------- |
-| `get_local_branches`  | Get list of local branches in the repository                  |
-| `get_remote_branches` | Get list of remote branches in the repository                 |
-| `get_all_branches`    | Get list of all branches (local and remote) in the repository |
-| `get_current_branch`  | Get the current active branch in the repository               |
-| `fetch_from_remote`   | Fetch latest changes from remote repository                   |
+| Tool                     | Description                                                   |
+| ------------------------ | ------------------------------------------------------------- |
+| `gv_get_local_branches`  | Get list of local branches in the repository                  |
+| `gv_get_remote_branches` | Get list of remote branches in the repository                 |
+| `gv_get_all_branches`    | Get list of all branches (local and remote) in the repository |
+| `gv_get_current_branch`  | Get the current active branch in the repository               |
+| `gv_fetch_from_remote`   | Fetch latest changes from remote repository                   |
 
 ### ⚡ **Advanced Analysis**
 
-| Tool                                 | Description                                                              |
-| ------------------------------------ | ------------------------------------------------------------------------ |
-| `get_changed_files_between_commits`  | Get list of files changed between two commits                            |
-| `get_detailed_diff_between_commits`  | Get detailed diff content between two commits                            |
-| `get_file_line_diff_between_commits` | Get line-by-line file diff between two commits                           |
-| `deconstruct_to_json`                | Deconstruct a C# file and save structure to a JSON file                  |
-| `deconstruct_to_file`                | Deconstruct a C# Service, Repository or Controller file and returns JSON |
-| `get_app_version`                    | Extract application version from a project file                          |
+| Tool                                    | Description                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------ |
+| `gv_get_changed_files_between_commits`  | Get list of files changed between two commits                            |
+| `gv_get_detailed_diff_between_commits`  | Get detailed diff content between two commits                            |
+| `gv_get_file_line_diff_between_commits` | Get line-by-line file diff between two commits                           |
+| `gv_deconstruct_to_json`                | Deconstruct a C# file and save structure to a JSON file                  |
+| `gv_deconstruct_to_file`                | Deconstruct a C# Service, Repository or Controller file and returns JSON |
+| `gv_get_app_version`                    | Extract application version from a project file                          |
 
 ---
 

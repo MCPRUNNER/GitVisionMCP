@@ -1,12 +1,12 @@
 {
   "ApiConnect": [
       {
-      "Name": "NewsApi1",
-      "Description": "News API 1 Description",
-      "BaseUrl": "https://api.news.com",
+      "Name": "ANSIBLE_DEV",
+      "Description": "Ansible Development API",
+      "BaseUrl": "http://tower.rsyslab.com/api/v2",
       "Headers": {
-        "Authorization": "Bearer news-token",
-        "Accept": "application/json, application/stream+json"
+        "Authorization": "Bearer ghp_12345",
+        "Accept": "application/json"
       }
     },
      {

@@ -1,4 +1,4 @@
-# GitVisionMCP 1.0.8 (Beta)
+# GitVisionMCP 1.0.8.1 (Beta)
 
 > **🚀 Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documentation**
 

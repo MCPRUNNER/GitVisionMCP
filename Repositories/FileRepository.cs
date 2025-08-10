@@ -236,7 +236,7 @@ public class FileRepository : IFileRepository
                 var fileType = Path.GetExtension(file.Name).ToLowerInvariant();
 
                 // Check if file should be excluded
-                if (IsFileExcludedAsync(relativePath).Result)
+                if (await IsFileExcludedAsync(relativePath))
                 {
                     continue;
                 }

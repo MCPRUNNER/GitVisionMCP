@@ -1,0 +1,31 @@
+{
+  "ApiConnect": {
+    "NewsApi1": {
+      "Description": "News API 1 Description",
+      "BaseUrl": "https://api.news.com",
+      "Headers": {
+        "Authorization": "Bearer news-token",
+        "Accept": "application/json, application/stream+json"
+      }
+    },
+    "NewsApi2": {
+      "Description": "News API 2 Description",
+      "BaseUrl": "https://api.news.com",
+      "Authentication": {
+        "User": "UserName",
+        "Password": "news-password"
+      },
+      "Headers": {
+        "Accept": "application/json"
+      }
+    },
+    "NewsApi3": {
+      "Description": "News API 3 Description",
+      "BaseUrl": "https://api.news.com",
+      "Headers": {
+        "X-Api-Key": "news-api-key",
+        "Accept": "application/json, application/stream+json"
+      }
+    }
+  }
+}

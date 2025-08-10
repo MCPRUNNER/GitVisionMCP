@@ -6,6 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
+
+using System.Collections.Generic;
+using System.IO;
+using Newtonsoft.Json;
+using GitVisionMCP.Models;
 using GitVisionMCP.Services;
 using Microsoft.Extensions.Logging;
 
@@ -87,4 +92,7 @@ public class UtilityRepository : IUtilityRepository
             return Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? "Unknown Version";
         }
     }
+
+
+
 }

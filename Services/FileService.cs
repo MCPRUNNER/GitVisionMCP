@@ -85,9 +85,9 @@ public class FileService : IFileService
     /// </summary>
     /// <param name="searchPattern">The search pattern to match files against</param>
     /// <returns>A list of file information for files matching the pattern</returns>
-    public List<WorkspaceFileInfo> GetAllFilesMatching(string searchPattern)
+    public async Task<List<WorkspaceFileInfo>> GetAllFilesMatching(string searchPattern)
     {
-        return _fileRepository.GetAllFilesMatching(searchPattern);
+        return await _fileRepository.GetAllFilesMatching(searchPattern);
     }
 
     /// <summary>

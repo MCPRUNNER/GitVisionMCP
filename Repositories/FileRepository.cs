@@ -22,6 +22,45 @@ public class FileRepository : IFileRepository
     }
 
     /// <summary>
+    /// Normalizes a path to handle cross-platform compatibility and spaces in names
+    /// </summary>
+    /// <param name="path">The path to normalize</param>
+    /// <returns>A normalized path</returns>
+    private string NormalizePath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return string.Empty;
+
+        try
+        {
+            // Get the full path to resolve relative paths and handle different formats
+            var fullPath = Path.GetFullPath(path.Trim());
+
+            // Normalize directory separators for the current platform
+            return Path.GetFullPath(fullPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to normalize path: {Path}", path);
+            // Fallback to basic normalization
+            return path.Trim().Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
+        }
+    }
+
+    /// <summary>
+    /// Converts a path to use forward slashes for consistent cross-platform comparison
+    /// </summary>
+    /// <param name="path">The path to convert</param>
+    /// <returns>A path with forward slashes</returns>
+    private string ToUnixPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return string.Empty;
+
+        return path.Replace('\\', '/');
+    }
+
+    /// <summary>
     /// Determines the workspace root directory by checking environment variable first
     /// </summary>
     /// <returns>The workspace root directory path</returns>
@@ -31,18 +70,20 @@ public class FileRepository : IFileRepository
 
         if (!string.IsNullOrWhiteSpace(gitRepositoryDirectory))
         {
-            if (Directory.Exists(gitRepositoryDirectory))
+            // Normalize and resolve the path to handle spaces and different path formats
+            var normalizedPath = NormalizePath(gitRepositoryDirectory);
+            if (Directory.Exists(normalizedPath))
             {
-                _logger.LogInformation("Using GIT_REPOSITORY_DIRECTORY environment variable: {GitRepositoryDirectory}", gitRepositoryDirectory);
-                return gitRepositoryDirectory;
+                _logger.LogInformation("Using GIT_REPOSITORY_DIRECTORY environment variable: {GitRepositoryDirectory}", normalizedPath);
+                return normalizedPath;
             }
             else
             {
-                _logger.LogWarning("GIT_REPOSITORY_DIRECTORY environment variable is set but directory does not exist: {GitRepositoryDirectory}. Falling back to current directory.", gitRepositoryDirectory);
+                _logger.LogWarning("GIT_REPOSITORY_DIRECTORY environment variable is set but directory does not exist: {GitRepositoryDirectory}. Falling back to current directory.", normalizedPath);
             }
         }
 
-        var currentDirectory = Environment.CurrentDirectory;
+        var currentDirectory = NormalizePath(Environment.CurrentDirectory);
         _logger.LogInformation("Using current directory as workspace root: {CurrentDirectory}", currentDirectory);
         return currentDirectory;
     }
@@ -73,16 +114,28 @@ public class FileRepository : IFileRepository
         try
         {
             string fullPath;
+            var normalizedRelativePath = relativePath.Trim();
+
+            // Handle different path separators for cross-platform compatibility
+            if (Path.DirectorySeparatorChar == '\\')
+            {
+                normalizedRelativePath = normalizedRelativePath.Replace('/', '\\');
+            }
+            else
+            {
+                normalizedRelativePath = normalizedRelativePath.Replace('\\', '/');
+            }
 
             // If path is already absolute, use it as-is
-            if (Path.IsPathRooted(relativePath))
+            if (Path.IsPathRooted(normalizedRelativePath))
             {
-                fullPath = relativePath;
+                fullPath = NormalizePath(normalizedRelativePath);
             }
             else
             {
                 // If relative, combine with workspace root
-                fullPath = Path.Combine(_workspaceRoot, relativePath);
+                fullPath = Path.Combine(_workspaceRoot, normalizedRelativePath);
+                fullPath = NormalizePath(fullPath);
             }
 
             if (!File.Exists(fullPath))
@@ -275,6 +328,8 @@ public class FileRepository : IFileRepository
 
         try
         {
+            // Normalize the XML file path to handle spaces and cross-platform compatibility
+            var normalizedXmlPath = NormalizePath(xmlFilePath);
             var files = GetAllFiles();
             var xmlContent = new System.Text.StringBuilder();
 
@@ -299,15 +354,15 @@ public class FileRepository : IFileRepository
             xmlContent.AppendLine("  </Files>");
             xmlContent.AppendLine("</WorkspaceFiles>");
 
-            // Create directory if it doesn't exist
-            var directory = Path.GetDirectoryName(xmlFilePath);
+            // Create directory if it doesn't exist, handling paths with spaces
+            var directory = Path.GetDirectoryName(normalizedXmlPath);
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
             {
                 Directory.CreateDirectory(directory);
             }
 
-            File.WriteAllText(xmlFilePath, xmlContent.ToString());
-            _logger.LogInformation("Successfully saved {FileCount} files to XML file: {XmlFilePath}", files.Count, xmlFilePath);
+            File.WriteAllText(normalizedXmlPath, xmlContent.ToString());
+            _logger.LogInformation("Successfully saved {FileCount} files to XML file: {XmlFilePath}", files.Count, normalizedXmlPath);
             return true;
         }
         catch (Exception ex)
@@ -412,7 +467,7 @@ public class FileRepository : IFileRepository
             _lastExcludeConfigLoad = lastWriteTime;
 
             _logger.LogInformation("Loaded exclude configuration with {PatternCount} patterns from: {ExcludeConfigPath}",
-                configuration?.ExcludePatterns?.Count ?? 0, excludeConfigPath);
+                configuration?.ExcludePatterns?.Count ?? 0, fullPath);
 
             return configuration;
         }
@@ -424,23 +479,30 @@ public class FileRepository : IFileRepository
     }
 
     /// <summary>
-    /// Matches a path against a glob pattern
+    /// Matches a path against a glob pattern with cross-platform support
     /// </summary>
     /// <param name="path">The path to check</param>
     /// <param name="pattern">The glob pattern</param>
     /// <returns>True if the path matches the pattern</returns>
     public bool IsPathMatchingPattern(string path, string pattern)
     {
-        // Convert glob pattern to regex
-        var regexPattern = "^" + Regex.Escape(pattern)
-            .Replace("\\*\\*", ".*")  // ** matches any number of directories
-            .Replace("\\*", "[^/]*")  // * matches any characters except directory separator
-            .Replace("\\?", ".")      // ? matches any single character
-            + "$";
+        if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(pattern))
+            return false;
 
         try
         {
-            return Regex.IsMatch(path, regexPattern, RegexOptions.IgnoreCase);
+            // Normalize both path and pattern to use forward slashes for consistent matching
+            var normalizedPath = ToUnixPath(path.Trim());
+            var normalizedPattern = ToUnixPath(pattern.Trim());
+
+            // Convert glob pattern to regex with cross-platform support
+            var regexPattern = "^" + Regex.Escape(normalizedPattern)
+                .Replace("\\*\\*", ".*")      // ** matches any number of directories
+                .Replace("\\*", "[^/]*")      // * matches any characters except directory separator
+                .Replace("\\?", ".")          // ? matches any single character
+                + "$";
+
+            return Regex.IsMatch(normalizedPath, regexPattern, RegexOptions.IgnoreCase);
         }
         catch (Exception ex)
         {
@@ -456,6 +518,9 @@ public class FileRepository : IFileRepository
     /// <returns>True if the file should be excluded, false otherwise</returns>
     public async Task<bool> IsFileExcludedAsync(string relativePath)
     {
+        if (string.IsNullOrWhiteSpace(relativePath))
+            return false;
+
         var excludeConfig = await LoadExcludeConfigurationAsync();
 
         if (excludeConfig?.ExcludePatterns == null || !excludeConfig.ExcludePatterns.Any())
@@ -463,7 +528,8 @@ public class FileRepository : IFileRepository
             return false;
         }
 
-        var normalizedPath = relativePath.Replace('\\', '/');
+        // Normalize the path for consistent cross-platform matching
+        var normalizedPath = ToUnixPath(relativePath.Trim());
 
         foreach (var pattern in excludeConfig.ExcludePatterns)
         {

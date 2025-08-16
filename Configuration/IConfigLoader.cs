@@ -4,5 +4,6 @@ namespace GitVisionMCP.Configuration;
 public interface IConfigLoader
 {
     List<ApiConnection> LoadApiConnections();
-    public ApiConnection GetApiConnectionSettings(string apiName);
+    ApiConnection GetApiConnectionSettings(string apiName);
+    GitVisionConfig LoadConfig();
 }

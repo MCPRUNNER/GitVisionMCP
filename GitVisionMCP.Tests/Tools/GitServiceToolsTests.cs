@@ -22,6 +22,7 @@ public class GitServiceToolsTests
     private readonly Mock<IUtilityService> _mockUtilityService;
     private readonly GitServiceTools _gitServiceTools;
     private readonly List<WorkspaceFileInfo> _mockFiles;
+    private readonly Mock<IGitVisionConfig> _mockGitVisionConfig;
 
     public GitServiceToolsTests()
     {
@@ -31,13 +32,15 @@ public class GitServiceToolsTests
         _mockFileService = new Mock<IFileService>();
         _mockDeconstructionService = new Mock<IDeconstructionService>();
         _mockUtilityService = new Mock<IUtilityService>();
+        _mockGitVisionConfig = new Mock<IGitVisionConfig>();
         _gitServiceTools = new GitServiceTools(
             _mockGitService.Object,
             _mockLocationService.Object,
             _mockFileService.Object,
             _mockDeconstructionService.Object,
             _mockLogger.Object,
-            _mockUtilityService.Object);
+            _mockUtilityService.Object,
+            _mockGitVisionConfig.Object);
 
         // Setup mock workspace root
         var mockWorkspaceRoot = Path.Combine(Path.GetTempPath(), "mock-workspace");

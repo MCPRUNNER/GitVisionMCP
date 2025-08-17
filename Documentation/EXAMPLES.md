@@ -2,6 +2,11 @@
 
 # MCP Deconstruction Tools
 
+## Useful Links
+
+- [Run Process Examples](RUN_PROCESS_EXAMPLES.md) - How tools should call `IUtilityService.RunProcessAsync`
+- [Git Authentication & Tokens](GIT_AUTH.md) - How to set `GITHUB_TOKEN` and when the CLI fallback is used
+
 #
 
 ## Controller/Service/Repository Deconstruction

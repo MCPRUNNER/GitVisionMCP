@@ -1,6 +1,7 @@
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using GitVisionMCP.Models;
+using GitVisionMCP.Repositories;
 namespace GitVisionMCP.Services;
 
 
@@ -8,10 +9,12 @@ namespace GitVisionMCP.Services;
 public class GitRepository : IGitRepository
 {
     private readonly ILogger<GitRepository> _logger;
+    private readonly IUtilityRepository _utility;
 
-    public GitRepository(ILogger<GitRepository> logger, IWorkspaceService workspaceService)
+    public GitRepository(ILogger<GitRepository> logger, IWorkspaceService workspaceService, IUtilityRepository utility)
     {
         _logger = logger;
+        _utility = utility;
     }
     public async Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
     {
@@ -28,12 +31,12 @@ public class GitRepository : IGitRepository
             return await Task.FromResult(result);
         }
 
-        for (int i = 0; i < lines.Length; i++)
+        for (var i = 0; i < lines.Length; i++)
         {
             if (lines[i].StartsWith("<<<<<<<"))
             {
                 var conflictLines = new List<string>();
-                int startLine = i;
+                var startLine = i;
 
                 while (i < lines.Length && !lines[i].StartsWith(">>>>>>>"))
                 {
@@ -857,10 +860,82 @@ public class GitRepository : IGitRepository
             }
 
             var refSpecs = remote.FetchRefSpecs.Select(x => x.Specification);
-            Commands.Fetch(repo, remoteName, refSpecs, null, "Fetch from MCP server");
 
-            _logger.LogInformation("Successfully fetched from remote {RemoteName}", remoteName);
-            return await Task.FromResult(true);
+            // Prepare FetchOptions. If remote is HTTPS and a token is provided in environment
+            // (GITHUB_TOKEN or GIT_HTTP_PASSWORD), use it for UsernamePasswordCredentials.
+            // If the remote uses SSH (git@ or ssh://) the embedded libgit2 build used here
+            // may not support the SSH protocol; log a helpful error and return false.
+            var fetchOptions = new FetchOptions();
+            var remoteUrl = remote.Url ?? string.Empty;
+
+            if (remoteUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            {
+                var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN")
+                            ?? Environment.GetEnvironmentVariable("GIT_HTTP_PASSWORD");
+                var username = Environment.GetEnvironmentVariable("GIT_HTTP_USERNAME") ?? "git";
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    fetchOptions.CredentialsProvider = (_url, _user, _types) =>
+                        new UsernamePasswordCredentials
+                        {
+                            Username = username,
+                            Password = token
+                        };
+                }
+            }
+            else if (remoteUrl.StartsWith("git@", StringComparison.OrdinalIgnoreCase) ||
+                     remoteUrl.StartsWith("ssh://", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("Remote URL uses SSH protocol; attempting CLI 'git fetch' fallback. Remote URL: {RemoteUrl}", remoteUrl);
+                // Fall back to git CLI fetch
+                try
+                {
+                    var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN") ?? Environment.GetEnvironmentVariable("GIT_HTTP_PASSWORD");
+                    var username = Environment.GetEnvironmentVariable("GIT_HTTP_USERNAME") ?? "git";
+                    var result = await RunGitFetchAsync(repositoryPath, remoteName, username, token);
+                    if (result.Success)
+                    {
+                        _logger.LogInformation("Fallback git fetch succeeded: {StdOut}", result.StdOut);
+                        return await Task.FromResult(true);
+                    }
+                    else
+                    {
+                        _logger.LogError("Fallback git fetch failed (exit {ExitCode}): {StdErr}", result.ExitCode, result.StdErr);
+                        _logger.LogInformation("Tip: if this is an HTTPS repository, set the environment variable GITHUB_TOKEN with a Personal Access Token and retry. PowerShell example: $env:GITHUB_TOKEN = '<token>'");
+                        return await Task.FromResult(false);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error running fallback git fetch");
+                    return await Task.FromResult(false);
+                }
+            }
+
+
+            // Perform fetch with the prepared options (may be empty if no credentials provided)
+            try
+            {
+                Commands.Fetch(repo, remoteName, refSpecs, fetchOptions, "Fetch from MCP server");
+                _logger.LogInformation("Successfully fetched from remote {RemoteName}", remoteName);
+                return await Task.FromResult(true);
+            }
+            catch (LibGit2SharpException ex)
+            {
+                _logger.LogWarning(ex, "LibGit2Sharp fetch failed; attempting CLI 'git fetch' fallback");
+                var token = Environment.GetEnvironmentVariable("GITHUB_TOKEN") ?? Environment.GetEnvironmentVariable("GIT_HTTP_PASSWORD");
+                var username = Environment.GetEnvironmentVariable("GIT_HTTP_USERNAME") ?? "git";
+                var result = await RunGitFetchAsync(repositoryPath, remoteName, username, token);
+                if (result.Success)
+                {
+                    _logger.LogInformation("Fallback git fetch succeeded: {StdOut}", result.StdOut);
+                    return await Task.FromResult(true);
+                }
+                _logger.LogError("Fallback git fetch failed (exit {ExitCode}): {StdErr}", result.ExitCode, result.StdErr);
+                _logger.LogInformation("Tip: if this is an HTTPS repository, set the environment variable GITHUB_TOKEN with a Personal Access Token and retry. PowerShell example: $env:GITHUB_TOKEN = '<token>'");
+                return await Task.FromResult(false);
+            }
         }
         catch (Exception ex)
         {
@@ -869,6 +944,22 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Convenience wrapper to run 'git fetch' as a CLI fallback when libgit2 cannot fetch.
+    /// </summary>
+    public async Task<(bool Success, string StdOut, string StdErr, int ExitCode)> RunGitFetchAsync(string repositoryPath, string remoteName = "origin", string? username = null, string? token = null)
+    {
+        // If a token is provided, pass it as an extra HTTP header to git to support authenticated HTTPS fetch
+        if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(remoteName))
+        {
+            // Use http.extraheader to send 'Authorization: bearer <token>' for HTTPS remotes
+            var header = $"Authorization: bearer {token}";
+            var args = $"-c http.extraheader=\"{header}\" fetch {remoteName} --no-tags";
+            return await _utility.RunProcessAsync(repositoryPath, "git", args);
+        }
+
+        return await _utility.RunProcessAsync(repositoryPath, "git", $"fetch {remoteName} --no-tags");
+    }
     public async Task<List<GitCommitInfo>> GetGitLogsBetweenBranchesWithRemoteAsync(string repositoryPath, string branch1, string branch2, bool fetchRemote = true)
     {
         try

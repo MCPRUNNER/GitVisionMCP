@@ -10,6 +10,7 @@ using System.Xml.XPath;
 using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json;
+using System.Diagnostics;
 using GitVisionMCP.Models;
 using GitVisionMCP.Services;
 using Microsoft.Extensions.Logging;
@@ -26,6 +27,43 @@ public class UtilityRepository : IUtilityRepository
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
     }
+
+    /// <summary>
+    /// Runs an external process and captures stdout/stderr and exit code.
+    /// </summary>
+    public async Task<(bool Success, string StdOut, string StdErr, int ExitCode)> RunProcessAsync(string workingDirectory, string fileName, string arguments, int timeoutMs = 60000)
+    {
+        try
+        {
+            var psi = new ProcessStartInfo(fileName, arguments)
+            {
+                WorkingDirectory = workingDirectory,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var proc = new Process { StartInfo = psi };
+            proc.Start();
+
+            var stdoutTask = proc.StandardOutput.ReadToEndAsync();
+            var stderrTask = proc.StandardError.ReadToEndAsync();
+
+            await Task.WhenAll(stdoutTask, stderrTask, proc.WaitForExitAsync());
+
+            var stdout = await stdoutTask;
+            var stderr = await stderrTask;
+
+            return (proc.ExitCode == 0, stdout ?? string.Empty, stderr ?? string.Empty, proc.ExitCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error running process {FileName} {Arguments} in {WorkingDirectory}", fileName, arguments, workingDirectory);
+            return (false, string.Empty, ex.Message, -1);
+        }
+    }
+
 
     /// <summary>
     /// Gets the value of an environment variable by name and returns it as an object.

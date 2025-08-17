@@ -11,7 +11,7 @@
     "*.cache",
     "**/logs/**",
     "*.log",
-    "**/.gitvision/**"
+    ".gitvision/**"
   ],
   "description": "Default exclude patterns for workspace file operations",
   "version": "1.0.8"

@@ -11,6 +11,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 
 using Microsoft.Extensions.Logging;
+using GitVisionMCP.Repositories;
 
 namespace GitVisionMCP.Services;
 
@@ -19,12 +20,14 @@ public class UtilityService : IUtilityService
     private readonly ILogger<UtilityService> _logger;
     private readonly IFileService _fileService;
     private readonly IWorkspaceService _workspaceService;
+    private readonly IUtilityRepository _utilityRepository;
 
-    public UtilityService(ILogger<UtilityService> logger, IFileService fileService, IWorkspaceService workspaceService)
+    public UtilityService(ILogger<UtilityService> logger, IFileService fileService, IWorkspaceService workspaceService, IUtilityRepository utilityRepository)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
         _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
+        _utilityRepository = utilityRepository ?? throw new ArgumentNullException(nameof(utilityRepository));
     }
 
     /// <summary>
@@ -64,6 +67,24 @@ public class UtilityService : IUtilityService
         {
             _logger.LogError(ex, "Error getting application version");
             return "Unknown Version";
+        }
+    }
+
+    /// <summary>
+    /// Executes an external process and returns stdout/stderr/exit code.
+    /// Delegates to the repository-level process runner.
+    /// </summary>
+    public async Task<(bool Success, string StdOut, string StdErr, int ExitCode)> RunProcessAsync(string workingDirectory, string fileName, string arguments, int timeoutMs = 60000)
+    {
+        try
+        {
+            var result = await _utilityRepository.RunProcessAsync(workingDirectory, fileName, arguments, timeoutMs);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error running process {FileName} {Arguments}", fileName, arguments);
+            return (false, string.Empty, ex.Message, -1);
         }
     }
 

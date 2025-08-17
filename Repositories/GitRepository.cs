@@ -164,10 +164,11 @@ public class GitRepository : IGitRepository
                 throw new ArgumentException($"Branch '{branch2}' not found (tried local and remote variants)");
             }
 
+            // Include commits reachable from branch1 but exclude those reachable from branch2
             var filter = new CommitFilter
             {
-                ExcludeReachableFrom = branch1Ref.Tip,
-                IncludeReachableFrom = branch2Ref.Tip
+                IncludeReachableFrom = branch1Ref.Tip,
+                ExcludeReachableFrom = branch2Ref.Tip
             };
 
             var repoCommits = repo.Commits.QueryBy(filter);
@@ -998,10 +999,11 @@ public class GitRepository : IGitRepository
                 throw new ArgumentException($"Branch '{branch2}' not found (tried local and origin remote)");
             }
 
+            // Include commits reachable from branch1 but exclude those reachable from branch2
             var filter = new CommitFilter
             {
-                ExcludeReachableFrom = branch1Ref.Tip,
-                IncludeReachableFrom = branch2Ref.Tip
+                IncludeReachableFrom = branch1Ref.Tip,
+                ExcludeReachableFrom = branch2Ref.Tip
             };
 
             var repoCommits = repo.Commits.QueryBy(filter);

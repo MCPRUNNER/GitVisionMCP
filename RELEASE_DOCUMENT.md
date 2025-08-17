@@ -70,6 +70,10 @@ flowchart LR
   Tests["Tests"] --> Services
 ```
 
+## Architecture diagram
+
+See the generated component diagram describing the runtime DI wiring and major services/tools: `MD/mermaid_segment_1.md`.
+
 ## Install / Upgrade Notes
 
 1. Prerequisites

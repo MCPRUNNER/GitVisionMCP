@@ -1,2 +1,0 @@
-- Copyright (c) MCPRUNNER.
-- Licensed under the MIT License.

@@ -64,7 +64,7 @@ public class GitServiceTools : IGitServiceTools
             var commitCount = maxCommits ?? _config.Settings?.MaxCommits ?? 100;
             if (commitCount <= 0)
             {
-                _logger.LogWarning("Invalid commit maxCommits {CommitCount}, defaulting to 50", commitCount);
+                _logger.LogWarning("Invalid commit count {CommitCount}, defaulting to 50", commitCount);
                 commitCount = 50;
             }
 

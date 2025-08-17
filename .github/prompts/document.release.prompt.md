@@ -17,6 +17,7 @@ Use tools from the: `GitVisionMCP` MCP Server.
    1. Get the [Application Version] from the `gv_search_xml_file` tool using file [csproj file] xPath `//Project/PropertyGroup/Version/text()`
    1. Get [current branch name] using `gv_get_current_branch`
    1. Update list of branches using `gv_get_all_branches`
+   1. Get [commits report] using `gv_generate_git_commit_report`
 1. Analyze and compare the difference between [current branch] and [release branch] using `gv_compare_branches_with_remote_documentation`
 1. Organize changes into logical feature groups
 1. Create a well-structured release document with the following sections:
@@ -24,17 +25,17 @@ Use tools from the: `GitVisionMCP` MCP Server.
    - Title of [Application Name] and ([Application Version])
    - Subtitle [current branch name] and [release branch]
    - Current date
-   - Summary of Changes
+   - Summary of Changes using [commits report]
    - New Features (detailed descriptions)
    - Enhancements (improvements to existing features)
    - Bug Fixes
    - Breaking Changes (if any)
+   - Create a table of available tools with description
    - Deprecated Features (if any)
    - Known Issues
    - Installation/Upgrade Instructions
 
 1. Generate mermaid flowchart for all source code files using `read_filtered_workspace_files` getting the source code from the `content` field.
-1. Create a table of available tools with description
 
 # Output Format
 

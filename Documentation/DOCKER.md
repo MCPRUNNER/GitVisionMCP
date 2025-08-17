@@ -11,6 +11,8 @@ GitVisionMCP is a comprehensive Model Context Protocol (MCP) Server that provide
 - [Docker](https://www.docker.com/products/docker-desktop/) installed and running
 - [Visual Studio Code](https://code.visualstudio.com/) with GitHub Copilot extension installed
 - A git repository to analyze
+- Repository Specific Custom Configuration files: [.gitvision](https://github.com/MCPRUNNER/GitVisionMCP/tree/master/.gitvision)
+- Repository Specific Custom Prompts and Instructions: [.github](https://github.com/MCPRUNNER/GitVisionMCP/tree/master/.github)
 
 ## Docker Container Setup
 

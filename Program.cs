@@ -1,22 +1,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Configuration;
-using ModelContextProtocol;
-using ModelContextProtocol.Server;
-using ModelContextProtocol.AspNetCore;
 using GitVisionMCP.Services;
 using GitVisionMCP.Prompts;
 using GitVisionMCP.Tools;
 using Serilog;
-using Serilog.Events;
-using Serilog.Extensions.Logging;
 using System.Text;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Features;
-using GitVisionMCP.Handlers;
 using GitVisionMCP.Repositories;
 using GitVisionMCP.Configuration;
 // Ensure UTF-8 encoding for stdout
@@ -94,7 +84,7 @@ builder.Services.AddSingleton<IConfigLoader, ConfigLoader>();
 builder.Services.AddSingleton<IFileRepository, FileRepository>();
 builder.Services.AddSingleton<IGitRepository, GitRepository>();
 builder.Services.AddSingleton<IUtilityRepository, UtilityRepository>();
-
+builder.Services.AddSingleton<IConfigLoader, ConfigLoader>();
 builder.Services.AddSingleton<IUtilityService, UtilityService>();
 builder.Services.AddSingleton<IFileService, FileService>();
 builder.Services.AddSingleton<IWorkspaceService, WorkspaceService>();
@@ -102,7 +92,77 @@ builder.Services.AddSingleton<IGitService, GitService>();
 builder.Services.AddSingleton<IDeconstructionService, DeconstructionService>();
 
 builder.Services.AddTransient<IGitServiceTools, GitServiceTools>();
-builder.Services.AddSingleton<IMcpHandler, McpHandler>();
+// Provide IGitVisionConfig from the loaded configuration so tools depending on it can be constructed
+// Register a reloadable IGitVisionConfig so we can update it when the file changes
+builder.Services.AddSingleton<GitVisionMCP.Models.ReloadableGitVisionConfig>(sp =>
+{
+    var loader = sp.GetRequiredService<IConfigLoader>();
+    var initial = loader.LoadConfig();
+    var reloadable = new GitVisionMCP.Models.ReloadableGitVisionConfig(initial);
+
+    try
+    {
+        // Watch the .gitvision/config.json file for changes and reload
+        var repoRoot = Directory.GetCurrentDirectory();
+        var gitVisionDir = Path.Combine(repoRoot, ".gitvision");
+        var configFile = Path.Combine(gitVisionDir, "config.json");
+
+        if (Directory.Exists(gitVisionDir))
+        {
+            var watcher = new FileSystemWatcher(gitVisionDir, "config.json")
+            {
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.FileName
+            };
+
+            FileSystemEventHandler onChange = (_, __) =>
+            {
+                try
+                {
+                    Log.Information("Detected change in .gitvision/config.json, reloading configuration");
+                    var updated = loader.LoadConfig();
+                    reloadable.Set(updated);
+                    Log.Information("Configuration reloaded successfully");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to reload configuration after change event");
+                }
+            };
+
+            watcher.Changed += onChange;
+            watcher.Created += onChange;
+            watcher.Renamed += (_, __) => onChange(_, __);
+            watcher.EnableRaisingEvents = true;
+
+            // Make sure watcher is not GC'ed by capturing in root services
+            AppDomain.CurrentDomain.ProcessExit += (_, _) => watcher.Dispose();
+        }
+    }
+    catch (Exception ex)
+    {
+        Log.Warning(ex, "Failed to initialize config file watcher for .gitvision/config.json");
+    }
+
+    // Expose the reloadable instance via the IGitVisionConfig interface as well
+    return reloadable;
+});
+
+// Register the interface mapping to the reloadable wrapper so existing consumers still depend on IGitVisionConfig
+builder.Services.AddSingleton<GitVisionMCP.Models.IGitVisionConfig>(sp => sp.GetRequiredService<GitVisionMCP.Models.ReloadableGitVisionConfig>());
+
+// Register configuration reloader to enable debounce + last-good semantics for reloads
+builder.Services.AddSingleton<ConfigurationReloader>(sp =>
+{
+    var loader = sp.GetRequiredService<IConfigLoader>();
+    var reloadable = sp.GetRequiredService<GitVisionMCP.Models.ReloadableGitVisionConfig>();
+    var repoRoot = Directory.GetCurrentDirectory();
+    var watchDir = Path.Combine(repoRoot, ".gitvision");
+    return new ConfigurationReloader(loader, reloadable, watchDir, startWatching: true, debounceMilliseconds: 250);
+});
+
+// Ensure the reloader is created during startup so it starts watching immediately
+builder.Services.AddSingleton(sp => sp.GetRequiredService<ConfigurationReloader>());
+//builder.Services.AddSingleton<IMcpHandler, McpHandler>();
 
 
 // Configure JSON options
@@ -125,7 +185,7 @@ if (transportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
     });
 }
 var app = builder.Build();
-
+/*
 // Configure HTTP middleware if using HTTP transport
 if (!transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
 {
@@ -159,7 +219,7 @@ if (!transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
         });
     });
 }
-
+*/
 // Run the application
 app.Lifetime.ApplicationStarted.Register(() => Log.Information("GitVision MCP Server application started"));
 app.Lifetime.ApplicationStopping.Register(() => Log.Information("GitVision MCP Server application stopping"));

@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
 using YamlDotNet.Core;
+using GitVisionMCP.Configuration;
 namespace GitVisionMCP.Tools;
 
 /// <summary>
@@ -20,8 +21,8 @@ public class GitServiceTools : IGitServiceTools
     private readonly IUtilityService _utilityService;
     private readonly IDeconstructionService _deconstructionService;
     private readonly ILogger<GitServiceTools> _logger;
-
-    public GitServiceTools(IGitService gitService, IWorkspaceService locationService, IFileService fileService, IDeconstructionService deconstructionService, ILogger<GitServiceTools> logger, IUtilityService utilityService)
+    private readonly IGitVisionConfig _config;
+    public GitServiceTools(IGitService gitService, IWorkspaceService locationService, IFileService fileService, IDeconstructionService deconstructionService, ILogger<GitServiceTools> logger, IUtilityService utilityService, IGitVisionConfig config)
     {
         _gitService = gitService;
         _locationService = locationService;
@@ -29,6 +30,7 @@ public class GitServiceTools : IGitServiceTools
         _deconstructionService = deconstructionService;
         _logger = logger;
         _utilityService = utilityService;
+        _config = config;
     }
 
     [McpServerToolAttribute(Name = "gv_fetch_from_remote")]
@@ -38,6 +40,7 @@ public class GitServiceTools : IGitServiceTools
     {
         try
         {
+
             var repoPath = _fileService.GetWorkspaceRoot();
             return await _gitService.FetchFromRemoteAsync(repoPath, remoteName ?? "origin");
         }
@@ -51,14 +54,14 @@ public class GitServiceTools : IGitServiceTools
     [McpServerToolAttribute(Name = "gv_generate_git_commit_report")]
     [Description("Generate git commit report for current branch")]
     public async Task<string> CreateGitCommitReportAsync(
-        [Description("Maximum number of commits to include (default: 50)")] int? maxCommits = 50,
+        [Description("Maximum number of commits to include (default: 50)")] int? maxCommits = null,
         [Description("Output format: markdown, html, or text (default: markdown)")] string? outputFormat = "markdown")
     {
         try
         {
             // Validate inputs
             outputFormat = ValidateOutputFormat(outputFormat);
-            var commitCount = maxCommits ?? 50;
+            var commitCount = maxCommits ?? _config.Settings?.MaxCommits ?? 100;
             if (commitCount <= 0)
             {
                 _logger.LogWarning("Invalid commit count {CommitCount}, defaulting to 50", commitCount);
@@ -85,7 +88,7 @@ public class GitServiceTools : IGitServiceTools
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating git documentation for {CommitCount} commits in {Format} format",
-                maxCommits ?? 50, outputFormat ?? "markdown");
+                maxCommits ?? _config.Settings?.MaxCommits ?? 100, outputFormat ?? "markdown");
             return $"Error generating documentation: {ex.Message}. Please check the logs for more details.";
         }
     }
@@ -126,7 +129,7 @@ public class GitServiceTools : IGitServiceTools
     [Description("Generate git commit report for current branch and write to a file")]
     public async Task<string> ExportGitCommitsToFileAsync(
         [Description("Path where to save the documentation file")] string filePath,
-        [Description("Maximum number of commits to include (default: 50)")] int? maxCommits = 50,
+        [Description("Maximum number of commits to include (default: 50)")] int? maxCommits = null,
         [Description("Output format: markdown, html, or text (default: markdown)")] string? outputFormat = "markdown")
     {
         // Validate file path
@@ -143,7 +146,7 @@ public class GitServiceTools : IGitServiceTools
 
             // Use the helper method for output format validation
             outputFormat = ValidateOutputFormat(outputFormat);
-            var commitCount = maxCommits ?? 50;
+            var commitCount = maxCommits ?? _config.Settings?.MaxCommits ?? 100;
 
             var repoPath = _fileService.GetWorkspaceRoot();
             _logger.LogInformation("Generating git documentation to file {FilePath} for last {CommitCount} commits",
@@ -501,12 +504,12 @@ public class GitServiceTools : IGitServiceTools
     [McpServerToolAttribute(Name = "gv_get_recent_commits")]
     [Description("Get recent commits from the current repository")]
     public async Task<List<GitCommitInfo>> GetRecentCommitsAsync(
-        [Description("Number of recent commits to retrieve (default: 10)")] int? count = 10)
+        [Description("Number of recent commits to retrieve (default: 10)")] int? maxCommits = null)
     {
         try
         {
             var repoPath = _fileService.GetWorkspaceRoot();
-            return await _gitService.GetRecentCommitsAsync(repoPath, count ?? 10);
+            return await _gitService.GetRecentCommitsAsync(repoPath, maxCommits ?? _config.Settings?.MaxCommits ?? 100);
         }
         catch (Exception ex)
         {
@@ -769,7 +772,7 @@ public class GitServiceTools : IGitServiceTools
     [Description("Search all commits for a specific string and return commit details, filenames, and line matches")]
     public async Task<CommitSearchResponse> SearchCommitsForStringAsync(
         [Description("The string to search for in commit messages and file contents")] string searchString,
-        [Description("Maximum number of commits to search through (default: 100)")] int? maxCommits = 100)
+        [Description("Maximum number of commits to search through (default: 100)")] int? maxCommits = null)
     {
         // Validate search string
         if (string.IsNullOrWhiteSpace(searchString))
@@ -778,11 +781,11 @@ public class GitServiceTools : IGitServiceTools
             throw new ArgumentException("Search string cannot be null or empty", nameof(searchString));
         }
 
-        // Validate commit count
-        var commitCount = maxCommits ?? 100;
+        // Validate commit maxCommits
+        var commitCount = maxCommits ?? _config.Settings?.MaxCommits ?? 100;
         if (commitCount <= 0)
         {
-            _logger.LogWarning("Invalid commit count {CommitCount}, defaulting to 100", commitCount);
+            _logger.LogWarning("Invalid maxCommits {CommitCount}, defaulting to 100", commitCount);
             commitCount = 100;
         }
 

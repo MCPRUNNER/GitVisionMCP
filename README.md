@@ -325,6 +325,8 @@ GitVisionMCP provides specialized prompts for release documentation:
 - **[Examples & Use Cases](Documentation/EXAMPLES.md)** - Practical examples and workflows
 - **[Controller Analysis](Documentation/DECONSTRUCTION_SERVICE.md)** - ASP.NET Core analysis features
 - **[Exclude Functionality](Documentation/EXCLUDE_FUNCTIONALITY.md)** - File filtering configuration
+- **[Run Process Examples](Documentation/RUN_PROCESS_EXAMPLES.md)** - Examples for calling `IUtilityService.RunProcessAsync` from tools
+- **[Git Authentication & Tokens](Documentation/GIT_AUTH.md)** - Guide for setting `GITHUB_TOKEN` and fetch fallback behavior
 
 ### 🔧 **Technical Details**
 

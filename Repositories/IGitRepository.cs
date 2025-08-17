@@ -28,4 +28,5 @@ public interface IGitRepository
     Task<string> GenerateCommitDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown");
     // New method for searching commits
     Task<CommitSearchResponse> SearchCommitsForStringAsync(string repositoryPath, string searchString, int maxCommits = 100);
+    Task<(bool Success, string StdOut, string StdErr, int ExitCode)> RunGitFetchAsync(string repositoryPath, string remoteName = "origin", string? username = null, string? token = null);
 }

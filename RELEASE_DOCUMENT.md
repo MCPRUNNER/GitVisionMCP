@@ -1,64 +1,108 @@
-# GitVisionMCP (1.0.8) Release Documentation
+# Release Document
 
-## Version and Release Date
+Version: 1.0.8.2
 
-- **Application Name:** GitVisionMCP
-- **Version:** 1.0.8
-- **Release Date:** August 27, 2025
-- **Current Branch:** master
+Release Date: 2025-08-17
 
----
+## Summary
 
-## Summary of Changes
+This release collects development work since the previous release. It includes new tooling, improved documentation, extended git/remote support, tests, and internal refactors to centralize git operations into a common tools library. The changes aim to make the MCP server more robust when interacting with remote repositories and easier to maintain.
 
-Renaming generate_git_documentation to generate_git_commit_report tool.
+## Highlights
 
----
+New Features
 
-## New Features
+- Added tests and test projects to improve CI coverage (GitVisionMCP.Tests).
+- Added Docker support and Dockerfile to enable containerized runs.
+- Added system prompts and release document prompts to standardize documentation generation.
 
----
+Enhancements
 
-## MCP Tools Available in This Release
+- Introduced Serilog-based logging and log directory configuration.
+- Improved commit/line-diff tooling and added line-numbering to diffs.
+- Added remote repository capabilities and extended comparison tools.
+- Added documentation improvements across SETUP, EXAMPLES, and other docs.
 
-| Tool Name                                  | Description                                                                   |
-| ------------------------------------------ | ----------------------------------------------------------------------------- |
-| fetch_from_remote                          | Fetch latest changes from remote repository                                   |
-| generate_git_commit_report                 | Generate git commit report for current branch                                 |
-| generate_git_commit_report_to_file         | Generate git commit report for current branch and write to a file             |
-| compare_branches_documentation             | Generate documentation comparing differences between two branches             |
-| compare_branches_with_remote_documentation | Generate documentation comparing differences between two branches with remote |
-| compare_commits_documentation              | Generate documentation comparing differences between two commits              |
-| get_recent_commits                         | Get recent commits from the current repository                                |
-| get_local_branches                         | Get list of local branches in the repository                                  |
-| get_remote_branches                        | Get list of remote branches in the repository                                 |
-| get_all_branches                           | Get list of all branches (local and remote) in the repository                 |
-| get_current_branch                         | Get the current active branch in the repository                               |
-| get_changed_files_between_commits          | Get list of files changed between two commits                                 |
-| get_commit_diff_info                       | Get comprehensive diff information between two commits                        |
-| get_detailed_diff_between_commits          | Get detailed diff content between two commits                                 |
-| search_commits_for_string                  | Search all commits for a specific string                                      |
-| get_file_line_diff_between_commits         | Get line-by-line file diff between two commits                                |
-| list_workspace_files                       | List all files in the workspace with optional filtering                       |
-| list_workspace_files_with_cached_data      | List workspace files with optional filtering using cached data                |
-| read_filtered_workspace_files              | Read contents of all files from filtered workspace results                    |
-| git_find_merge_conflicts                   | Search for Git merge conflicts in source code                                 |
-| search_json_file                           | Search for JSON values in a JSON file using JSONPath                          |
-| search_xml_file                            | Search for XML values in an XML file using XPath                              |
-| transform_xml_with_xslt                    | Transform an XML file using an XSLT stylesheet                                |
-| search_yaml_file                           | Search for YAML values in a YAML file using JSONPath                          |
-| search_csv_file                            | Search for CSV values in a CSV file using JSONPath                            |
-| search_excel_file                          | Search for values in an Excel (.xlsx) file using JSONPath                     |
-| deconstruct_to_file                        | Deconstruct a C# Service, Repository or Controller file and returns JSON      |
-| deconstruct_to_json                        | Deconstruct a C# file and save structure to a JSON file                       |
-| get_app_version                            | Extract application version from a project file                               |
+Bug Fixes
 
----
+- Fixed STDIO JSON output cleanup and remote fetch fallbacks for environments without git in PATH.
+- Documentation fixes and addition of RELEASE_DOCUMENT.md and related prompts.
 
-## Architecture and Process Flow
+Breaking Changes
 
-[Note: The Documentation/ARCHITECTURE.md illustrates the architecture of the GitVisionMCP workspace, showing the relationships between various services, tools and models, along with their http vs stdio process flows.](Documentation/ARCHITECTURE.md)
+- Removed the old Handler MCP and migrated to a common GitServiceTools (see Tools/GitServiceTools.cs). Consumers of the removed Handler MCP will need to adapt to the new GitServiceTools API/usage. (refer to commit 095a09d1)
 
----
+Deprecated
 
-No differences found between branches search_csv and master.
+- No explicit deprecations beyond the handler removal noted above.
+
+Known Issues
+
+- None listed in the commit history for this release. If you encounter runtime differences after migrating to GitServiceTools, please open an issue with the stack trace and sample repro.
+
+Notable Commits (representative)
+
+- 2cc414d3 — Merge prompt.v2 and add release notes prompts and tooling
+- 42781a99 — Docker support and project updates
+- 521286fa — Serilog added and logging improvements
+- c6ac3229 — Fixed Git Fetch issues by adding https PAT and git exe fallback
+- 095a09d1 — Removed Handler MCP and migrated to common GitServiceTools (breaking)
+
+Tools & Files of Interest
+
+- Program.cs — application entrypoint and configuration wiring
+- Services/McpServer.cs — MCP JSON-RPC server implementation
+- Services/GitService.cs — git operations wrapper
+- Tools/GitServiceTools.cs — centralized git/remote helpers (new)
+- MD/COMMIT_REPORT.md — full generated commit report used to create this document
+
+Architecture Summary (mermaid)
+
+```mermaid
+flowchart LR
+  Program --> McpServer["MCP Server"]
+  McpServer --> Services["Services"]
+  Services --> GitService["GitService"]
+  Services --> Tooling["Tools"]
+  Tooling --> GitServiceTools["GitServiceTools"]
+  Services --> Repositories["Repositories"]
+  Repositories --> Models["Models"]
+  Tests["Tests"] --> Services
+```
+
+## Architecture diagram
+
+See the generated component diagram describing the runtime DI wiring and major services/tools: `MD/mermaid_segment_1.md`.
+
+## Install / Upgrade Notes
+
+1. Prerequisites
+
+   - .NET 8/9 SDK (as used by the project). Ensure `dotnet --version` matches the CI/runtime requirements.
+   - git installed and available in PATH for full remote operations. The code includes fallbacks but local git is recommended.
+
+2. Build
+
+   - From the repo root run: `dotnet build` (or use the provided VS Code build task).
+
+3. Run tests
+
+   - `dotnet test` from the solution root will run the test projects added in this release.
+
+4. Upgrade steps for Handler MCP users
+   - Replace usages of the removed Handler MCP with calls to Tools/GitServiceTools or Services/GitService.
+   - Review calls that relied on the old STDIO-based handler and migrate to the unified GitServiceTools methods.
+
+## Verification / Smoke Checks
+
+- Build the solution: `dotnet build`.
+- Run unit tests: `dotnet test`.
+- Generate a commit report using the included tools to validate git/remote behavior.
+
+## Notes
+
+This document was assembled automatically from the repository commit history and source layout. For a full list of commits, see `MD/COMMIT_REPORT.md`.
+
+If you'd like a longer, detailed changelog with per-commit descriptions or a more detailed mermaid diagram showing class-level relationships, tell me which area to expand and I will generate it in smaller chunks to avoid large outputs.
+
+Generated-by: GitVisionMCP tooling

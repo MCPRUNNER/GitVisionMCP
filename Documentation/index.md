@@ -9,6 +9,8 @@ This index lists all markdown documentation files available in the `Documentatio
 - [DOCKER.md](DOCKER.md): Docker setup and usage instructions for GitVisionMCP.
 - [EXAMPLES.md](EXAMPLES.md): Comprehensive usage examples for MCP tools and integrations.
 - [EXCLUDE_FUNCTIONALITY.md](EXCLUDE_FUNCTIONALITY.md): Details on file exclusion patterns and configuration.
+- [GIT_AUTH.md](GIT_AUTH.md): Git authentication guidance (HTTPS tokens, SSH, CLI fallback).
+- [RUN_PROCESS_EXAMPLES.md](RUN_PROCESS_EXAMPLES.md): Examples for running external processes via IUtilityService (git fetch, auth handling).
 - [MERGE_SUMMARY.md](MERGE_SUMMARY.md): Summary and analysis of branch merges.
 - [RELEASE_NOTES_FINAL.md](RELEASE_NOTES_FINAL.md): Final release notes and version history.
 - [SETUP.md](SETUP.md): Setup instructions for development and production environments.

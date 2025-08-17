@@ -85,4 +85,50 @@ public class ConfigLoader : IConfigLoader
             return new ApiConnection();
         }
     }
+
+    /// <summary>
+    /// Loads the main configuration from .gitvision/config.json
+    /// </summary>
+    /// <returns>Config object with project, settings, and git configuration</returns>
+    public GitVisionConfig LoadConfig()
+    {
+        var configFile = _fileService.GetFullPath(".gitvision/config.json");
+        try
+        {
+            if (string.IsNullOrEmpty(configFile))
+            {
+                _logger.LogWarning("Main configuration file path is not set.");
+                return new GitVisionConfig();
+            }
+
+            if (string.IsNullOrEmpty(_fileService.GetFullPath(configFile)))
+            {
+                _logger.LogWarning("Main configuration file not found at {Path}", configFile);
+                return new GitVisionConfig();
+            }
+
+            var json = _fileService.ReadFile(configFile);
+            if (string.IsNullOrEmpty(json))
+            {
+                _logger.LogError("Failed to read main configuration from {Path}", configFile);
+                return new GitVisionConfig();
+            }
+
+            // Use Newtonsoft.Json for consistency with the rest of the codebase
+            var config = JsonConvert.DeserializeObject<GitVisionConfig>(json);
+            if (config == null)
+            {
+                _logger.LogError("Invalid main configuration format in {Path}", configFile);
+                return new GitVisionConfig();
+            }
+
+            _logger.LogInformation("Successfully loaded main configuration from {Path}", configFile);
+            return config;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading main configuration from {Path}", configFile);
+            return new GitVisionConfig();
+        }
+    }
 }

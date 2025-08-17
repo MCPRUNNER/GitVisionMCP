@@ -1,22 +1,19 @@
-# GitVisionMCP Architecture Documentation
+# GitVisionMCP 1.0.8.2 Architecture
+
+**Release Branch:** origin/master | **Current Branch:** remove_handler
 
 ## Overview
 
-GitVisionMCP is a Model Context Protocol (MCP) Server implementation that provides git repository analysis and documentation generation capabilities. The application serves as a bridge between VS Code Copilot agents and git repository operations, enabling automated documentation generation, branch comparison, commit analysis, and file content searching across various formats (JSON, XML, YAML, CSV, Excel).
+GitVisionMCP is a Model Context Protocol (MCP) server implementation that provides Git-based documentation generation and repository analysis tools. The application is built using C# and the ASP.NET Core framework, designed to operate in both STDIO and HTTP transport modes. It serves as a bridge between Git repositories and MCP clients (such as VS Code Copilot) by exposing Git operations and file system analysis capabilities through standardized MCP tool interfaces.
 
-**Project Details:**
-
-- **Application Name:** GitVisionMCP
-- **Version:** 1.0.8.2
-- **Release Branch:** origin/master
-- **Transport Support:** Both STDIO and HTTP via environment variable configuration
+The architecture follows a layered approach with clear separation of concerns: MCP framework integration, tools layer, services layer, and repositories layer. The application supports dynamic transport configuration through environment variables and provides comprehensive logging, configuration management, and file watching capabilities.
 
 ## Architectural Relationship
 
 ```mermaid
 graph TB
-    subgraph "MCP Client (VS Code/Copilot)"
-        A[VS Code Extension/Copilot Agent]
+    subgraph "MCP Client (VS Code Copilot)"
+        A[Client Request]
     end
 
     subgraph "Transport Layer"
@@ -24,180 +21,113 @@ graph TB
         C[HTTP Transport]
     end
 
-    subgraph "GitVisionMCP Application"
-        D[Program.cs - Startup & DI Container]
-        E[MCP Server Framework]
-        F[GitServiceTools - MCP Tool Provider]
-
-        subgraph "Service Layer"
-            G[IGitService]
-            H[IFileService]
-            I[IWorkspaceService]
-            J[IDeconstructionService]
-            K[IUtilityService]
-        end
-
-        subgraph "Repository Layer"
-            L[IGitRepository]
-            M[IFileRepository]
-            N[IUtilityRepository]
-        end
-
-        subgraph "Configuration"
-            O[IConfigLoader]
-            P[IGitVisionConfig]
-            Q[ConfigurationReloader]
-        end
+    subgraph "MCP Framework"
+        D[ModelContextProtocol Server]
+        E[Tool Registration]
+        F[JSON-RPC 2.0]
     end
 
-    subgraph "External Systems"
-        R[Git Repository]
-        S[File System]
-        T[Configuration Files]
+    subgraph "Tools Layer"
+        G[GitServiceTools]
+        H[ReleaseDocumentPrompts]
     end
 
-    A -->|JSON-RPC 2.0| B
-    A -->|JSON-RPC 2.0| C
-    B --> E
-    C --> E
-    E --> F
-    F --> G
-    F --> H
-    F --> I
-    F --> J
-    F --> K
+    subgraph "Services Layer"
+        I[IGitService]
+        J[IFileService]
+        K[IWorkspaceService]
+        L[IDeconstructionService]
+        M[IUtilityService]
+    end
+
+    subgraph "Repositories Layer"
+        N[IGitRepository]
+        O[IFileRepository]
+        P[IUtilityRepository]
+    end
+
+    subgraph "External Dependencies"
+        Q[Git CLI]
+        R[File System]
+        S[Configuration Files]
+    end
+
+    A --> B
+    A --> C
+    B --> D
+    C --> D
+    D --> E
+    D --> F
+    E --> G
+    E --> H
+    G --> I
+    G --> J
+    G --> K
     G --> L
-    H --> M
-    K --> N
-    D --> O
-    O --> P
-    D --> Q
-    L --> R
-    M --> S
-    O --> T
+    G --> M
+    I --> N
+    J --> O
+    M --> P
+    N --> Q
+    O --> R
+    All --> S
 ```
 
 ## Component Responsibilities
 
-### GitServiceTools (MCP Tool Provider)
-
-**Primary Role:** Acts as the MCP framework integration layer, exposing git and file operations as MCP tools.
-
-**Key Responsibilities:**
-
-- Implements 30+ MCP tools with `[McpServerToolAttribute]` decorations
-- Validates input parameters and handles error responses
-- Orchestrates calls between services for complex operations
-- Provides consistent error handling and logging across all tools
-- Manages file path validation and directory creation
-
-**Notable Tools:**
-
-- `gv_generate_git_commit_report` - Generate commit documentation
-- `gv_compare_branches_documentation` - Branch comparison with remote support
-- `gv_search_json_file`, `gv_search_xml_file` - File content searching
-- `gv_list_workspace_files` - Workspace file enumeration
-- `gv_deconstruct_to_file` - C# code analysis and deconstruction
-
 ### MCP Framework Integration
 
-**Primary Role:** Handles JSON-RPC 2.0 communication and tool discovery.
+- **Transport Management**: Configurable STDIO/HTTP transport based on `GITVISION_MCP_TRANSPORT` environment variable
+- **Tool Registration**: Automatic discovery and registration of tools decorated with `[McpServerToolAttribute]`
+- **JSON-RPC 2.0**: Protocol compliance for client-server communication
+- **Lifecycle Management**: Graceful startup, shutdown, and error handling
 
-**Key Responsibilities:**
+### GitServiceTools (Primary Tool Interface)
 
-- Manages STDIO and HTTP transport protocols
-- Provides tool registration and discovery mechanisms
-- Handles request/response serialization
-- Implements MCP protocol compliance
+The main MCP tool class implementing `IGitServiceTools` with 30+ exposed tools:
 
-### Service Layer Architecture
+**Git Operations:**
 
-#### IGitService / GitService
+- `gv_generate_git_commit_report`: Generate documentation from git logs
+- `gv_compare_branches_documentation`: Compare differences between branches
+- `gv_compare_commits_documentation`: Compare differences between commits
+- `gv_get_recent_commits`: Retrieve recent commit information
+- `gv_get_current_branch`: Get active branch name
+- `gv_fetch_from_remote`: Fetch latest changes from remote
 
-**Primary Role:** Git repository operations and documentation generation.
+**File System Operations:**
 
-**Key Responsibilities:**
+- `gv_list_workspace_files`: List and filter workspace files
+- `gv_read_filtered_workspace_files`: Read contents of filtered files
+- `gv_search_json_file`: JSONPath queries on JSON files
+- `gv_search_xml_file`: XPath queries on XML files
+- `gv_search_yaml_file`: JSONPath queries on YAML files
+- `gv_search_csv_file`: JSONPath queries on CSV files
+- `gv_search_excel_file`: JSONPath queries on Excel files
 
-- Git log retrieval and commit analysis
-- Branch comparison and diff generation
-- Conflict marker detection
-- Remote repository operations (fetch, branch listing)
-- Documentation formatting (Markdown, HTML, Text)
+**Analysis Operations:**
 
-#### IFileService / FileService
+- `gv_deconstruct_to_file`: Analyze C# file structure
+- `gv_git_find_merge_conflicts`: Detect Git merge conflicts
+- `gv_get_app_version`: Extract application version information
 
-**Primary Role:** File system operations and workspace management.
+### Services Layer
 
-**Key Responsibilities:**
+Provides business logic and orchestration:
 
-- Workspace file enumeration and filtering
-- File content reading with binary detection
-- Workspace root path resolution
-- File metadata extraction
+- **IGitService**: Git operations, commit analysis, branch management, diff generation
+- **IFileService**: File system operations, content reading, workspace analysis
+- **IWorkspaceService**: Project structure analysis, configuration management
+- **IDeconstructionService**: C# code analysis and structure extraction
+- **IUtilityService**: Helper functions, version extraction, utility operations
 
-#### IWorkspaceService / WorkspaceService
+### Repositories Layer
 
-**Primary Role:** Structured file content searching and transformation.
+Handles direct data access and external system integration:
 
-**Key Responsibilities:**
-
-- JSON, XML, YAML, CSV, Excel file parsing
-- JSONPath and XPath query execution
-- XSLT transformations
-- Data format conversions
-
-#### IDeconstructionService / DeconstructionService
-
-**Primary Role:** C# code analysis and structure extraction.
-
-**Key Responsibilities:**
-
-- C# syntax tree parsing
-- Service/Repository/Controller analysis
-- JSON structure generation from code analysis
-
-#### IUtilityService / UtilityService
-
-**Primary Role:** Utility operations and application metadata.
-
-**Key Responsibilities:**
-
-- Application version extraction from project files
-- Common utility functions
-
-### Repository Layer Architecture
-
-#### IGitRepository / GitRepository
-
-**Primary Role:** Direct git command execution and data parsing.
-
-**Key Responsibilities:**
-
-- Git command-line interface operations
-- Raw git output parsing
-- Authentication handling for remote operations
-- Low-level git repository access
-
-#### IFileRepository / FileRepository
-
-**Primary Role:** Direct file system access and operations.
-
-**Key Responsibilities:**
-
-- File I/O operations
-- Directory traversal
-- File metadata collection
-- Binary file detection
-
-#### IUtilityRepository / UtilityRepository
-
-**Primary Role:** System-level utility operations.
-
-**Key Responsibilities:**
-
-- System information gathering
-- Configuration file access
-- Environment variable handling
+- **IGitRepository**: Direct Git CLI interactions, repository operations
+- **IFileRepository**: File system access, directory traversal, content reading
+- **IUtilityRepository**: Configuration access, utility data operations
 
 ## Transport-Specific Behavior
 
@@ -205,61 +135,61 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-    participant Client as VS Code/Copilot
-    participant MCP as MCP Server
-    participant Tools as GitServiceTools
-    participant Service as Service Layer
-    participant Repo as Repository Layer
-    participant Git as Git Repository
+    participant Client
+    participant McpServer
+    participant GitServiceTools
+    participant GitService
+    participant GitRepository
+    participant GitCLI
 
-    Note over Client,Git: STDIO Transport (Default)
-    Client->>MCP: JSON-RPC via stdin/stdout
-    MCP->>Tools: Tool method invocation
-    Tools->>Service: Business logic delegation
-    Service->>Repo: Data access operations
-    Repo->>Git: Git commands execution
-    Git-->>Repo: Command results
-    Repo-->>Service: Parsed data
-    Service-->>Tools: Processed results
-    Tools-->>MCP: Tool response
-    MCP-->>Client: JSON-RPC response via stdout
+    Client->>McpServer: JSON-RPC request via stdin
+    McpServer->>GitServiceTools: Route to tool method
+    GitServiceTools->>GitService: Business logic call
+    GitService->>GitRepository: Data access call
+    GitRepository->>GitCLI: Execute git command
+    GitCLI-->>GitRepository: Command output
+    GitRepository-->>GitService: Processed data
+    GitService-->>GitServiceTools: Service response
+    GitServiceTools-->>McpServer: Tool result
+    McpServer-->>Client: JSON-RPC response via stdout
 ```
 
 ### HTTP Transport Sequence
 
 ```mermaid
 sequenceDiagram
-    participant Client as VS Code/Copilot
-    participant HTTP as HTTP Server
-    participant MCP as MCP Server
-    participant Tools as GitServiceTools
-    participant Service as Service Layer
+    participant Client
+    participant HttpServer
+    participant McpEndpoint
+    participant GitServiceTools
+    participant GitService
+    participant GitRepository
 
-    Note over Client,Service: HTTP Transport (Optional)
-    Client->>HTTP: HTTP POST /mcp
-    HTTP->>MCP: JSON-RPC over HTTP
-    MCP->>Tools: Tool method invocation
-    Tools->>Service: Business logic delegation
-    Service-->>Tools: Processed results
-    Tools-->>MCP: Tool response
-    MCP-->>HTTP: JSON-RPC response
-    HTTP-->>Client: HTTP 200 + JSON response
+    Client->>HttpServer: HTTP POST /mcp
+    HttpServer->>McpEndpoint: Route MCP request
+    McpEndpoint->>GitServiceTools: Tool invocation
+    GitServiceTools->>GitService: Service call
+    GitService->>GitRepository: Repository operation
+    GitRepository-->>GitService: Data response
+    GitService-->>GitServiceTools: Service result
+    GitServiceTools-->>McpEndpoint: Tool output
+    McpEndpoint-->>HttpServer: MCP response
+    HttpServer-->>Client: HTTP 200 with JSON
 ```
 
 ## Tool Discovery and Registration
 
-The MCP framework automatically discovers tools through reflection:
+The MCP framework automatically discovers tools through:
 
-1. **Class-Level Registration:** `[McpServerToolType]` attribute on `GitServiceTools`
-2. **Method-Level Registration:** `[McpServerToolAttribute(Name = "tool_name")]` on individual methods
-3. **Parameter Documentation:** `[Description("parameter description")]` on method parameters
-4. **Automatic Discovery:** MCP framework scans and registers all decorated methods at startup
+1. **Attribute-Based Registration**: Classes decorated with `[McpServerToolType]`
+2. **Method Discovery**: Public methods decorated with `[McpServerToolAttribute]`
+3. **Dependency Injection**: Automatic resolution of service dependencies
+4. **Runtime Registration**: Dynamic tool availability based on configuration
 
-**Registration in Program.cs:**
+Example tool registration in `Program.cs`:
 
 ```csharp
-builder.Services.AddMcpServer()
-    .WithStdioServerTransport() // or .WithHttpTransport()
+builder.Services.AddMcpServer().WithStdioServerTransport()
     .WithTools<GitServiceTools>()
     .WithPrompts<ReleaseDocumentPrompts>();
 ```
@@ -272,118 +202,102 @@ builder.Services.AddMcpServer()
 var transportType = Environment.GetEnvironmentVariable("GITVISION_MCP_TRANSPORT") ?? "unset";
 switch (transportType.ToLowerInvariant())
 {
-    case "http": /* HTTP Transport Configuration */ break;
-    case "stdio": /* STDIO Transport Configuration */ break;
-    default: /* Default to STDIO */ break;
+    case "http": /* HTTP configuration */
+    case "stdio": /* STDIO configuration */
+    default: /* Default to STDIO */
 }
 ```
 
-### Configuration Management
+### Dynamic Configuration Reloading
 
-- **Configuration Loading:** `IConfigLoader` reads from `.gitvision/config.json`
-- **Hot Reloading:** `ConfigurationReloader` with file system watcher
-- **Debounced Updates:** 250ms debounce for configuration changes
-- **Fallback Handling:** Last-good configuration semantics
+- **File Watching**: Monitors `.gitvision/config.json` for changes
+- **Debounced Reloading**: 250ms debounce to prevent excessive reloads
+- **Graceful Fallback**: Maintains last-good configuration on reload failures
+- **Service Integration**: Configuration changes propagate to all dependent services
 
-### Dependency Injection Structure
+### Logging Configuration
 
-All components are registered as singletons except `IGitServiceTools` (transient):
-
-- **Repositories:** Singleton lifetime for data access consistency
-- **Services:** Singleton lifetime for business logic caching
-- **Configuration:** Singleton with hot-reload capability via `ReloadableGitVisionConfig`
+- **Serilog Integration**: Structured logging with file rotation
+- **Environment-Specific Levels**: Configurable log levels and outputs
+- **Performance Monitoring**: Request/response timing and error tracking
 
 ## Repository Pattern Architecture
 
-### Design Benefits
+### Benefits Realized
 
-1. **Separation of Concerns:** Clear distinction between business logic (Services) and data access (Repositories)
-2. **Testability:** Repository interfaces enable easy mocking for unit tests
-3. **Flexibility:** Multiple implementations possible (e.g., different git providers)
-4. **Consistency:** Uniform error handling and logging patterns
+1. **Separation of Concerns**: Clear distinction between business logic (Services) and data access (Repositories)
+2. **Testability**: Repository interfaces enable easy unit testing with mocks
+3. **Flexibility**: Repository implementations can be swapped without affecting services
+4. **Consistency**: Standardized data access patterns across all operations
 
-### Service → Repository Delegation Pattern
+### Pattern Implementation
 
 ```csharp
-// Service delegates to Repository for data access
-public async Task<List<GitCommitInfo>> GetGitLogsAsync(string repositoryPath, int maxCommits)
+// Service depends on repository interface
+public class GitService : IGitService
 {
-    // Business logic validation
-    if (maxCommits <= 0) maxCommits = _config.Settings?.MaxCommits ?? 100;
+    private readonly IGitRepository _gitRepository;
 
-    // Delegate to repository for data access
-    return await _gitRepository.GetGitLogsAsync(repositoryPath, maxCommits);
+    public GitService(IGitRepository gitRepository)
+    {
+        _gitRepository = gitRepository;
+    }
+}
+
+// Repository handles actual Git CLI interactions
+public class GitRepository : IGitRepository
+{
+    public async Task<List<GitCommitInfo>> GetGitLogsAsync(string repositoryPath, int maxCommits)
+    {
+        // Direct Git CLI interaction
+    }
 }
 ```
 
 ## Key Differences Summary
 
-| Component           | Purpose             | Scope                                           | Dependencies                |
-| ------------------- | ------------------- | ----------------------------------------------- | --------------------------- |
-| **GitServiceTools** | MCP Integration     | Tool exposure, parameter validation             | All Services                |
-| **Services**        | Business Logic      | Data processing, validation, formatting         | Repositories, Configuration |
-| **Repositories**    | Data Access         | File I/O, Git operations, external system calls | None (leaf nodes)           |
-| **MCP Framework**   | Protocol Handler    | JSON-RPC, transport management                  | GitServiceTools             |
-| **Configuration**   | Settings Management | Hot-reload, validation, defaults                | File System                 |
+| Component           | Responsibility                            | Technology                  | Interaction Pattern      |
+| ------------------- | ----------------------------------------- | --------------------------- | ------------------------ |
+| **MCP Framework**   | Protocol compliance, transport management | ModelContextProtocol.Server | JSON-RPC 2.0             |
+| **GitServiceTools** | Tool interface, parameter validation      | MCP Attributes              | Direct client exposure   |
+| **Services**        | Business logic, orchestration             | Dependency injection        | Interface-based          |
+| **Repositories**    | Data access, external system calls        | Process execution           | Command-line integration |
+| **Transport Layer** | Client communication                      | STDIO/HTTP                  | Protocol-specific        |
 
 ## Redundancy Analysis
 
-### Intentional Redundancy
+### Configuration Management
 
-- **Service/Repository Interface Duplication:** `IGitService` and `IGitRepository` have similar signatures by design
-- **Error Handling Layers:** Both Services and GitServiceTools implement error handling for different concerns
-- **Configuration Caching:** Multiple configuration objects for different access patterns
-
-### Eliminated Redundancy
-
-- **McpHandler Removal:** Based on current `Program.cs`, the MCP framework directly manages protocol handling
-- **Consolidated File Operations:** Single `IFileService` handles all file-related operations
-- **Unified Workspace Management:** `IWorkspaceService` centralizes workspace-level operations
-
-## Best Practices Observed
+- **Primary**: `.gitvision/config.json` file-based configuration
+- **Fallback**: Environment variables and hard-coded defaults
+- **Reload Strategy**: File watching with debounced updates
 
 ### Error Handling
 
-- **Layered Exception Handling:** Different layers handle different types of errors
-- **Specific Exception Types:** Custom exceptions for business logic failures
-- **Comprehensive Logging:** Structured logging with context at each layer
+- **Tool Level**: Parameter validation and business rule enforcement
+- **Service Level**: Exception handling and logging
+- **Repository Level**: External command failure recovery
+- **Transport Level**: Protocol error responses and client disconnection handling
 
-### Performance Optimization
+### Resource Management
 
-- **File Size Limits:** 10MB limit for individual file reads, 1000 file limit for bulk operations
-- **Binary File Detection:** Automatic detection to prevent large binary file processing
-- **Timeout Protection:** 5-minute timeout for search operations
-- **Cached File Data:** Support for pre-fetched file information to reduce I/O
+- **File System**: Automatic directory creation and permission handling
+- **Process Management**: Git CLI process lifecycle and timeout handling
+- **Memory Management**: Large file filtering and content size limits
 
-### Configuration Management
+## Best Practices Observed
 
-- **Environment-Based Selection:** Clean separation between STDIO and HTTP modes
-- **Hot Configuration Reload:** Live configuration updates without restart
-- **Graceful Degradation:** Fallback to defaults when configuration is invalid
-
-### Code Quality
-
-- **Interface Segregation:** Single-responsibility interfaces
-- **Dependency Inversion:** All layers depend on abstractions
-- **Consistent Naming:** Clear, descriptive naming conventions across all components
+1. **Interface Segregation**: Each service interface focuses on a specific domain area
+2. **Dependency Injection**: All dependencies injected through constructor parameters
+3. **Async/Await Pattern**: Consistent asynchronous operation handling
+4. **Structured Logging**: Comprehensive logging with contextual information
+5. **Parameter Validation**: Input validation at tool boundaries
+6. **Exception Propagation**: Proper exception handling and error context preservation
+7. **Resource Cleanup**: Proper disposal of file system watchers and processes
+8. **Configuration Validation**: Graceful handling of invalid configuration states
 
 ## Conclusion
 
-GitVisionMCP demonstrates a well-architected MCP server implementation that successfully balances flexibility, maintainability, and performance. The layered architecture with clear separation between MCP integration, business logic, and data access provides a robust foundation for git repository analysis and documentation generation.
+GitVisionMCP implements a robust, scalable architecture that successfully bridges Git repository operations with MCP protocol requirements. The layered design ensures maintainability while the repository pattern provides flexibility for future enhancements. The dual transport support (STDIO/HTTP) makes the application suitable for various deployment scenarios, from local development tools to server-based integrations.
 
-The dual transport support (STDIO/HTTP) with environment-based selection makes the application suitable for various deployment scenarios, while the comprehensive tool suite provides extensive git and file analysis capabilities for VS Code Copilot integration.
-
-**Key Architectural Strengths:**
-
-- Clean separation of concerns with repository pattern
-- Comprehensive error handling and logging
-- Hot-reloadable configuration management
-- Performance-optimized file operations
-- Extensive MCP tool coverage for git operations
-
-**Deployment Flexibility:**
-
-- Container-ready with Dockerfile
-- Environment-based transport configuration
-- Cross-platform compatibility
-- VS Code Copilot agent integration ready
+The architecture's strength lies in its clear separation of concerns, comprehensive error handling, and extensible design that allows for easy addition of new tools and capabilities without disrupting existing functionality.

@@ -16,8 +16,6 @@ using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
 using GitVisionMCP.Repositories;
-using Microsoft.VisualBasic;
-
 namespace GitVisionMCP.Services;
 
 

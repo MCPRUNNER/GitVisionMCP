@@ -9,14 +9,13 @@ using System.Text.RegularExpressions;
 using GitVisionMCP.Models;
 using YamlDotNet.Serialization;
 using ClosedXML.Excel;
-
+using Scriban;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
 using GitVisionMCP.Repositories;
-
 namespace GitVisionMCP.Services;
 
 
@@ -859,6 +858,34 @@ public class WorkspaceService : IWorkspaceService
     }
 
 
+    /// <summary>
+    /// Converts various input types to JObject for template processing
+    /// </summary>
+    /// <param name="input">Input data (string, JObject, JToken, or other object)</param>
+    /// <returns>JObject representation of the input data</returns>
+    /// <exception cref="JsonException">Thrown when JSON parsing fails</exception>
+    private JObject ConvertToJObject(object input)
+    {
+        try
+        {
+            return input switch
+            {
+                JObject jObj => jObj,
+                JToken jToken => jToken as JObject ?? throw new JsonException("JToken is not a JObject"),
+                string jsonString when !string.IsNullOrWhiteSpace(jsonString) => JObject.Parse(jsonString),
+                string => throw new JsonException("JSON string cannot be null or empty"),
+                _ => JObject.FromObject(input)
+            };
+        }
+        catch (JsonReaderException ex)
+        {
+            throw new JsonException($"Invalid JSON format: {ex.Message}", ex);
+        }
+        catch (Exception ex) when (!(ex is JsonException))
+        {
+            throw new JsonException($"Failed to convert input to JSON object: {ex.Message}", ex);
+        }
+    }
 
     public async Task<List<Models.FileContentInfo>> GetFileContentsAsync(List<WorkspaceFileInfo> workspaceFileList)
     {
@@ -935,6 +962,162 @@ public class WorkspaceService : IWorkspaceService
         {
             _logger.LogError(ex, "Error searching Excel file: {ExcelFilePath}", excelFilePath);
             return null;
+        }
+    }
+
+    /// <summary>
+    /// Processes a Scriban template with JSON string data and writes the result to an output file
+    /// </summary>
+    /// <param name="jsonString">JSON string containing template data</param>
+    /// <param name="templateFilePath">Path to the Scriban template file relative to workspace root</param>
+    /// <param name="outputFilePath">Path where the processed template output will be written</param>
+
+    public async Task<string?> ProcessScribanFromJsonStringAsync(string jsonString, string templateFilePath, string outputFilePath)
+    {
+        try
+        {
+            // Validate JSON string input
+                _logger.LogError("JSON string cannot be null");
+                return $"JSON string cannot be null";
+
+            }
+
+
+            if (string.IsNullOrWhiteSpace(jsonString))
+            {
+                _logger.LogError("JSON string cannot be empty or whitespace for : {jsonString}", jsonString);
+                return $"JSON string cannot be empty or whitespace";
+            }
+
+            if (string.IsNullOrWhiteSpace(templateFilePath))
+            {
+                _logger.LogError("Template file path cannot be null or empty for : {templateFilePath}", templateFilePath);
+                return $"Template file path cannot be null or empty";
+            }
+
+            if (string.IsNullOrWhiteSpace(outputFilePath))
+            {
+                _logger.LogError("Output file path cannot be null or empty for : {outputFilePath}", outputFilePath);
+                return $"Output file path cannot be null or empty";
+            }
+
+            _logger.LogInformation("Processing Scriban template '{TemplatePath}' with JSON string data to output '{OutputPath}'",
+                templateFilePath, outputFilePath);
+
+            // Parse JSON string to JObject with detailed error handling
+            JObject dataObject;
+            try
+            {
+                dataObject = JObject.Parse(jsonString);
+                _logger.LogDebug("Successfully parsed JSON string with {PropertyCount} properties", dataObject.Properties().Count());
+            }
+            catch (JsonReaderException ex)
+            {
+                _logger.LogError(ex, "Invalid JSON format in input string. Line: {LineNumber}, Position: {LinePosition}",
+                    ex.LineNumber, ex.LinePosition);
+
+                return $"Invalid JSON format at line {ex.LineNumber}, position {ex.LinePosition}: {ex.Message}";
+            }
+
+            // Get and validate template file path
+            var fullTemplatePath = _fileService.GetFullPath(templateFilePath);
+            if (string.IsNullOrEmpty(fullTemplatePath))
+            {
+                _logger.LogError("Template file not found: {TemplatePath}", templateFilePath);
+                return $"Template file not found: {templateFilePath}";
+            }
+
+            // Read template content
+            var templateText = _fileService.ReadFile(fullTemplatePath);
+            if (string.IsNullOrEmpty(templateText))
+            {
+                _logger.LogError("Template file is empty: {TemplatePath}", templateFilePath);
+                return $"Template file is empty: {templateFilePath}";
+            }
+
+            _logger.LogDebug("Template file loaded with {CharacterCount} characters", templateText.Length);
+
+            // Parse Scriban template
+            var template = Template.Parse(templateText);
+            if (template.HasErrors)
+            {
+                var errorMessages = string.Join(Environment.NewLine, template.Messages.Select(m => $"- {m}"));
+                _logger.LogError("Template parsing failed with {ErrorCount} errors:\n{ErrorMessages}",
+                    template.Messages.Count, errorMessages);
+                return errorMessages.ToString();
+            }
+
+            _logger.LogDebug("Scriban template parsed successfully");
+
+            // Convert JObject to Dictionary for Scriban compatibility
+            var dataDict = dataObject.ToObject<Dictionary<string, object>>() ?? new Dictionary<string, object>();
+            _logger.LogDebug("Converted JSON data to dictionary with {KeyCount} keys", dataDict.Keys.Count);
+
+            // Render template with data
+            string result;
+            try
+            {
+                result = template.Render(dataDict);
+                _logger.LogDebug("Template rendered successfully with {OutputLength} characters", result.Length);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during template rendering");
+                return $"Error during template rendering: {ex.Message}";
+            }
+
+            // Prepare output file path
+            var workspaceRoot = _fileService.GetWorkspaceRoot();
+            if (!Path.IsPathRooted(outputFilePath))
+            {
+                outputFilePath = Path.Combine(workspaceRoot, outputFilePath);
+            }
+
+            // Ensure output directory exists
+            var outputDirectory = Path.GetDirectoryName(outputFilePath);
+            if (!string.IsNullOrEmpty(outputDirectory) && !Directory.Exists(outputDirectory))
+            {
+                try
+                {
+                    Directory.CreateDirectory(outputDirectory);
+                    _logger.LogDebug("Created output directory: {OutputDirectory}", outputDirectory);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+                    _logger.LogError(ex, "Access denied when creating output directory: {OutputDirectory}", outputDirectory);
+                    return $"Access denied when creating output directory: {outputDirectory}";
+                }
+                catch (IOException ex)
+                {
+                    _logger.LogError(ex, "IO error when creating output directory: {OutputDirectory}", outputDirectory);
+                    return $"IO error when creating output directory: {outputDirectory}";
+                }
+            }
+
+            // Write result to output file
+            try
+            {
+                await File.WriteAllTextAsync(outputFilePath, result);
+                _logger.LogInformation("Successfully processed Scriban template '{TemplatePath}' with JSON string data and saved to '{OutputPath}' ({OutputSize} bytes)",
+                    templateFilePath, outputFilePath, result.Length);
+                return $"Successfully processed Scriban template '{templateFilePath}' with JSON string data and saved to '{outputFilePath}' ({result.Length} bytes)";
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogError(ex, "Access denied when writing to output file: {OutputPath}", outputFilePath);
+                return $"Access denied when writing to output file: {outputFilePath}";
+            }
+            catch (IOException ex)
+            {
+                _logger.LogError(ex, "IO error when writing to output file: {OutputPath}", outputFilePath);
+                return $"IO error when writing to output file: {outputFilePath}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error processing Scriban template '{TemplatePath}' with JSON string: {Message}",
+                templateFilePath, ex.Message);
+            return $"Unexpected error processing Scriban template: {ex.Message}";
         }
     }
 }

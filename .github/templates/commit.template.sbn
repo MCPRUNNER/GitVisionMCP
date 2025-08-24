@@ -1,0 +1,19 @@
+# {{ project.name }} v{{ project.version }}
+
+## Authors
+{{- for author in project.authors }}
+- {{ author }}
+{{- end }}
+
+## Recent Commits
+{{- for commit in commits }}
+### {{ commit.hash }}
+- **Message**: {{ commit.message }}
+- **Author**: {{ commit.author.name }} ({{ commit.author.email }})
+- **Files**: {{ commit.files | array.join ", " }}
+{{- end }}
+
+## Dependencies
+{{- for dep in project.dependencies }}
+- {{ dep.key }}: {{ dep.value }}
+{{- end }}

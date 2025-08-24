@@ -45,6 +45,14 @@ public interface IWorkspaceService
     /// <param name="showKeyPaths">Whether to return structured results with path, value, and key information</param>
     /// <returns>A string representation of the search results, or an empty string if no matches are found</returns>
     string? SearchJsonFile(string jsonFilePath, string jsonPath, bool indented = true, bool showKeyPaths = false);
+    /// <summary>
+    /// Processes a Scriban template with the provided JSON string data and saves the output to a file.
+    /// </summary>
+    /// <param name="jsonString">The JSON string data to use for processing the template</param>
+    /// <param name="templateFilePath">The path to the Scriban template file</param>
+    /// <param name="outputFilePath">The path to the output file where the result will be saved</param>
+    /// <returns>A task representing the asynchronous operation</returns>
+    Task<string?> ProcessScribanFromJsonStringAsync(string jsonString, string templateFilePath, string outputFilePath);
 
     /// <summary>
     /// Searches for YAML values in a YAML file using JSONPath queries by converting YAML to JSON.
@@ -76,7 +84,7 @@ public interface IWorkspaceService
     string? TransformXmlWithXslt(string xmlFilePath, string xsltFilePath, string? destinationFilePath = null);
 
 
- 
+
     /// <summary>
     /// Reads a file from the Prompts directory within the workspace root
     /// </summary>
@@ -84,5 +92,5 @@ public interface IWorkspaceService
     /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
     string? GetGitHubPromptFileContent(string filename);
 
-   
+
 }

@@ -44,7 +44,7 @@ Be concise yet comprehensive.
     [McpServerPrompt(Name = "release_document_with_version"), Description("Creates a release document with specific version information")]
     public static string ReleaseDocumentWithVersionPrompt(
         [Description("The version number of the release (e.g., 1.0.0)")] string version,
-        [Description("The release date (e.g., 2025-07-06)")] string releaseDate) => $@"
+        [Description("The release date (e.g., 2025-07-06)")] string? releaseDate) => $@"
 You are a professional technical writer creating release documentation for version {version} to be released on {releaseDate}.
 
 Your task is to:

@@ -1,0 +1,10 @@
+| Commit | Author | Date | Message and Changes |
+|---|---|---|---|
+{{ for item in data }}
+| `{{ item.hash | string.slice 0 7 }}` | {{ item.author }} | {{ item.date }} | **{{ item.message }}**
+<ul>
+{{ for change in item.changes }}
+<li>{{ change }}</li>
+{{ end }}
+</ul> |
+{{ end }}

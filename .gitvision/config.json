@@ -2,7 +2,7 @@
     "Project": {
         "Name": "GitVisionMCP",
         "RelativePath": "GitVisionMCP.csproj",
-        "Version": "1.0.8.2"
+        "Version": "1.0.9.0"
     },
     "Settings": {
         "maxCommits": 200,
@@ -10,7 +10,8 @@
         "maxFileSize": 1048576
     },
     "Git": {
-        "Release": "origin/master"
+        "Release": "origin/GitVisionMCP-Release-1.0.9",
+        "Master": "origin/master"
     },
      
     "Kestrel": {

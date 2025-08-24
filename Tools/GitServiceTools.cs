@@ -5,6 +5,7 @@ using GitVisionMCP.Models;
 using System.ComponentModel;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using YamlDotNet.Core;
 using GitVisionMCP.Configuration;
 namespace GitVisionMCP.Tools;
@@ -16,7 +17,7 @@ namespace GitVisionMCP.Tools;
 public class GitServiceTools : IGitServiceTools
 {
     private readonly IGitService _gitService;
-    private readonly IWorkspaceService _locationService;
+    private readonly IWorkspaceService _workspaceService;
     private readonly IFileService _fileService;
     private readonly IUtilityService _utilityService;
     private readonly IDeconstructionService _deconstructionService;
@@ -25,7 +26,7 @@ public class GitServiceTools : IGitServiceTools
     public GitServiceTools(IGitService gitService, IWorkspaceService locationService, IFileService fileService, IDeconstructionService deconstructionService, ILogger<GitServiceTools> logger, IUtilityService utilityService, IGitVisionConfig config)
     {
         _gitService = gitService;
-        _locationService = locationService;
+        _workspaceService = locationService;
         _fileService = fileService;
         _deconstructionService = deconstructionService;
         _logger = logger;
@@ -1111,7 +1112,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Searching JSON file {JsonFilePath} with JSONPath {JsonPath}, showKeyPaths: {ShowKeyPaths}",
                 jsonFilePath, jsonPath, showKeyPaths ?? false);
 
-            var result = _locationService.SearchJsonFile(jsonFilePath, jsonPath, indented ?? true, showKeyPaths ?? false);
+            var result = _workspaceService.SearchJsonFile(jsonFilePath, jsonPath, indented ?? true, showKeyPaths ?? false);
 
             if (string.IsNullOrEmpty(result))
             {
@@ -1172,7 +1173,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Searching XML file {XmlFilePath} with XPath {XPath}, showKeyPaths: {ShowKeyPaths}",
                 xmlFilePath, xPath, showKeyPaths ?? false);
 
-            var result = _locationService.SearchXmlFile(xmlFilePath, xPath, indented ?? true, showKeyPaths ?? false);
+            var result = _workspaceService.SearchXmlFile(xmlFilePath, xPath, indented ?? true, showKeyPaths ?? false);
 
             if (string.IsNullOrEmpty(result))
             {
@@ -1237,7 +1238,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Transforming XML file {XmlFilePath} with XSLT {XsltFilePath}",
                 xmlFilePath, xsltFilePath);
 
-            var result = _locationService.TransformXmlWithXslt(xmlFilePath, xsltFilePath, destinationFilePath);
+            var result = _workspaceService.TransformXmlWithXslt(xmlFilePath, xsltFilePath, destinationFilePath);
 
             if (string.IsNullOrEmpty(result))
             {
@@ -1304,7 +1305,7 @@ public class GitServiceTools : IGitServiceTools
                 csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
 
             // Use LocationService for the actual file searching functionality
-            var result = _locationService.SearchCsvFile(csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
+            var result = _workspaceService.SearchCsvFile(csvFilePath, jsonPath, hasHeaderRecord ?? true, ignoreBlankLines ?? true);
 
             if (string.IsNullOrEmpty(result))
             {
@@ -1370,7 +1371,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Searching Excel file {ExcelFilePath} with JSONPath {JsonPath}", excelFilePath, jsonPath);
 
             // Use LocationService for the actual file searching functionality
-            var result = _locationService.SearchExcelFile(excelFilePath, jsonPath);
+            var result = _workspaceService.SearchExcelFile(excelFilePath, jsonPath);
 
             if (string.IsNullOrEmpty(result))
             {
@@ -1402,6 +1403,72 @@ public class GitServiceTools : IGitServiceTools
             throw new InvalidOperationException($"Error searching Excel file: {ex.Message}. See inner exception for details.", ex);
         }
     }
+
+    [McpServerToolAttribute(Name = "gv_run_sbn_template")]
+    [Description("Run a Scriban, Jinja or Jinja2 template with provided input data")]
+    public async Task<string?> RunSbnTemplateAsync(
+        [Description("Path to the Scriban (Jinja or Jinja2) Template file relative to workspace root")] string templateFilePath,
+        [Description("JSON input string data for the template")] string jsonData,
+        [Description("Path to the output file relative to workspace root")] string outputFilePath
+    )
+    {
+        try
+        {
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(templateFilePath))
+            {
+                _logger.LogError("Template file path cannot be null or empty");
+                return "Error: Template file path must be specified";
+            }
+
+            if (string.IsNullOrWhiteSpace(jsonData))
+            {
+                _logger.LogError("JSON data cannot be null or empty");
+                return "Error: JSON data must be specified";
+            }
+
+            if (string.IsNullOrWhiteSpace(outputFilePath))
+            {
+                _logger.LogError("Output file path cannot be null or empty");
+                return "Error: Output file path must be specified";
+            }
+
+            _logger.LogInformation("Running Scriban template {TemplatePath} with JSON data to output {OutputPath}",
+                templateFilePath, outputFilePath);
+
+            // Fix: Correct parameter order - jsonData first, then templateFilePath, then outputFilePath
+            await _workspaceService.ProcessScribanFromJsonStringAsync(jsonData, templateFilePath, outputFilePath);
+
+            _logger.LogInformation("Successfully processed Scriban template and saved to {OutputPath}", outputFilePath);
+            return $"Template successfully processed and saved to {outputFilePath}";
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid argument for Scriban template processing");
+            return $"Error: Invalid argument: {ex.Message}";
+        }
+        catch (FileNotFoundException ex)
+        {
+            _logger.LogError(ex, "Template file not found: {TemplatePath}", templateFilePath);
+            return $"Error: Template file not found: {templateFilePath}. Please check the file path.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogError(ex, "Template processing failed");
+            return $"Error: Template processing failed: {ex.Message}";
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Invalid JSON data provided for template processing");
+            return $"Error: Invalid JSON data provided: {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error processing Scriban template");
+            return $"Error: Unexpected error during template processing: {ex.Message}. Please check the logs for more details.";
+        }
+    }
+
     [McpServerToolAttribute(Name = "gv_search_yaml_file")]
     [Description("Search for YAML values in a YAML file using JSONPath")]
     public Task<string?> SearchYamlFileAsync(
@@ -1428,7 +1495,7 @@ public class GitServiceTools : IGitServiceTools
             _logger.LogInformation("Searching YAML file {YamlFilePath} with JSONPath {JsonPath}, showKeyPaths: {ShowKeyPaths}",
                 yamlFilePath, jsonPath, showKeyPaths ?? false);
 
-            var result = _locationService.SearchYamlFile(yamlFilePath, jsonPath, indented ?? true, showKeyPaths ?? false);
+            var result = _workspaceService.SearchYamlFile(yamlFilePath, jsonPath, indented ?? true, showKeyPaths ?? false);
 
             if (string.IsNullOrEmpty(result))
             {

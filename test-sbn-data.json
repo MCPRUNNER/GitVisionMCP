@@ -1,0 +1,16 @@
+{
+    "project": {
+        "name": "GitVisionMCP",
+        "version": "1.0.0"
+    },
+    "commits": [
+        {
+            "hash": "abc123",
+            "message": "Initial commit",
+            "author": {
+                "name": "John Doe",
+                "email": "john@example.com"
+            }
+        }
+    ]
+}

@@ -976,12 +976,6 @@ public class WorkspaceService : IWorkspaceService
     {
         try
         {
-            // Validate JSON string input
-                _logger.LogError("JSON string cannot be null");
-                return $"JSON string cannot be null";
-
-            }
-
 
             if (string.IsNullOrWhiteSpace(jsonString))
             {

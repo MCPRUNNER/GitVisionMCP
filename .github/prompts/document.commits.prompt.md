@@ -1,6 +1,6 @@
 ---
 mode: "agent"
-description: "ASP.NET Core API Documentation Generator"
+description: "Markdown Table of last 100 commits"
 ---
 
 # Instructions

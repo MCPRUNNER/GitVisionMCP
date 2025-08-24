@@ -1,4 +1,4 @@
-# GitVisionMCP 1.0.8.1 (Beta)
+# GitVisionMCP 1.0.9.0 (Beta)
 
 > **🚀 Fully Automated Model Context Protocol (MCP) Server for Git Analysis & Documentation**
 
@@ -89,6 +89,7 @@ GitVisionMCP provides **29 powerful tools** for git analysis, documentation gene
 | `gv_compare_commits_documentation`              | Generate documentation comparing differences between two commits                      |
 | `gv_get_recent_commits`                         | Get recent commits from the current repository                                        |
 | `gv_get_commit_diff_info`                       | Get comprehensive diff information between two commits                                |
+| `gv_run_sbn_template`                           | Run a Scriban, Jinja or Jinja2 template with provided input data                      |
 
 ### 🔍 **Search & Discovery**
 
@@ -187,6 +188,7 @@ dotnet run --no-build --verbosity quiet
 @copilot Transform config.xml using my stylesheet.xslt
 @copilot Extract IT department budget from budget.xlsx
 @copilot Find all merge conflicts in the codebase
+@copilot Run Scriban template commit.template.sbn with my JSON data
 ```
 
 ---
@@ -306,6 +308,29 @@ Infrastructure as code analysis:
 - Kubernetes: `"Find all container ports in k8s configurations"`
 - CI/CD: `"Get all environment variables from GitHub Actions"`
 
+#### **🧾 Scriban/Jinja Template Processing**
+
+Generate custom formatted output using powerful templating:
+
+- Process Scriban/Jinja templates with JSON input data
+- Create custom documentation formats from git data
+- Transform structured data into human-readable reports
+- Generate Markdown, HTML, or custom formatted output
+
+**Use Cases:**
+
+- Release notes: `"Generate release notes using our template and recent commits"`
+- Documentation: `"Create contributor report from git history using our template"`
+- Reports: `"Render monthly activity report using commit data and our template"`
+- Data transformation: `"Convert JSON data to Markdown with our custom template"`
+
+**Using with Copilot:**
+
+```bash
+@copilot Get the last 50 commits as JSON data with a "data" root property
+@copilot Run the template .github/templates/commit2.template.sbn with the commit data and save to .temp/commit2.md
+```
+
 ### 🎯 **MCP Prompts & Automation**
 
 GitVisionMCP provides specialized prompts for release documentation:
@@ -377,6 +402,13 @@ mcp_tool search_excel_file --excelFilePath "data.xlsx" --jsonPath "$[*].ServerNa
 mcp_tool compare_branches_documentation --branch1 "main" --branch2 "feature/new-api" --filePath "comparison.md"
 ```
 
+### Template Rendering
+
+```bash
+# Process Scriban/Jinja template with JSON data
+mcp_tool run_sbn_template --templateFilePath ".github/templates/commit.template.sbn" --jsonData '{"data": [...]}' --outputFilePath "output.md"
+```
+
 ---
 
 ## 📖 License
@@ -414,6 +446,24 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
       "branch2": "origin/main",
       "filePath": "analysis.md",
       "fetchRemote": true
+    }
+  }
+}
+```
+
+Example calling the Scriban template tool:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/call",
+  "params": {
+    "name": "run_sbn_template",
+    "arguments": {
+      "templateFilePath": ".github/templates/commit.template.sbn",
+      "jsonData": "{\"data\": [{\"hash\": \"796a5e1\", \"author\": \"Developer\", \"message\": \"Example commit\"}]}",
+      "outputFilePath": "output.md"
     }
   }
 }
@@ -726,6 +776,45 @@ Generates documentation and saves it to a file.
 - `outputFormat` (optional): Output format: markdown, html, or text (default: markdown)
 
 **Example:** Save git history to "project-history.md"
+
+### Template Processing Tools
+
+#### run_sbn_template
+
+Process a Scriban or Jinja template with JSON data and save the output to a file.
+
+**Parameters:**
+
+- `templateFilePath` (required): Path to the Scriban/Jinja template file relative to workspace root
+- `jsonData` (required): JSON input string data for the template
+- `outputFilePath` (required): Path to the output file relative to workspace root
+
+**Example:** Process a commit template with git history data
+
+```bash
+# Two-step flow example:
+# 1. Get recent commits
+gv_get_recent_commits --maxCommits 50
+
+# 2. Process through template (wrap commits in a "data" root object)
+gv_run_sbn_template --templateFilePath ".github/templates/commit.template.sbn" --jsonData '{"data":[...commits...]}' --outputFilePath "docs/release-notes.md"
+```
+
+**JSON Structure Example:**
+
+```json
+{
+  "data": [
+    {
+      "hash": "796a5e1",
+      "author": "Developer Name",
+      "date": "2025-08-24T18:25:36",
+      "message": "Adding example templates",
+      "changedFiles": [".github/templates/example.sbn"]
+    }
+  ]
+}
+```
 
 ### Branch Comparison Tools
 

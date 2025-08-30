@@ -4,18 +4,31 @@ using GitVisionMCP.Models;
 using GitVisionMCP.Repositories;
 namespace GitVisionMCP.Services;
 
-
-
+/// <summary>
+/// Repository implementation for Git operations, providing access to git repository data
+/// and operations like commit history, diffs, and conflict detection.
+/// </summary>
 public class GitRepository : IGitRepository
 {
     private readonly ILogger<GitRepository> _logger;
     private readonly IUtilityRepository _utility;
 
+    /// <summary>
+    /// Initializes a new instance of the GitRepository class.
+    /// </summary>
+    /// <param name="logger">Logger for recording operations and errors.</param>
+    /// <param name="workspaceService">Service for workspace operations.</param>
+    /// <param name="utility">Utility repository for common operations.</param>
     public GitRepository(ILogger<GitRepository> logger, IWorkspaceService workspaceService, IUtilityRepository utility)
     {
         _logger = logger;
         _utility = utility;
     }
+    /// <summary>
+    /// Reads Git conflict markers in a file's content and returns the first conflict found.
+    /// </summary>
+    /// <param name="file">File content information containing text to search for conflicts.</param>
+    /// <returns>A ConflictResult containing the conflict details if found, otherwise an empty result.</returns>
     public async Task<ConflictResult> ReadGitConflictMarkers(FileContentInfo file)
     {
         var result = new ConflictResult();
@@ -63,6 +76,11 @@ public class GitRepository : IGitRepository
         return await Task.FromResult(result);
     }
 
+    /// <summary>
+    /// Finds all Git conflict markers in a list of files.
+    /// </summary>
+    /// <param name="fileList">List of files to check for Git conflicts.</param>
+    /// <returns>A list of ConflictResult objects representing all conflicts found.</returns>
     public async Task<List<ConflictResult>> FindAllGitConflictMarkers(IEnumerable<FileContentInfo> fileList)
     {
         var results = new List<ConflictResult>();
@@ -85,6 +103,15 @@ public class GitRepository : IGitRepository
 
         return results;
     }
+    /// <summary>
+    /// Retrieves Git commit logs from a repository.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="maxCommits">Maximum number of commits to retrieve (default: 50).</param>
+    /// <returns>A list of GitCommitInfo objects representing the commits.</returns>
+    /// <exception cref="ArgumentException">Thrown when repository path is null or empty.</exception>
+    /// <exception cref="DirectoryNotFoundException">Thrown when repository path does not exist.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when path is not a valid Git repository.</exception>
     public async Task<List<GitCommitInfo>> GetGitLogsAsync(string repositoryPath, int maxCommits = 50)
     {
         try
@@ -137,6 +164,14 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Retrieves Git commit logs between two branches.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="branch1">First branch name (source branch).</param>
+    /// <param name="branch2">Second branch name (target branch).</param>
+    /// <returns>A list of GitCommitInfo objects representing the commits between branches.</returns>
+    /// <exception cref="ArgumentException">Thrown when branches cannot be found.</exception>
     public async Task<List<GitCommitInfo>> GetGitLogsBetweenBranchesAsync(string repositoryPath, string branch1, string branch2)
     {
         try
@@ -189,6 +224,14 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Retrieves Git commit logs between two specific commits.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="commit1">First commit hash.</param>
+    /// <param name="commit2">Second commit hash.</param>
+    /// <returns>A list of GitCommitInfo objects representing the commits between the specified commits.</returns>
+    /// <exception cref="ArgumentException">Thrown when one or both commits cannot be found.</exception>
     public async Task<List<GitCommitInfo>> GetGitLogsBetweenCommitsAsync(string repositoryPath, string commit1, string commit2)
     {
         try
@@ -229,6 +272,12 @@ public class GitRepository : IGitRepository
             throw;
         }
     }
+    /// <summary>
+    /// Generates documentation from Git commit information in the specified format.
+    /// </summary>
+    /// <param name="commits">List of Git commits to include in the documentation.</param>
+    /// <param name="format">Format for the documentation: "markdown" (default), "html", or "text".</param>
+    /// <returns>A string containing the formatted documentation.</returns>
     public async Task<string> GenerateCommitDocumentationAsync(List<GitCommitInfo> commits, string format = "markdown")
     {
         try
@@ -252,6 +301,12 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Writes generated documentation content to a file.
+    /// </summary>
+    /// <param name="content">Documentation content to write.</param>
+    /// <param name="filePath">Target file path for writing the documentation.</param>
+    /// <returns>True if the operation succeeds, otherwise false.</returns>
     public async Task<bool> WriteDocumentationToFileAsync(string content, string filePath)
     {
         try
@@ -276,6 +331,12 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Gets the most recent Git commits from a repository.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="count">Number of recent commits to retrieve (default: 10).</param>
+    /// <returns>A list of GitCommitInfo objects representing the recent commits.</returns>
     public async Task<List<GitCommitInfo>> GetRecentCommitsAsync(string repositoryPath, int count = 10)
     {
         try
@@ -305,6 +366,14 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Gets a list of files that were changed between two commits.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="commit1">First commit hash.</param>
+    /// <param name="commit2">Second commit hash.</param>
+    /// <returns>A list of file paths representing files that changed between the commits.</returns>
+    /// <exception cref="ArgumentException">Thrown when one or both commits cannot be found.</exception>
     public async Task<List<string>> GetChangedFilesBetweenCommitsAsync(string repositoryPath, string commit1, string commit2)
     {
         try
@@ -340,6 +409,15 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Gets detailed diff information between two commits.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="commit1">First commit hash.</param>
+    /// <param name="commit2">Second commit hash.</param>
+    /// <param name="specificFiles">Optional list of specific files to include in the diff (null for all files).</param>
+    /// <returns>A string containing the detailed diff information in unified format.</returns>
+    /// <exception cref="ArgumentException">Thrown when one or both commits cannot be found.</exception>
     public async Task<string> GetDetailedDiffBetweenCommitsAsync(string repositoryPath, string commit1, string commit2, List<string>? specificFiles = null)
     {
         try
@@ -385,6 +463,14 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Gets structured information about the differences between two commits.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="commit1">First commit hash.</param>
+    /// <param name="commit2">Second commit hash.</param>
+    /// <returns>A GitCommitDiffInfo object containing structured information about added, modified, deleted, and renamed files.</returns>
+    /// <exception cref="ArgumentException">Thrown when one or both commits cannot be found.</exception>
     public async Task<GitCommitDiffInfo> GetCommitDiffInfoAsync(string repositoryPath, string commit1, string commit2)
     {
         try
@@ -437,6 +523,14 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Gets a line-by-line diff of a specific file between two commits.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="commit1">First commit hash.</param>
+    /// <param name="commit2">Second commit hash.</param>
+    /// <param name="filePath">Path to the file to analyze for differences.</param>
+    /// <returns>A FileLineDiffInfo object containing the line-by-line differences.</returns>
     public Task<FileLineDiffInfo> GetFileLineDiffBetweenCommitsAsync(string repositoryPath, string commit1, string commit2, string filePath)
     {
         _logger.LogInformation("Getting line-by-line file diff between commits {Commit1} and {Commit2} for file {FilePath}", commit1, commit2, filePath);
@@ -547,6 +641,12 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Creates a GitCommitInfo object from a LibGit2Sharp commit.
+    /// </summary>
+    /// <param name="repo">The Git repository.</param>
+    /// <param name="commit">The LibGit2Sharp commit to convert.</param>
+    /// <returns>A GitCommitInfo object with commit details and changes.</returns>
     private async Task<GitCommitInfo> CreateGitCommitInfoAsync(Repository repo, Commit commit)
     {
         var commitInfo = new GitCommitInfo
@@ -574,6 +674,11 @@ public class GitRepository : IGitRepository
         return await Task.FromResult(commitInfo);
     }
 
+    /// <summary>
+    /// Generates Markdown documentation from Git commit information.
+    /// </summary>
+    /// <param name="commits">List of Git commits to include in the documentation.</param>
+    /// <returns>A string containing the Markdown-formatted documentation.</returns>
     private async Task<string> GenerateCommitMarkdownDocumentationAsync(List<GitCommitInfo> commits)
     {
         var markdown = new System.Text.StringBuilder();
@@ -625,6 +730,11 @@ public class GitRepository : IGitRepository
         return await Task.FromResult(markdown.ToString());
     }
 
+    /// <summary>
+    /// Generates HTML documentation from Git commit information.
+    /// </summary>
+    /// <param name="commits">List of Git commits to include in the documentation.</param>
+    /// <returns>A string containing the HTML-formatted documentation.</returns>
     private async Task<string> GenerateCommitHtmlDocumentationAsync(List<GitCommitInfo> commits)
     {
         var html = new System.Text.StringBuilder();
@@ -687,6 +797,11 @@ public class GitRepository : IGitRepository
         return await Task.FromResult(html.ToString());
     }
 
+    /// <summary>
+    /// Generates plain text documentation from Git commit information.
+    /// </summary>
+    /// <param name="commits">List of Git commits to include in the documentation.</param>
+    /// <returns>A string containing the plain text formatted documentation.</returns>
     private async Task<string> GenerateCommitTextDocumentationAsync(List<GitCommitInfo> commits)
     {
         var text = new System.Text.StringBuilder();
@@ -736,6 +851,12 @@ public class GitRepository : IGitRepository
     }
 
     // New methods for remote branch support
+    /// <summary>
+    /// Gets a list of all local branches in the repository.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <returns>A list of local branch names.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when path is not a valid Git repository.</exception>
     public async Task<List<string>> GetLocalBranchesAsync(string repositoryPath)
     {
         try
@@ -763,6 +884,12 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Gets a list of all remote branches in the repository.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <returns>A list of remote branch names.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when path is not a valid Git repository.</exception>
     public async Task<List<string>> GetRemoteBranchesAsync(string repositoryPath)
     {
         try
@@ -790,6 +917,12 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Gets a list of all branches (local and remote) in the repository.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <returns>A list of branch names with local/remote prefix.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when path is not a valid Git repository.</exception>
     public async Task<List<string>> GetAllBranchesAsync(string repositoryPath)
     {
         try
@@ -816,6 +949,12 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Gets the name of the current branch in the repository.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <returns>The name of the current branch.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when path is not a valid Git repository.</exception>
     public async Task<string> GetCurrentBranchAsync(string repositoryPath)
     {
         try
@@ -840,6 +979,13 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Fetches the latest changes from a remote repository.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="remoteName">Name of the remote to fetch from (default: "origin").</param>
+    /// <returns>True if fetch was successful, otherwise false.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when path is not a valid Git repository.</exception>
     public async Task<bool> FetchFromRemoteAsync(string repositoryPath, string remoteName = "origin")
     {
         try
@@ -948,6 +1094,11 @@ public class GitRepository : IGitRepository
     /// <summary>
     /// Convenience wrapper to run 'git fetch' as a CLI fallback when libgit2 cannot fetch.
     /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="remoteName">Name of the remote to fetch from (default: "origin").</param>
+    /// <param name="username">Optional username for authentication.</param>
+    /// <param name="token">Optional authentication token or password.</param>
+    /// <returns>A tuple with Success flag, standard output, standard error and exit code.</returns>
     public async Task<(bool Success, string StdOut, string StdErr, int ExitCode)> RunGitFetchAsync(string repositoryPath, string remoteName = "origin", string? username = null, string? token = null)
     {
         // If a token is provided, pass it as an extra HTTP header to git to support authenticated HTTPS fetch
@@ -961,6 +1112,16 @@ public class GitRepository : IGitRepository
 
         return await _utility.RunProcessAsync(repositoryPath, "git", $"fetch {remoteName} --no-tags");
     }
+    /// <summary>
+    /// Retrieves Git commit logs between two branches with remote support.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="branch1">First branch name (source branch).</param>
+    /// <param name="branch2">Second branch name (target branch).</param>
+    /// <param name="fetchRemote">Whether to fetch from remote before comparison (default: true).</param>
+    /// <returns>A list of GitCommitInfo objects representing the commits between branches.</returns>
+    /// <exception cref="ArgumentException">Thrown when branches cannot be found.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when path is not a valid Git repository.</exception>
     public async Task<List<GitCommitInfo>> GetGitLogsBetweenBranchesWithRemoteAsync(string repositoryPath, string branch1, string branch2, bool fetchRemote = true)
     {
         try
@@ -1024,6 +1185,13 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Searches for a specific string across commit messages and file contents in the repository history.
+    /// </summary>
+    /// <param name="repositoryPath">Path to the Git repository.</param>
+    /// <param name="searchString">The string to search for in commits and file contents.</param>
+    /// <param name="maxCommits">Maximum number of commits to search through (default: 100).</param>
+    /// <returns>A CommitSearchResponse object containing search results.</returns>
     public async Task<CommitSearchResponse> SearchCommitsForStringAsync(string repositoryPath, string searchString, int maxCommits = 100)
     {
         try
@@ -1158,6 +1326,11 @@ public class GitRepository : IGitRepository
         }
     }
 
+    /// <summary>
+    /// Normalizes a branch name by removing common prefixes like "origin/", "remote/origin/", or "local/".
+    /// </summary>
+    /// <param name="branchName">The branch name to normalize.</param>
+    /// <returns>The normalized branch name.</returns>
     private string NormalizeBranchName(string branchName)
     {
         // Remove common prefixes if present
@@ -1171,6 +1344,11 @@ public class GitRepository : IGitRepository
         return branchName;
     }
 
+    /// <summary>
+    /// Counts the number of lines in a Git tree entry blob.
+    /// </summary>
+    /// <param name="entry">The tree entry to count lines for.</param>
+    /// <returns>The number of lines in the blob, or 0 if the entry is null, not a blob, or is binary.</returns>
     private int CountLines(TreeEntry entry)
     {
         if (entry == null || entry.TargetType != TreeEntryTargetType.Blob)
@@ -1185,6 +1363,11 @@ public class GitRepository : IGitRepository
         return content.Split('\n').Length;
     }
 
+    /// <summary>
+    /// Parses a unified diff format string into a list of line differences.
+    /// </summary>
+    /// <param name="unifiedDiff">Unified diff format string to parse.</param>
+    /// <returns>A list of LineDiff objects representing each line in the diff.</returns>
     private List<LineDiff> ParseUnifiedDiff(string unifiedDiff)
     {
         var result = new List<LineDiff>();

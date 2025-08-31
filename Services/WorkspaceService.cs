@@ -16,6 +16,7 @@ using System.Globalization;
 using Microsoft.AspNetCore.Http;
 using System.Reflection;
 using GitVisionMCP.Repositories;
+using GitVisionMCP.Services;
 namespace GitVisionMCP.Services;
 
 
@@ -891,6 +892,185 @@ public class WorkspaceService : IWorkspaceService
     {
         return await _fileService.GetFileContentsAsync(workspaceFileList);
     }
+
+    /// <summary>
+    /// Processes the autodocumentation configuration file and calls the DeconstructToFile method for each entry
+    /// </summary>
+    /// <param name="configFilePath">Path to the autodocument.json file (default: .gitvision/autodocument.json)</param>
+    /// <param name="jsonPath">JSONPath to locate file mappings (default: $.Document.Files)</param>
+    /// <param name="deconstructionService">The IDeconstructionService instance to use</param>
+    /// <returns>A list of paths to the generated JSON files, or null if an error occurs</returns>
+    public List<string>? GenerateAutoDocumentationTempJson(
+        string configFilePath = ".gitvision/autodocument.json",
+        string jsonPath = "$.Documentation",
+        string? templatePath = ".gitvision/.templates/autodoc.template.sbn",
+        string? templateOutputPath = "Documentation/autodoc.md",
+        IDeconstructionService? deconstructionService = null)
+    {
+        return GenerateAutoDocumentationTempJsonWithTemplate(configFilePath, jsonPath, templatePath, templateOutputPath, deconstructionService);
+    }
+
+    public List<string>? GenerateAutoDocumentationTempJsonWithTemplate(
+        string configFilePath = ".gitvision/autodocument.json",
+        string jsonPath = "$.Documentation",
+        string? templatePath = ".gitvision/.templates/autodoc.template.sbn",
+        string? templateOutputPath = "Documentation/autodoc.md",
+        IDeconstructionService? deconstructionService = null)
+    {
+        try
+        {
+            if (deconstructionService == null)
+            {
+                _logger.LogError("DeconstructionService is required but was not provided");
+                return null;
+            }
+
+            _logger.LogInformation("Processing auto-documentation from config: {ConfigFilePath}", configFilePath);
+
+            // Search for file mappings in the configuration file
+            var jsonResult = SearchJsonFile(configFilePath, jsonPath);
+            if (string.IsNullOrWhiteSpace(jsonResult))
+            {
+                _logger.LogWarning("No file mappings found in configuration: {ConfigFilePath} using path: {JsonPath}",
+                    configFilePath, jsonPath);
+                return new List<string>();
+            }
+            // _logger.LogInformation("Found file mappings in configuration: {JsonResult}", jsonResult);
+            JObject jObject = JObject.Parse(jsonResult);
+            if (jObject == null || jObject["Files"] == null)
+            {
+                _logger.LogWarning("No 'Files' array found in configuration: {ConfigFilePath}", configFilePath);
+                return new List<string>();
+            }
+            var dataFilesArray = (JArray?)jObject["Files"];
+            if (dataFilesArray == null || !dataFilesArray.Any())
+            {
+                _logger.LogWarning("The 'Files' array in configuration is empty: {ConfigFilePath}", configFilePath);
+                return new List<string>();
+            }
+            List<JObject>? fileConfigs = dataFilesArray.ToObject<List<JObject>>();
+
+            // Parse the JSON result into a collection of file mappings
+            if (fileConfigs == null || !fileConfigs.Any())
+            {
+                _logger.LogWarning("Failed to parse file mappings or empty result");
+                return new List<string>();
+            }
+
+            _logger.LogInformation("Found {Count} file mappings in configuration", fileConfigs.Count);
+            var generatedFiles = new List<string>();
+            var combinedData = new JObject { ["deconstructed"] = new JArray() };
+
+            // Process each file mapping
+            foreach (var fileConfig in fileConfigs)
+            {
+                if (!fileConfig.TryGetValue("RelativePath", out var relativePathToken) ||
+                    !fileConfig.TryGetValue("OutputPath", out var outputPathToken))
+                {
+                    _logger.LogWarning("File mapping is missing RelativePath or OutputPath properties: {FileConfig}", fileConfig);
+                    continue;
+                }
+
+                var relativePath = relativePathToken.ToString();
+                var docOutputPath = outputPathToken.ToString();
+
+                if (string.IsNullOrWhiteSpace(relativePath) || string.IsNullOrWhiteSpace(docOutputPath))
+                {
+                    _logger.LogWarning("RelativePath or OutputPath is empty in file mapping: {FileConfig}", fileConfig);
+                    continue;
+                }
+
+                // Call DeconstructToFile to process the file
+                _logger.LogInformation("Processing file: {RelativePath} -> {OutputPath}", relativePath, docOutputPath);
+                var resultPath = deconstructionService.DeconstructToFile(relativePath, docOutputPath);
+
+                if (!string.IsNullOrWhiteSpace(resultPath))
+                {
+                    _logger.LogInformation("Successfully generated documentation: {ResultPath}", resultPath);
+                    generatedFiles.Add(resultPath);
+
+                    // Read the generated file and add it to the combined data
+                    try
+                    {
+                        var fileContent = _fileService.ReadFile(resultPath);
+                        if (!string.IsNullOrWhiteSpace(fileContent))
+                        {
+                            var fileJson = JObject.Parse(fileContent);
+                            if (combinedData["deconstructed"] is JArray filesArray)
+                            {
+                                filesArray.Add(fileJson);
+                            }
+                            else
+                            {
+                                _logger.LogError("Data array not found in combined data object");
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error reading or parsing generated file: {ResultPath}", resultPath);
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to generate documentation for: {RelativePath}", relativePath);
+                }
+            }
+
+            // Save the combined data to a new file
+            var combinedFilePath = Path.Combine(Path.GetDirectoryName(generatedFiles.FirstOrDefault() ?? string.Empty) ?? ".temp", "combined_documentation.json");
+            try
+            {
+                var directory = Path.GetDirectoryName(combinedFilePath);
+                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                File.WriteAllText(combinedFilePath, combinedData.ToString(Newtonsoft.Json.Formatting.Indented));
+                generatedFiles.Add(combinedFilePath);
+                _logger.LogInformation("Successfully generated combined documentation: {CombinedFilePath}", combinedFilePath);
+
+                // Process template if provided
+                if (!string.IsNullOrWhiteSpace(templatePath))
+                {
+                    var defaultTemplateOutputPath = Path.Combine(
+                        Path.GetDirectoryName(combinedFilePath) ?? ".temp",
+                        "documentation.md");
+
+                    // merge combinedData with original jObject to capture any additional metadata
+                    combinedData.Merge(jObject, new JsonMergeSettings
+                    {
+                        MergeArrayHandling = MergeArrayHandling.Concat
+                    });
+                    _logger.LogInformation("Processing json {combinedData}",
+                                           combinedData.ToString(Newtonsoft.Json.Formatting.Indented));
+
+                    var templateResult = ProcessScribanFromJsonStringAsync(
+                        combinedData.ToString(Newtonsoft.Json.Formatting.None),
+                        templatePath,
+                        templateOutputPath ?? defaultTemplateOutputPath).Result;
+
+                    if (!string.IsNullOrWhiteSpace(templateResult))
+                    {
+                        generatedFiles.Add(templateOutputPath ?? defaultTemplateOutputPath);
+                        _logger.LogInformation("Successfully generated template documentation: {TemplatePath}", templateOutputPath ?? defaultTemplateOutputPath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing documentation: {CombinedFilePath}", combinedFilePath);
+            }
+
+            return generatedFiles;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing auto-documentation configuration: {ConfigFilePath}", configFilePath);
+            return null;
+        }
+    }
+
     /// <summary>
     /// Searches for values in an Excel file (.xlsx) using JSONPath queries by converting worksheet data to JSON.
     /// Processes all worksheets and returns results for each.

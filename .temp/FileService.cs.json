@@ -1,0 +1,188 @@
+﻿{
+  "ArchitectureModel": "Service",
+  "Name": "File",
+  "ClassName": "FileService",
+  "Namespace": "GitVisionMCP.Services",
+  "BaseClass": "",
+  "Interfaces": [
+    "I"
+  ],
+  "UsingDirectives": [
+    "Microsoft.Extensions.Logging",
+    "Newtonsoft.Json",
+    "System.Text.RegularExpressions",
+    "GitVisionMCP.Models",
+    "GitVisionMCP.Repositories"
+  ],
+  "ClassAttributes": [],
+  "Actions": [
+    {
+      "Name": "GetWorkspaceRoot",
+      "ReturnType": "string",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GetFullPath",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "relativePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "ReadFile",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "filePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GetAllFiles",
+      "ReturnType": "List<WorkspaceFileInfo>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GetAllFilesAsync",
+      "ReturnType": "Task<List<WorkspaceFileInfo>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetAllFilesMatching",
+      "ReturnType": "Task<List<WorkspaceFileInfo>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "searchPattern",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "SaveAllFilesToXml",
+      "ReturnType": "bool",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "xmlFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GetFileContentsAsync",
+      "ReturnType": "Task<List<FileContentInfo>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "workspaceFileList",
+          "Type": "List<WorkspaceFileInfo>",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "IsPathMatchingPattern",
+      "ReturnType": "bool",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "path",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "pattern",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "IsFileExcludedAsync",
+      "ReturnType": "Task<bool>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "relativePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    }
+  ],
+  "Properties": [],
+  "RoutePrefix": "",
+  "IsApiController": false,
+  "FilePath": "Services/FileService.cs",
+  "AnalyzedAt": "2025-08-31T17:17:33.7734409Z"
+}

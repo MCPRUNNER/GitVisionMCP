@@ -92,5 +92,17 @@ public interface IWorkspaceService
     /// <returns>The content of the file as a string, or null if the file doesn't exist or an error occurs</returns>
     string? GetGitHubPromptFileContent(string filename);
 
-
+    /// <summary>
+    /// Processes the autodocumentation configuration file and calls the DeconstructToFile method for each entry
+    /// </summary>
+    /// <param name="configFilePath">Path to the autodocument.json file (default: .gitvision/autodocument.json)</param>
+    /// <param name="jsonPath">JSONPath to locate file mappings (default: $.Document.Files)</param>
+    /// <param name="deconstructionService">The IDeconstructionService instance to use</param>
+    /// <returns>A list of paths to the generated JSON files, or null if an error occurs</returns>
+    List<string>? GenerateAutoDocumentationTempJson(
+        string configFilePath = ".gitvision/autodocument.json",
+        string jsonPath = "$.Documentation",
+        string? templatePath = ".gitvision/.templates/autodoc.template.sbn",
+        string? templateOutputPath = "Documentation/autodoc.md",
+        IDeconstructionService? deconstructionService = null);
 }

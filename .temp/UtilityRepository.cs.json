@@ -1,0 +1,72 @@
+﻿{
+  "ArchitectureModel": "Repository",
+  "Name": "Utility",
+  "ClassName": "UtilityRepository",
+  "Namespace": "GitVisionMCP.Repositories",
+  "BaseClass": "",
+  "Interfaces": [
+    "I"
+  ],
+  "UsingDirectives": [
+    "System",
+    "System.Collections.Generic",
+    "System.Linq",
+    "System.Reflection",
+    "System.Text",
+    "System.Threading.Tasks",
+    "System.Xml.Linq",
+    "System.Xml.XPath",
+    "System.Collections.Generic",
+    "System.IO",
+    "Newtonsoft.Json",
+    "System.Diagnostics",
+    "GitVisionMCP.Models",
+    "GitVisionMCP.Services",
+    "Microsoft.Extensions.Logging",
+    "var proc = new Process { StartInfo = psi }"
+  ],
+  "ClassAttributes": [],
+  "Actions": [
+    {
+      "Name": "GetEnvironmentVariableValue",
+      "ReturnType": "object?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "variableName",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GetAppVersion",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "projectFile",
+          "Type": "string?",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    }
+  ],
+  "Properties": [],
+  "RoutePrefix": "",
+  "IsApiController": false,
+  "FilePath": "Repositories/UtilityRepository.cs",
+  "AnalyzedAt": "2025-08-31T17:17:33.7436041Z"
+}

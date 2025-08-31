@@ -1,0 +1,68 @@
+﻿{
+  "ArchitectureModel": "Service",
+  "Name": "Deconstruction",
+  "ClassName": "DeconstructionService",
+  "Namespace": "GitVisionMCP.Services",
+  "BaseClass": "",
+  "Interfaces": [
+    "I"
+  ],
+  "UsingDirectives": [
+    "Microsoft.Extensions.Logging",
+    "Newtonsoft.Json",
+    "System.Text",
+    "GitVisionMCP.Models",
+    "System.Text.RegularExpressions"
+  ],
+  "ClassAttributes": [],
+  "Actions": [
+    {
+      "Name": "Deconstruct",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "filePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "DeconstructToFile",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "filePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "outputFileName",
+          "Type": "string?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    }
+  ],
+  "Properties": [],
+  "RoutePrefix": "",
+  "IsApiController": false,
+  "FilePath": "Services/DeconstructionService.cs",
+  "AnalyzedAt": "2025-08-31T17:17:33.7586554Z"
+}

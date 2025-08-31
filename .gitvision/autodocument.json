@@ -1,0 +1,72 @@
+{
+  "Documentation": {
+    "Title": "GitVisionMCP Documentation",
+    "Summary": "GitVisionMCP is a multi-repo GitHub project management tool.",
+    "Description": "This tool helps manage multiple GitHub repositories and Source Documentation with ease.",
+    "Files": [
+      {
+        "Name": "FileRepository",
+        "Type": "Repository",
+        "Description": "Handles file system operations",
+        "RelativePath": "Repositories/FileRepository.cs",
+        "OutputPath": ".temp/FileRepository.cs.json"
+      },
+      {
+        "Name": "GitRepository",
+        "Type": "Repository",
+        "Description": "Handles Git operations",
+        "RelativePath": "Repositories/GitRepository.cs",
+        "OutputPath": ".temp/GitRepository.cs.json"
+      },
+      {
+        "Name": "UtilityRepository",
+        "Type": "Repository",
+        "Description": "Handles utility functions",
+        "RelativePath": "Repositories/UtilityRepository.cs",
+        "OutputPath": ".temp/UtilityRepository.cs.json"
+      },
+      {
+        "Name": "DeconstructionService",
+        "Type": "Service",
+        "Description": "Handles code deconstruction",
+        "RelativePath": "Services/DeconstructionService.cs",
+        "OutputPath": ".temp/DeconstructionService.cs.json"
+      },
+      {
+        "Name": "FileService",
+        "Type": "Service",
+        "Description": "Handles file operations",
+        "RelativePath": "Services/FileService.cs",
+        "OutputPath": ".temp/FileService.cs.json"
+      },
+      {
+        "Name": "GitService",
+        "Type": "Service",
+        "Description": "Handles Git operations",
+        "RelativePath": "Services/GitService.cs",
+        "OutputPath": ".temp/GitService.cs.json"
+      },
+      {
+        "Name": "UtilityService",
+        "Type": "Service",
+        "Description": "Handles utility functions",
+        "RelativePath": "Services/UtilityService.cs",
+        "OutputPath": ".temp/UtilityService.cs.json"
+      },
+      {
+        "Name": "WorkspaceService",
+        "Type": "Service",
+        "Description": "Handles workspace operations",
+        "RelativePath": "Services/WorkspaceService.cs",
+        "OutputPath": ".temp/WorkspaceService.cs.json"
+      },
+      {
+        "Name": "GitServiceTools",
+        "Type": "Tools",
+        "Description": "Handles Tool Definitions for Git Services",
+        "RelativePath": "Tools/GitServiceTools.cs",
+        "OutputPath": ".temp/GitServiceTools.cs.json"
+      }
+    ]
+  }
+}

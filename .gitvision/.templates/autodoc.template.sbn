@@ -1,0 +1,20 @@
+# Autodoc Example Overview
+
+## {{Title}}
+*{{Description}}*
+{{Summary}}
+
+## Repositories and Services
+| Name | Architecture Model | Description | Path |
+|------------|-------------------|-----------|----------------|
+{{- for item in Files }}
+| `{{ item.Name }}` | {{ item.Type }} | {{ item.Description }} |   {{ item.RelativePath }} |
+{{- end }}
+
+## Components and Public Methods with Arguments
+
+| Class Name | Architecture Model | Namespace | Public Methods with Arguments |
+|------------|-------------------|-----------|----------------|
+{{- for item in deconstructed }}
+| `{{ item.ClassName }}` | {{ item.ArchitectureModel }} | {{ item.Namespace }} | {{- for method in item.Actions }}{{- if method.Accessibility == "public" && method.Parameters.size > 0 }}{{ method.Name }} : {{ method.ReturnType }}; {{- end }}{{- end }} |
+{{- end }}

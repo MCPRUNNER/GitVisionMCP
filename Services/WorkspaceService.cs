@@ -957,9 +957,11 @@ public class WorkspaceService : IWorkspaceService
                 return new List<string>();
             }
 
+
             _logger.LogInformation("Found {Count} file mappings in configuration", fileConfigs.Count);
             var generatedFiles = new List<string>();
-            var combinedData = new JObject { ["deconstructed"] = new JArray() };
+            var deconstructedData = new JObject { ["deconstructed"] = new JArray() };
+
 
             // Process each file mapping
             foreach (var fileConfig in fileConfigs)
@@ -996,7 +998,7 @@ public class WorkspaceService : IWorkspaceService
                         if (!string.IsNullOrWhiteSpace(fileContent))
                         {
                             var fileJson = JObject.Parse(fileContent);
-                            if (combinedData["deconstructed"] is JArray filesArray)
+                            if (deconstructedData["deconstructed"] is JArray filesArray)
                             {
                                 filesArray.Add(fileJson);
                             }
@@ -1026,7 +1028,7 @@ public class WorkspaceService : IWorkspaceService
                 {
                     Directory.CreateDirectory(directory);
                 }
-                File.WriteAllText(combinedFilePath, combinedData.ToString(Newtonsoft.Json.Formatting.Indented));
+                File.WriteAllText(combinedFilePath, deconstructedData.ToString(Newtonsoft.Json.Formatting.Indented));
                 generatedFiles.Add(combinedFilePath);
                 _logger.LogInformation("Successfully generated combined documentation: {CombinedFilePath}", combinedFilePath);
 
@@ -1038,15 +1040,15 @@ public class WorkspaceService : IWorkspaceService
                         "documentation.md");
 
                     // merge combinedData with original jObject to capture any additional metadata
-                    combinedData.Merge(jObject, new JsonMergeSettings
+                    deconstructedData.Merge(jObject, new JsonMergeSettings
                     {
                         MergeArrayHandling = MergeArrayHandling.Concat
                     });
                     _logger.LogInformation("Processing json {combinedData}",
-                                           combinedData.ToString(Newtonsoft.Json.Formatting.Indented));
+                                           deconstructedData.ToString(Newtonsoft.Json.Formatting.Indented));
 
                     var templateResult = ProcessScribanFromJsonStringAsync(
-                        combinedData.ToString(Newtonsoft.Json.Formatting.None),
+                        deconstructedData.ToString(Newtonsoft.Json.Formatting.None),
                         templatePath,
                         templateOutputPath ?? defaultTemplateOutputPath).Result;
 

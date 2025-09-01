@@ -3,6 +3,13 @@
     "Title": "GitVisionMCP Documentation",
     "Summary": "GitVisionMCP is a multi-repo GitHub project management tool.",
     "Description": "This tool helps manage multiple GitHub repositories and Source Documentation with ease.",
+    "Commands": [
+      {
+        "Command": "#gv_get_recent_commits",
+        "Post": "{maxCommits=300}",
+        "Output": "commits"
+      }
+    ],
     "Files": [
       {
         "Name": "FileRepository",

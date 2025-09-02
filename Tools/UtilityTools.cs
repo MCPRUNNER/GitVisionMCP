@@ -55,7 +55,33 @@ public class UtilityTools : IUtilityTools
                 { "error", "Plugin not found" }
             };
         }
-        var plugin = JObject.Parse(pluginConfig).ToObject<Plugin>();
+        Plugin? plugin = null;
+        try
+        {
+            var token = JToken.Parse(pluginConfig);
+            JObject? pluginObj = null;
+            if (token.Type == JTokenType.Array)
+            {
+                var arr = (JArray)token;
+                if (arr.Count > 0 && arr[0].Type == JTokenType.Object)
+                {
+                    pluginObj = (JObject)arr[0];
+                }
+            }
+            else if (token.Type == JTokenType.Object)
+            {
+                pluginObj = (JObject)token;
+            }
+
+            if (pluginObj != null)
+            {
+                plugin = pluginObj.ToObject<Plugin>();
+            }
+        }
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to parse plugin configuration JSON");
+        }
         if (plugin == null)
         {
             _logger.LogError("Failed to parse plugin configuration");

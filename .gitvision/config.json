@@ -2,7 +2,7 @@
   "Project": {
     "Name": "GitVisionMCP",
     "RelativePath": "GitVisionMCP.csproj",
-    "Version": "1.0.9.0"
+    "Version": "1.0.9.1"
   },
   "Settings": {
     "maxCommits": 200,
@@ -13,7 +13,35 @@
     "Release": "origin/GitVisionMCP-Release-1.0.9",
     "Master": "origin/master"
   },
-  
+  "Plugins": [
+    {
+      "Name": "pluginDemo",
+      "WorkingDirectory": ".gitvision/plugins/pluginDemo",
+      "Executable": ".gitvision/plugins/pluginDemo/pluginDemo.exe",
+      "Arguments": {
+        "/C": "",
+        "/File": "<file_path>",
+        "/args": "first second third"
+      },
+      "Enabled": true,
+      "timeoutMilliseconds": 60000,
+      "Environment": {
+        "Option1": "Value1",
+        "Option2": "Value2"
+      }
+    },
+    {
+      "Name": "pluginDemo2",
+      "WorkingDirectory": ".gitvision/plugins/pluginDemo",
+      "Executable": ".gitvision/plugins/pluginDemo/pluginDemo.exe",
+      "Enabled": false,
+      "timeoutMilliseconds": 60000,
+      "Environment": {
+        "Option1": "Value1",
+        "Option2": "Value2"
+      }
+    }
+  ],
 
   "Kestrel": {
     "Endpoints": {

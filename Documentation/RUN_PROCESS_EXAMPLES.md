@@ -1,10 +1,10 @@
 # Running External Processes from Tools
 
-This page shows how to call `UtilityService.RunProcessAsync` from tools and services in this repository.
+This page shows how to call `UtilityService.RunProcessAsync` from tools and services in this repository, as well as how to use the new MCP tool `gv_run_process` to run processes directly.
 
 ## Goal
 
-Provide a small, safe example for tool authors to run external processes (for example `git fetch`) using the service layer (`IUtilityService`).
+Provide a small, safe example for tool authors to run external processes (for example `git fetch`) using the service layer (`IUtilityService`) or the MCP tool.
 
 ## Dependency injection (constructor)
 
@@ -92,5 +92,87 @@ Remove-Item Env:\GITHUB_TOKEN
 - Keep timeouts conservative but reasonable for network operations (e.g., 30–120 seconds depending on repo size).
 
 ---
+
+# Using the MCP Tool
+
+GitVisionMCP now provides a dedicated MCP tool for running external processes directly:
+
+## MCP Tool: gv_run_process
+
+The MCP tool allows you to execute external processes and capture their output directly from GitVisionMCP.
+
+### Parameters
+
+| Parameter              | Type                       | Description                                         | Default            |
+| ---------------------- | -------------------------- | --------------------------------------------------- | ------------------ |
+| `workingDirectory`     | string                     | The working directory for the process               | (Required)         |
+| `fileName`             | string                     | The name or path of the process to run              | (Required)         |
+| `arguments`            | string                     | The command line arguments to pass to the process   | (Required)         |
+| `timeoutMs`            | int                        | The timeout in milliseconds                         | 60000 (60 seconds) |
+| `environmentVariables` | Dictionary<string, string> | Optional dictionary of environment variables to set | null               |
+
+### Return Value
+
+The tool returns a dictionary with the following properties:
+
+| Property   | Type    | Description                                                  |
+| ---------- | ------- | ------------------------------------------------------------ |
+| `success`  | boolean | Indicates if the process executed successfully (exit code 0) |
+| `stdout`   | string  | Standard output from the process                             |
+| `stderr`   | string  | Standard error output from the process                       |
+| `exitCode` | int     | The process exit code                                        |
+
+### Usage Examples
+
+#### Basic Example
+
+```json
+{
+  "workingDirectory": "C:\\Projects\\MyApp",
+  "fileName": "dotnet",
+  "arguments": "build"
+}
+```
+
+#### Example with Timeout
+
+```json
+{
+  "workingDirectory": "C:\\Projects\\MyApp",
+  "fileName": "dotnet",
+  "arguments": "test",
+  "timeoutMs": 120000
+}
+```
+
+#### Example with Environment Variables
+
+```json
+{
+  "workingDirectory": "C:\\Projects\\MyApp",
+  "fileName": "npm",
+  "arguments": "run build",
+  "environmentVariables": {
+    "NODE_ENV": "production",
+    "DEBUG": "false"
+  }
+}
+```
+
+## Additional MCP Tools
+
+GitVisionMCP also provides two additional MCP tools for managing environment variables:
+
+### Get Environment Variable (gv_get_environment_variable)
+
+- Parameter: `variableName` (string) - The name of the environment variable
+- Returns: The value of the environment variable, or null if not set
+
+### Set Environment Variable (gv_set_environment_variable)
+
+- Parameters:
+  - `name` (string) - The name of the environment variable
+  - `value` (string) - The value to set
+- Returns: Boolean indicating success or failure
 
 File: `Documentation/RUN_PROCESS_EXAMPLES.md` — add or link this page from other docs as needed.

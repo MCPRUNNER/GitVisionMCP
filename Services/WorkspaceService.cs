@@ -903,7 +903,7 @@ public class WorkspaceService : IWorkspaceService
     public List<string>? GenerateAutoDocumentationTempJson(
         string configFilePath = ".gitvision/autodocument.json",
         string jsonPath = "$.Documentation",
-        string? templatePath = ".gitvision/.templates/autodoc.template.sbn",
+        string? templatePath = ".gitvision/templates/autodoc.template.sbn",
         string? templateOutputPath = "Documentation/autodoc.md",
         IDeconstructionService? deconstructionService = null)
     {
@@ -913,7 +913,7 @@ public class WorkspaceService : IWorkspaceService
     public List<string>? GenerateAutoDocumentationTempJsonWithTemplate(
         string configFilePath = ".gitvision/autodocument.json",
         string jsonPath = "$.Documentation",
-        string? templatePath = ".gitvision/.templates/autodoc.template.sbn",
+        string? templatePath = ".gitvision/templates/autodoc.template.sbn",
         string? templateOutputPath = "Documentation/autodoc.md",
         IDeconstructionService? deconstructionService = null)
     {

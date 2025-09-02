@@ -1642,7 +1642,7 @@ public class GitServiceTools : IGitServiceTools
     public Task<List<string>?> GenerateAutoDocumentationJsonAsync(
         [Description("Path to the autodocument.json config file (default: .gitvision/autodocument.json)")] string configFilePath = ".gitvision/autodocument.json",
         [Description("JSONPath to locate file mappings (default: $.Documentation)")] string jsonPath = "$.Documentation",
-        [Description("Path to the template file for generated documentation (default: .gitvision/.templates/autodoc.template.sbn)")] string templateFilePath = ".gitvision/.templates/autodoc.template.sbn",
+        [Description("Path to the template file for generated documentation (default: .gitvision/templates/autodoc.template.sbn)")] string templateFilePath = ".gitvision/templates/autodoc.template.sbn",
         [Description("Path to the output file for generated documentation (default: Documentation/autodoc.md)")] string templateOutputPath = "Documentation/autodoc.md"
         )
     {

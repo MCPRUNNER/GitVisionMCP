@@ -2,16 +2,16 @@
 
 ## ✅ Implementation Complete - Full Feature Set with Advanced Search, Docker Support, and Enhanced Documentation
 
-**Enhanced Tool Count**: Updated from 15 to 27 total tools available
+**Enhanced Tool Count**: Updated from 15 to 35 total tools available
 
-The GitVisionMCP project has been successfully developed as a comprehensive Model Context Protocol (MCP) Server with advanced git analysis capabilities, including **full remote branch support**, **powerful commit search functionality**, **containerized Docker deployment**, and **comprehensive example documentation**.
+The GitVisionMCP project has been successfully developed as a comprehensive Model Context Protocol (MCP) Server with advanced git analysis capabilities, including **full remote branch support**, **powerful commit search functionality**, **containerized Docker deployment**, **utility and process management tools**, and **comprehensive example documentation**.
 
 ### Core Architecture
 
 - **Program.cs**: Application entry point with dependency injection and Serilog logging
 - **Models/McpModels.cs**: Complete MCP protocol data models and JSON-RPC structures
 - **Services/GitService.cs**: Advanced git operations with remote branch support and search capabilities
-- **Services/McpServer.cs**: Complete MCP protocol implementation with 27 specialized tools
+- **Services/McpServer.cs**: Complete MCP protocol implementation with 35 specialized tools
 
 ### 🆕 Latest Major Enhancements
 
@@ -111,7 +111,7 @@ The GitVisionMCP project has been successfully developed as a comprehensive Mode
 
 - ✅ **list_workspace_files**: Enhanced with automatic exclude filtering
 - ✅ **read_filtered_workspace_files**: Improved performance with smart exclusions
-- ✅ **Enhanced Tool Count**: Updated from 15 to 23 total tools available
+- ✅ **Enhanced Tool Count**: Updated from 15 to 35 total tools available
 
 #### Remote Branch Discovery & Operations (New)
 
@@ -210,7 +210,7 @@ GitVisionMCP/
 │   ├── ILocationService.cs       # Location service interface
 │   ├── IMcpServer.cs             # MCP server interface
 │   ├── LocationService.cs        # Location service implementation
-│   └── McpServer.cs              # MCP protocol server (27 tools)
+│   └── McpServer.cs              # MCP protocol server (35 tools)
 ├── Tools/
 │   ├── GitServiceTools.cs        # MCP tool implementations
 │   └── IGitServiceTools.cs       # Tool interface
@@ -238,7 +238,7 @@ GitVisionMCP/
 └── test_*.cs                     # Test files
 ```
 
-## 🚀 Complete Tool Inventory (27 Tools)
+## 🚀 Complete Tool Inventory (35 Tools)
 
 ### 📝 Documentation Generation (2 tools)
 
@@ -281,6 +281,15 @@ GitVisionMCP/
 25. **deconstruct_to_json** - Save C# component analysis to JSON file
 26. **list_workspace_files_with_cached_data** - Performance-optimized file listing
 27. **list_workspace_file_info** - Get detailed workspace file information
+
+### 🔧 Utility & Process Management (6 tools)
+
+28. **gv_run_process** - Execute external processes with environment variable support
+29. **gv_run_plugin** - Run configured plugins from .gitvision/config.json
+30. **gv_get_environment_variable** - Retrieve environment variable values
+31. **gv_set_environment_variable** - Set environment variables for current process
+32. **gv_get_app_version** - Extract application version from project files
+33. **gv_generate_autodoc** - Generate JSON documentation from C# source files
 
 ## 📋 Tool Capabilities Matrix
 
@@ -353,7 +362,7 @@ GitVisionMCP/
 
 ### Testing Completed
 
-- [x] All 27 tools tested and verified (including new JSON search functionality)
+- [x] All 35 tools tested and verified (including new JSON search functionality and utility tools)
 - [x] Remote branch operations tested with GitHub repositories
 - [x] JSON-RPC protocol communication verified
 - [x] Error handling tested for edge cases

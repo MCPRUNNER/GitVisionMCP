@@ -205,7 +205,7 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Repositories/FileRepository.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.6811792Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.5833968Z"
     },
     {
       "ArchitectureModel": "Repository",
@@ -757,7 +757,7 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Repositories/GitRepository.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.7222779Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.6415291Z"
     },
     {
       "ArchitectureModel": "Repository",
@@ -784,6 +784,8 @@
         "GitVisionMCP.Models",
         "GitVisionMCP.Services",
         "Microsoft.Extensions.Logging",
+        "var proc = new Process { StartInfo = psi }",
+        "var proc = new Process { StartInfo = psi }",
         "var proc = new Process { StartInfo = psi }"
       ],
       "ClassAttributes": [],
@@ -800,6 +802,70 @@
               "Attributes": [],
               "HasDefaultValue": false,
               "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "CreateEnvironmentVariables",
+          "ReturnType": "Dictionary<string, string>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "additionalVariables",
+              "Type": "string>?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "overwriteExisting",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "includeCurrentEnvironment",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "SetEnvironmentVariable",
+          "ReturnType": "bool",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "value",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "target",
+              "Type": "EnvironmentVariableTarget",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "EnvironmentVariableTarget.Process"
             }
           ],
           "HttpMethod": "",
@@ -829,7 +895,7 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Repositories/UtilityRepository.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.7624626Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.6805608Z"
     },
     {
       "ArchitectureModel": "Service",
@@ -897,7 +963,7 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Services/DeconstructionService.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.800648Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.7183032Z"
     },
     {
       "ArchitectureModel": "Service",
@@ -1085,7 +1151,7 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Services/FileService.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.8389721Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.7571099Z"
     },
     {
       "ArchitectureModel": "Service",
@@ -1617,7 +1683,7 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Services/GitService.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.8788908Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.797016Z"
     },
     {
       "ArchitectureModel": "Service",
@@ -1685,7 +1751,7 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Services/UtilityService.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.9171855Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.8350726Z"
     },
     {
       "ArchitectureModel": "Service",
@@ -1955,7 +2021,7 @@
               "Type": "string?",
               "Attributes": [],
               "HasDefaultValue": true,
-              "DefaultValue": "\".gitvision/.templates/autodoc.template.sbn\""
+              "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
             },
             {
               "Name": "templateOutputPath",
@@ -2001,7 +2067,7 @@
               "Type": "string?",
               "Attributes": [],
               "HasDefaultValue": true,
-              "DefaultValue": "\".gitvision/.templates/autodoc.template.sbn\""
+              "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
             },
             {
               "Name": "templateOutputPath",
@@ -2084,7 +2150,7 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Services/WorkspaceService.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.9506241Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.86697Z"
     },
     {
       "ArchitectureModel": "MCP Tool",
@@ -3245,10 +3311,10 @@
               "Name": "templateFilePath",
               "Type": "string",
               "Attributes": [
-                "Description(\"Path to the template file for generated documentation (default: .gitvision/.templates/autodoc.template.sbn)\")"
+                "Description(\"Path to the template file for generated documentation (default: .gitvision/templates/autodoc.template.sbn)\")"
               ],
               "HasDefaultValue": true,
-              "DefaultValue": "\".gitvision/.templates/autodoc.template.sbn\""
+              "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
             },
             {
               "Name": "templateOutputPath",
@@ -3269,7 +3335,172 @@
       "RoutePrefix": "",
       "IsApiController": false,
       "FilePath": "Tools/GitServiceTools.cs",
-      "AnalyzedAt": "2025-08-31T23:42:37.9970906Z"
+      "AnalyzedAt": "2025-09-02T17:23:10.9173889Z"
+    },
+    {
+      "ArchitectureModel": "MCP Tool",
+      "Name": "UtilityTools",
+      "ClassName": "UtilityTools",
+      "Namespace": "GitVisionMCP.Tools",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "Microsoft.Extensions.Logging",
+        "ModelContextProtocol.Server",
+        "GitVisionMCP.Services",
+        "GitVisionMCP.Models",
+        "GitVisionMCP.Repositories",
+        "System.ComponentModel",
+        "Newtonsoft.Json",
+        "Newtonsoft.Json.Linq"
+      ],
+      "ClassAttributes": [
+        "McpServerToolType"
+      ],
+      "Actions": [
+        {
+          "Name": "gv_run_plugin",
+          "ReturnType": "Task<Dictionary<string, object>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_run_plugin\")",
+            "Description(\"Run a plugin and capture its output\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "pluginName",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Name of plugin\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_run_process",
+          "ReturnType": "Task<Dictionary<string, object>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_run_process\")",
+            "Description(\"Run an external process and capture its output\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "workingDirectory",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"The working directory for the process\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "fileName",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The name or path of the process to run\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "arguments",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"The command line arguments to pass to the process\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "timeoutMs",
+              "Type": "int?",
+              "Attributes": [
+                "Description(\"The timeout in milliseconds (default: 60000)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "60000"
+            },
+            {
+              "Name": "environmentVariables",
+              "Type": "string>?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_environment_variable",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_environment_variable\")",
+            "Description(\"Get the value of an environment variable\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "variableName",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The name of the environment variable\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_set_environment_variable",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_set_environment_variable\")",
+            "Description(\"Set an environment variable for the current process\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The name of the environment variable\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "value",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The value to set\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Tools/UtilityTools.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.9659327Z"
     }
   ]
 }

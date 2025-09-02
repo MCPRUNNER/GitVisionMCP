@@ -32,7 +32,7 @@ GitVisionMCP is designed to enhance the productivity of software development tea
 
 ## Quick Start
 
-GitVisionMCP provides **29 powerful tools** for git analysis, documentation generation, and file searching:
+GitVisionMCP provides **35 powerful tools** for git analysis, documentation generation, and file searching:
 
 - 🔍 **Search commits**, branches, and files with advanced filtering
 - 📝 **Generate documentation** from git history automatically
@@ -47,6 +47,8 @@ GitVisionMCP provides **29 powerful tools** for git analysis, documentation gene
 @copilot Search all commits for 'authentication'
 @copilot Compare my feature branch with origin/main
 @copilot Extract all Docker service names from docker-compose.yml
+@copilot Run command 'npm test' in the project directory
+@copilot Get the value of NODE_ENV environment variable
 ```
 
 ---
@@ -128,6 +130,15 @@ GitVisionMCP provides **29 powerful tools** for git analysis, documentation gene
 | `gv_deconstruct_to_file`                | Deconstruct a C# Service, Repository or Controller file and returns JSON |
 | `gv_get_app_version`                    | Extract application version from a project file                          |
 
+### 🔧 **Utility & Process Management**
+
+| Tool                          | Description                                         |
+| ----------------------------- | --------------------------------------------------- |
+| `gv_run_process`              | Run an external process and capture its output      |
+| `gv_run_plugin`               | Run a plugin and capture its output                 |
+| `gv_get_environment_variable` | Get the value of an environment variable            |
+| `gv_set_environment_variable` | Set an environment variable for the current process |
+
 ---
 
 ## Getting Started
@@ -189,6 +200,16 @@ dotnet run --no-build --verbosity quiet
 @copilot Extract IT department budget from budget.xlsx
 @copilot Find all merge conflicts in the codebase
 @copilot Run Scriban template commit.template.sbn with my JSON data
+```
+
+#### **Utility & Process Management**
+
+```bash
+@copilot Run external command 'git status' in the current directory
+@copilot Execute Python script analytics.py with custom environment variables
+@copilot Get the value of the PATH environment variable
+@copilot Set CUSTOM_CONFIG environment variable to production mode
+@copilot Run plugin 'codegen' to generate documentation
 ```
 
 ---
@@ -1253,6 +1274,61 @@ Fetches latest changes from remote repository.
 
 **Returns:** Success message and fetch summary
 
+### Utility & Process Management Tools
+
+#### gv_run_process
+
+Runs an external process and captures the output with comprehensive error handling and environment variable support.
+
+**Parameters:**
+
+- `workingDirectory` (optional): The working directory for the process
+- `fileName` (required): The name or path of the process to run
+- `arguments` (optional): The command line arguments to pass to the process
+- `timeoutMs` (optional): The timeout in milliseconds (default: 60000)
+- `environmentVariables` (optional): Dictionary of environment variables to set
+
+**Returns:** Dictionary containing success flag, stdout, stderr, and exit code
+
+**Example:** Run git status command with custom environment
+
+#### gv_run_plugin
+
+Runs a configured plugin from the `.gitvision/config.json` file and captures its output.
+
+**Parameters:**
+
+- `pluginName` (required): Name of plugin to execute
+
+**Returns:** Dictionary containing success flag, output, and error information
+
+**Example:** Execute a custom code generation or documentation plugin
+
+#### gv_get_environment_variable
+
+Gets the value of an environment variable.
+
+**Parameters:**
+
+- `variableName` (required): The name of the environment variable
+
+**Returns:** The value of the environment variable as string, or null if not set
+
+**Example:** Get PATH or custom application configuration variables
+
+#### gv_set_environment_variable
+
+Sets an environment variable for the current process.
+
+**Parameters:**
+
+- `name` (required): The name of the environment variable
+- `value` (required): The value to set
+
+**Returns:** Boolean indicating success
+
+**Example:** Set configuration flags or temporary environment settings
+
 ## Use Cases and Examples
 
 ### 1. Release Planning and Analysis
@@ -1702,6 +1778,53 @@ Example XSLT transformation:
 ```
 
 Get detailed line-by-line changes for specific files to understand exact modifications.
+
+### 12. External Process Execution & Environment Management
+
+#### Copilot Commands:
+
+```bash
+# Execute external processes
+@copilot Run command 'npm install' in the current project directory
+@copilot Execute Python script 'data_analysis.py' with custom timeout of 120 seconds
+@copilot Run git status command in the repository directory
+
+# Environment variable management
+@copilot Get the value of PATH environment variable
+@copilot Set NODE_ENV environment variable to 'production'
+@copilot Check if DOCKER_HOST is set in the environment
+
+# Plugin execution
+@copilot Run plugin 'codegen' to generate API documentation
+@copilot Execute plugin 'deployment' for automated deployment tasks
+```
+
+#### JSON-RPC Calls:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "method": "tools/call",
+  "params": {
+    "name": "gv_run_process",
+    "arguments": {
+      "workingDirectory": "/path/to/project",
+      "fileName": "npm",
+      "arguments": "install",
+      "timeoutMs": 60000
+    }
+  }
+}
+```
+
+Perfect for:
+
+- **Build automation**: Execute build scripts, test suites, and deployment commands
+- **Environment setup**: Manage configuration variables and runtime settings
+- **Plugin integration**: Execute custom tools and automation scripts
+- **Cross-platform compatibility**: Run platform-specific commands and tools
+- **CI/CD integration**: Automate development and deployment workflows
 
 ## Configuration
 

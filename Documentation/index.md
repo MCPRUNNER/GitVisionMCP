@@ -4,6 +4,10 @@ This index lists all markdown documentation files available in the `Documentatio
 
 ## Documentation Files
 
+- [AUTODOC_TOOL_GUIDE.md](AUTODOC_TOOL_GUIDE.md) How to setup and use the auto-documentation tool.
+- [autodoc.md](autodoc.md): Auto-Generated documentation using the #gv_generate_autodoc tool.
+- [PROJECT_STATUS.md](PROJECT_STATUS.md): Current project status, completed features, and pending tasks.
+- [PLUGIN_RUNNER_GUIDE.md](PLUGIN_RUNNER_GUIDE.md) How to setup and use Plugins.
 - [ARCHITECTURE.md](ARCHITECTURE.md): Overview of the system architecture and component interactions.
 - [DECONSTRUCTION_SERVICE.md](DECONSTRUCTION_SERVICE.md): Service for deconstructing C# files and extracting architecture.
 - [DOCKER.md](DOCKER.md): Docker setup and usage instructions for GitVisionMCP.

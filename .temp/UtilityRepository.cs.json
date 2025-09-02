@@ -23,6 +23,8 @@
     "GitVisionMCP.Models",
     "GitVisionMCP.Services",
     "Microsoft.Extensions.Logging",
+    "var proc = new Process { StartInfo = psi }",
+    "var proc = new Process { StartInfo = psi }",
     "var proc = new Process { StartInfo = psi }"
   ],
   "ClassAttributes": [],
@@ -39,6 +41,70 @@
           "Attributes": [],
           "HasDefaultValue": false,
           "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "CreateEnvironmentVariables",
+      "ReturnType": "Dictionary<string, string>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "additionalVariables",
+          "Type": "string>?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        },
+        {
+          "Name": "overwriteExisting",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        },
+        {
+          "Name": "includeCurrentEnvironment",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "SetEnvironmentVariable",
+      "ReturnType": "bool",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "name",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "value",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "target",
+          "Type": "EnvironmentVariableTarget",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "EnvironmentVariableTarget.Process"
         }
       ],
       "HttpMethod": "",
@@ -68,5 +134,5 @@
   "RoutePrefix": "",
   "IsApiController": false,
   "FilePath": "Repositories/UtilityRepository.cs",
-  "AnalyzedAt": "2025-08-31T23:42:37.7624626Z"
+  "AnalyzedAt": "2025-09-02T17:23:10.6805608Z"
 }

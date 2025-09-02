@@ -266,7 +266,7 @@
           "Type": "string?",
           "Attributes": [],
           "HasDefaultValue": true,
-          "DefaultValue": "\".gitvision/.templates/autodoc.template.sbn\""
+          "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
         },
         {
           "Name": "templateOutputPath",
@@ -312,7 +312,7 @@
           "Type": "string?",
           "Attributes": [],
           "HasDefaultValue": true,
-          "DefaultValue": "\".gitvision/.templates/autodoc.template.sbn\""
+          "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
         },
         {
           "Name": "templateOutputPath",
@@ -395,5 +395,5 @@
   "RoutePrefix": "",
   "IsApiController": false,
   "FilePath": "Services/WorkspaceService.cs",
-  "AnalyzedAt": "2025-08-31T23:42:37.9506241Z"
+  "AnalyzedAt": "2025-09-02T17:23:10.86697Z"
 }

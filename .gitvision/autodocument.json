@@ -1,7 +1,7 @@
 {
   "Documentation": {
     "Title": "GitVisionMCP Documentation",
-    "Summary": "GitVisionMCP is a multi-repo GitHub project management tool.",
+    "Summary": "GitVisionMCP is a multi-repo GitHub project management tool with plugin execution and file processing capabilities.",
     "Description": "This tool helps manage multiple GitHub repositories and Source Documentation with ease.",
     "Commands": [
       {
@@ -73,6 +73,13 @@
         "Description": "Handles Tool Definitions for Git Services",
         "RelativePath": "Tools/GitServiceTools.cs",
         "OutputPath": ".temp/GitServiceTools.cs.json"
+      },
+      {
+        "Name": "UtilityTools",
+        "Type": "Tools",
+        "Description": "Handles Tool Definitions for Utility Services",
+        "RelativePath": "Tools/UtilityTools.cs",
+        "OutputPath": ".temp/UtilityTools.cs.json"
       }
     ]
   }

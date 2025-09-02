@@ -161,7 +161,13 @@ The tool returns a dictionary with the following properties:
 
 ## Additional MCP Tools
 
-GitVisionMCP also provides two additional MCP tools for managing environment variables:
+GitVisionMCP also provides three additional MCP tools for managing environment variables and plugins:
+
+### Run Plugin (gv_run_plugin)
+
+- Parameter: `pluginName` (string) - The name of the plugin defined in `.gitvision/config.json`
+- Returns: Dictionary containing success flag, output, and error information
+- Purpose: Execute configured plugins for automation tasks
 
 ### Get Environment Variable (gv_get_environment_variable)
 

@@ -1157,10 +1157,10 @@
           "Name": "templateFilePath",
           "Type": "string",
           "Attributes": [
-            "Description(\"Path to the template file for generated documentation (default: .gitvision/.templates/autodoc.template.sbn)\")"
+            "Description(\"Path to the template file for generated documentation (default: .gitvision/templates/autodoc.template.sbn)\")"
           ],
           "HasDefaultValue": true,
-          "DefaultValue": "\".gitvision/.templates/autodoc.template.sbn\""
+          "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
         },
         {
           "Name": "templateOutputPath",
@@ -1181,5 +1181,5 @@
   "RoutePrefix": "",
   "IsApiController": false,
   "FilePath": "Tools/GitServiceTools.cs",
-  "AnalyzedAt": "2025-08-31T23:42:37.9970906Z"
+  "AnalyzedAt": "2025-09-02T17:23:10.9173889Z"
 }

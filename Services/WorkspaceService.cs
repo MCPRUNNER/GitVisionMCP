@@ -1044,8 +1044,7 @@ public class WorkspaceService : IWorkspaceService
                     {
                         MergeArrayHandling = MergeArrayHandling.Concat
                     });
-                    _logger.LogInformation("Processing json {combinedData}",
-                                           deconstructedData.ToString(Newtonsoft.Json.Formatting.Indented));
+                    //_logger.LogInformation("Processing json {combinedData}",  deconstructedData.ToString(Newtonsoft.Json.Formatting.Indented));
 
                     var templateResult = ProcessScribanFromJsonStringAsync(
                         deconstructedData.ToString(Newtonsoft.Json.Formatting.None),

@@ -550,8 +550,7 @@ public class DeconstructionService : IDeconstructionService
             return parameters;
         }
 
-        // Clean up the parameters string - remove extra whitespace and newlines
-        parametersString = Regex.Replace(parametersString, @"\s+", " ").Trim();
+        parametersString = string.Join(" ", parametersString.Split((char[])null, StringSplitOptions.RemoveEmptyEntries));
 
         // Handle complex parameter parsing with attributes
         var currentParam = new StringBuilder();

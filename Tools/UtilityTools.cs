@@ -163,7 +163,7 @@ public class UtilityTools : IUtilityTools
             var response = new Dictionary<string, object>
             {
                 ["success"] = success,
-                ["stdout"] = success ? stdout : string.Empty,
+                ["stdout"] = stdout,
                 ["stderr"] = stderr,
                 ["exitCode"] = exitCode
             };

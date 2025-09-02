@@ -1,0 +1,3506 @@
+{
+  "deconstructed": [
+    {
+      "ArchitectureModel": "Repository",
+      "Name": "File",
+      "ClassName": "FileRepository",
+      "Namespace": "GitVisionMCP.Repositories",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "Microsoft.Extensions.Logging",
+        "Newtonsoft.Json",
+        "System.Text.RegularExpressions",
+        "GitVisionMCP.Models"
+      ],
+      "ClassAttributes": [],
+      "Actions": [
+        {
+          "Name": "DetermineWorkspaceRoot",
+          "ReturnType": "string",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetWorkspaceRoot",
+          "ReturnType": "string",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetFullPath",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "relativePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "ReadFile",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetAllFiles",
+          "ReturnType": "List<WorkspaceFileInfo>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetAllFilesAsync",
+          "ReturnType": "Task<List<WorkspaceFileInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetAllFilesMatching",
+          "ReturnType": "Task<List<WorkspaceFileInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "searchPattern",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "SaveAllFilesToXml",
+          "ReturnType": "bool",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "xmlFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetFileContentsAsync",
+          "ReturnType": "Task<List<FileContentInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "workspaceFileList",
+              "Type": "List<WorkspaceFileInfo>",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "LoadExcludeConfigurationAsync",
+          "ReturnType": "Task<ExcludeConfiguration?>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "IsPathMatchingPattern",
+          "ReturnType": "bool",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "path",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "pattern",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "IsFileExcludedAsync",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "relativePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Repositories/FileRepository.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.5833968Z"
+    },
+    {
+      "ArchitectureModel": "Repository",
+      "Name": "Git",
+      "ClassName": "GitRepository",
+      "Namespace": "GitVisionMCP.Services",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "LibGit2Sharp",
+        "Microsoft.Extensions.Logging",
+        "GitVisionMCP.Models",
+        "GitVisionMCP.Repositories",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var repo = new Repository(repositoryPath)",
+        "var contentStream = blob.GetContentStream()",
+        "var reader = new StreamReader(contentStream)",
+        "var contentStream = new StreamReader(blob.GetContentStream())"
+      ],
+      "ClassAttributes": [],
+      "Actions": [
+        {
+          "Name": "ReadGitConflictMarkers",
+          "ReturnType": "Task<ConflictResult>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "file",
+              "Type": "FileContentInfo",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "FindAllGitConflictMarkers",
+          "ReturnType": "Task<List<ConflictResult>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "fileList",
+              "Type": "IEnumerable<FileContentInfo>",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetGitLogsAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "maxCommits",
+              "Type": "int",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "50"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetGitLogsBetweenBranchesAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetGitLogsBetweenCommitsAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GenerateCommitDocumentationAsync",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "commits",
+              "Type": "List<GitCommitInfo>",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "format",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"markdown\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "WriteDocumentationToFileAsync",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "content",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetRecentCommitsAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "count",
+              "Type": "int",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "10"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetChangedFilesBetweenCommitsAsync",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetDetailedDiffBetweenCommitsAsync",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "specificFiles",
+              "Type": "List<string>?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetCommitDiffInfoAsync",
+          "ReturnType": "Task<GitCommitDiffInfo>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetFileLineDiffBetweenCommitsAsync",
+          "ReturnType": "Task<FileLineDiffInfo>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetLocalBranchesAsync",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetRemoteBranchesAsync",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetAllBranchesAsync",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetCurrentBranchAsync",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "FetchFromRemoteAsync",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "remoteName",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"origin\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetGitLogsBetweenBranchesWithRemoteAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "fetchRemote",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "SearchCommitsForStringAsync",
+          "ReturnType": "Task<CommitSearchResponse>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "searchString",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "maxCommits",
+              "Type": "int",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "100"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Repositories/GitRepository.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.6415291Z"
+    },
+    {
+      "ArchitectureModel": "Repository",
+      "Name": "Utility",
+      "ClassName": "UtilityRepository",
+      "Namespace": "GitVisionMCP.Repositories",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "System",
+        "System.Collections.Generic",
+        "System.Linq",
+        "System.Reflection",
+        "System.Text",
+        "System.Threading.Tasks",
+        "System.Xml.Linq",
+        "System.Xml.XPath",
+        "System.Collections.Generic",
+        "System.IO",
+        "Newtonsoft.Json",
+        "System.Diagnostics",
+        "GitVisionMCP.Models",
+        "GitVisionMCP.Services",
+        "Microsoft.Extensions.Logging",
+        "var proc = new Process { StartInfo = psi }",
+        "var proc = new Process { StartInfo = psi }",
+        "var proc = new Process { StartInfo = psi }"
+      ],
+      "ClassAttributes": [],
+      "Actions": [
+        {
+          "Name": "GetEnvironmentVariableValue",
+          "ReturnType": "object?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "variableName",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "CreateEnvironmentVariables",
+          "ReturnType": "Dictionary<string, string>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "additionalVariables",
+              "Type": "string>?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "overwriteExisting",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "includeCurrentEnvironment",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "SetEnvironmentVariable",
+          "ReturnType": "bool",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "value",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "target",
+              "Type": "EnvironmentVariableTarget",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "EnvironmentVariableTarget.Process"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetAppVersion",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "projectFile",
+              "Type": "string?",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Repositories/UtilityRepository.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.6805608Z"
+    },
+    {
+      "ArchitectureModel": "Service",
+      "Name": "Deconstruction",
+      "ClassName": "DeconstructionService",
+      "Namespace": "GitVisionMCP.Services",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "Microsoft.Extensions.Logging",
+        "Newtonsoft.Json",
+        "System.Text",
+        "GitVisionMCP.Models",
+        "System.Text.RegularExpressions"
+      ],
+      "ClassAttributes": [],
+      "Actions": [
+        {
+          "Name": "Deconstruct",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "DeconstructToFile",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "outputFileName",
+              "Type": "string?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Services/DeconstructionService.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.7183032Z"
+    },
+    {
+      "ArchitectureModel": "Service",
+      "Name": "File",
+      "ClassName": "FileService",
+      "Namespace": "GitVisionMCP.Services",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "Microsoft.Extensions.Logging",
+        "Newtonsoft.Json",
+        "System.Text.RegularExpressions",
+        "GitVisionMCP.Models",
+        "GitVisionMCP.Repositories"
+      ],
+      "ClassAttributes": [],
+      "Actions": [
+        {
+          "Name": "GetWorkspaceRoot",
+          "ReturnType": "string",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetFullPath",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "relativePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "ReadFile",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetAllFiles",
+          "ReturnType": "List<WorkspaceFileInfo>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetAllFilesAsync",
+          "ReturnType": "Task<List<WorkspaceFileInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetAllFilesMatching",
+          "ReturnType": "Task<List<WorkspaceFileInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "searchPattern",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "SaveAllFilesToXml",
+          "ReturnType": "bool",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "xmlFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetFileContentsAsync",
+          "ReturnType": "Task<List<FileContentInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "workspaceFileList",
+              "Type": "List<WorkspaceFileInfo>",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "IsPathMatchingPattern",
+          "ReturnType": "bool",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "path",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "pattern",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "IsFileExcludedAsync",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "relativePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Services/FileService.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.7571099Z"
+    },
+    {
+      "ArchitectureModel": "Service",
+      "Name": "Git",
+      "ClassName": "GitService",
+      "Namespace": "GitVisionMCP.Services",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "Microsoft.Extensions.Logging",
+        "GitVisionMCP.Models"
+      ],
+      "ClassAttributes": [],
+      "Actions": [
+        {
+          "Name": "ReadGitConflictMarkers",
+          "ReturnType": "Task<ConflictResult>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "file",
+              "Type": "FileContentInfo",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "FindAllGitConflictMarkers",
+          "ReturnType": "Task<List<ConflictResult>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "fileList",
+              "Type": "IEnumerable<FileContentInfo>",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetGitLogsAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "maxCommits",
+              "Type": "int",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "50"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetGitLogsBetweenBranchesAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetGitLogsBetweenCommitsAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GenerateCommitDocumentationAsync",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "commits",
+              "Type": "List<GitCommitInfo>",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "format",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"markdown\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "WriteDocumentationToFileAsync",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "content",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetRecentCommitsAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "count",
+              "Type": "int",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "10"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetChangedFilesBetweenCommitsAsync",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetDetailedDiffBetweenCommitsAsync",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "specificFiles",
+              "Type": "List<string>?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetCommitDiffInfoAsync",
+          "ReturnType": "Task<GitCommitDiffInfo>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetFileLineDiffBetweenCommitsAsync",
+          "ReturnType": "Task<FileLineDiffInfo>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetLocalBranchesAsync",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetRemoteBranchesAsync",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetAllBranchesAsync",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetCurrentBranchAsync",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "FetchFromRemoteAsync",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "remoteName",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"origin\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "GetGitLogsBetweenBranchesWithRemoteAsync",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch1",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch2",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "fetchRemote",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "SearchCommitsForStringAsync",
+          "ReturnType": "Task<CommitSearchResponse>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "repositoryPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "searchString",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "maxCommits",
+              "Type": "int",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "100"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Services/GitService.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.797016Z"
+    },
+    {
+      "ArchitectureModel": "Service",
+      "Name": "Utility",
+      "ClassName": "UtilityService",
+      "Namespace": "GitVisionMCP.Services",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "System",
+        "System.Collections.Generic",
+        "System.Linq",
+        "System.Reflection",
+        "System.Text",
+        "System.Threading.Tasks",
+        "GitVisionMCP.Services",
+        "System",
+        "System.IO",
+        "System.Text.RegularExpressions",
+        "Microsoft.Extensions.Logging",
+        "GitVisionMCP.Repositories"
+      ],
+      "ClassAttributes": [],
+      "Actions": [
+        {
+          "Name": "GetEnvironmentVariableValue",
+          "ReturnType": "object?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "variableName",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GetAppVersion",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "projectFile",
+              "Type": "string?",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Services/UtilityService.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.8350726Z"
+    },
+    {
+      "ArchitectureModel": "Service",
+      "Name": "Workspace",
+      "ClassName": "WorkspaceService",
+      "Namespace": "GitVisionMCP.Services",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "Microsoft.Extensions.Logging",
+        "Newtonsoft.Json",
+        "Newtonsoft.Json.Linq",
+        "System.Xml",
+        "System.Xml.Linq",
+        "System.Xml.XPath",
+        "System.Xml.Xsl",
+        "System.Text.RegularExpressions",
+        "GitVisionMCP.Models",
+        "YamlDotNet.Serialization",
+        "ClosedXML.Excel",
+        "Scriban",
+        "CsvHelper",
+        "CsvHelper.Configuration",
+        "System.Globalization",
+        "Microsoft.AspNetCore.Http",
+        "System.Reflection",
+        "GitVisionMCP.Repositories",
+        "GitVisionMCP.Services",
+        "var reader = new StreamReader(fullCsvPath)",
+        "var csv = new CsvReader(reader, config)",
+        "var stringWriter = new StringWriter()",
+        "var xmlWriter = XmlWriter.Create(stringWriter, xslt.OutputSettings)",
+        "var workbook = new XLWorkbook(fullExcelPath)"
+      ],
+      "ClassAttributes": [],
+      "Actions": [
+        {
+          "Name": "GetGitHubPromptFileContent",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "filename",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "SearchJsonFile",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "jsonFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "indented",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "showKeyPaths",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "false"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "SearchCsvFile",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "csvFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "hasHeaderRecord",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "ignoreBlankLines",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "SearchXmlFile",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "xmlFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "xPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "indented",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "showKeyPaths",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "false"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "TransformXmlWithXslt",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "xmlFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "xsltFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "destinationFilePath",
+              "Type": "string?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "SearchYamlFile",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "yamlFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "indented",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "showKeyPaths",
+              "Type": "bool",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "false"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GenerateAutoDocumentationTempJson",
+          "ReturnType": "List<string>?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "configFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\".gitvision/autodocument.json\""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"$.Documentation\""
+            },
+            {
+              "Name": "templatePath",
+              "Type": "string?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
+            },
+            {
+              "Name": "templateOutputPath",
+              "Type": "string?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"Documentation/autodoc.md\""
+            },
+            {
+              "Name": "deconstructionService",
+              "Type": "IDeconstructionService?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "GenerateAutoDocumentationTempJsonWithTemplate",
+          "ReturnType": "List<string>?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "configFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\".gitvision/autodocument.json\""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"$.Documentation\""
+            },
+            {
+              "Name": "templatePath",
+              "Type": "string?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
+            },
+            {
+              "Name": "templateOutputPath",
+              "Type": "string?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"Documentation/autodoc.md\""
+            },
+            {
+              "Name": "deconstructionService",
+              "Type": "IDeconstructionService?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "SearchExcelFile",
+          "ReturnType": "string?",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "excelFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "ProcessScribanFromJsonStringAsync",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [],
+          "Parameters": [
+            {
+              "Name": "jsonString",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "templateFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "outputFilePath",
+              "Type": "string",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Services/WorkspaceService.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.86697Z"
+    },
+    {
+      "ArchitectureModel": "MCP Tool",
+      "Name": "GitServiceTools",
+      "ClassName": "GitServiceTools",
+      "Namespace": "GitVisionMCP.Tools",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "Microsoft.Extensions.Logging",
+        "ModelContextProtocol.Server",
+        "GitVisionMCP.Services",
+        "GitVisionMCP.Models",
+        "System.ComponentModel",
+        "Microsoft.Extensions.AI",
+        "Newtonsoft.Json",
+        "Newtonsoft.Json.Linq",
+        "YamlDotNet.Core",
+        "GitVisionMCP.Configuration",
+        "var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5))",
+        "var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read)"
+      ],
+      "ClassAttributes": [
+        "McpServerToolType"
+      ],
+      "Actions": [
+        {
+          "Name": "gv_fetch_from_remote",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_fetch_from_remote\")",
+            "Description(\"Fetch latest changes from remote repository\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "remoteName",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Name of the remote (default: origin)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"origin\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_generate_git_commit_report",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_generate_git_commit_report\")",
+            "Description(\"Generate git commit report for current branch\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "maxCommits",
+              "Type": "int?",
+              "Attributes": [
+                "Description(\"Maximum number of commits to include (default: 50)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "outputFormat",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Output format: markdown, html, or text (default: markdown)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"markdown\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_generate_git_commit_report_to_file",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_generate_git_commit_report_to_file\")",
+            "Description(\"Generate git commit report for current branch and write to a file\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path where to save the documentation file\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "maxCommits",
+              "Type": "int?",
+              "Attributes": [
+                "Description(\"Maximum number of commits to include (default: 50)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "outputFormat",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Output format: markdown, html, or text (default: markdown)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"markdown\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerTool(Name = \"Sampling\"), Description(\"Run Sampling chat to process predefined User and System prompts\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "thisServer",
+              "Type": "IMcpServer",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "cancellationToken",
+              "Type": "CancellationToken",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "user_prompt",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"User Prompt\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"Sampling_USR.md\""
+            },
+            {
+              "Name": "system_prompt",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"System Prompt\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"Sampling_SYS.md\""
+            },
+            {
+              "Name": "model",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Model\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"gpt-4.1\""
+            },
+            {
+              "Name": "maxTokens",
+              "Type": "int",
+              "Attributes": [
+                "Description(\"Maximum number of tokens to generate\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "1000"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_compare_branches_documentation",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_compare_branches_documentation\")",
+            "Description(\"Generate documentation comparing differences between two branches\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "branch1",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"First branch name\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch2",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Second branch name\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path where to save the documentation file\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "outputFormat",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Output format: markdown, html, or text (default: markdown)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"markdown\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_compare_branches_with_remote_documentation",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_compare_branches_with_remote_documentation\")",
+            "Description(\"Generate documentation comparing differences between two branches with remote support\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "branch1",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"First branch name (can be local or remote, e.g., 'main' or 'origin/main')\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "branch2",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Second branch name (can be local or remote, e.g., 'feature/xyz' or 'origin/feature/xyz')\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path where to save the documentation file\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "fetchRemote",
+              "Type": "bool",
+              "Attributes": [
+                "Description(\"Whether to fetch from remote before comparison (default: true)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "outputFormat",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Output format: markdown, html, or text (default: markdown)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"markdown\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_compare_commits_documentation",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_compare_commits_documentation\")",
+            "Description(\"Generate documentation comparing differences between two commits\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"First commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Second commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path where to save the documentation file\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "outputFormat",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Output format: markdown, html, or text (default: markdown)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"markdown\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_recent_commits",
+          "ReturnType": "Task<List<GitCommitInfo>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_recent_commits\")",
+            "Description(\"Get recent commits from the current repository\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "maxCommits",
+              "Type": "int?",
+              "Attributes": [
+                "Description(\"Number of recent commits to retrieve (default: 10)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_local_branches",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_local_branches\")",
+            "Description(\"Get list of local branches in the repository\")"
+          ],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_remote_branches",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_remote_branches\")",
+            "Description(\"Get list of remote branches in the repository\")"
+          ],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_all_branches",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_all_branches\")",
+            "Description(\"Get list of all branches (local and remote) in the repository\")"
+          ],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_current_branch",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_current_branch\")",
+            "Description(\"Get the current active branch in the repository\")"
+          ],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_changed_files_between_commits",
+          "ReturnType": "Task<List<string>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_changed_files_between_commits\")",
+            "Description(\"Get list of files changed between two commits\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"First commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Second commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_commit_diff_info",
+          "ReturnType": "Task<GitCommitDiffInfo>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_commit_diff_info\")",
+            "Description(\"Get comprehensive diff information between two commits including file changes and statistics\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"First commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Second commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_detailed_diff_between_commits",
+          "ReturnType": "Task<string>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_detailed_diff_between_commits\")",
+            "Description(\"Get detailed diff content between two commits\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"First commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Second commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "specificFiles",
+              "Type": "List<string>?",
+              "Attributes": [
+                "Description(\"Optional: specific files to diff\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_search_commits_for_string",
+          "ReturnType": "Task<CommitSearchResponse>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_search_commits_for_string\")",
+            "Description(\"Search all commits for a specific string and return commit details, filenames, and line matches\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "searchString",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The string to search for in commit messages and file contents\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "maxCommits",
+              "Type": "int?",
+              "Attributes": [
+                "Description(\"Maximum number of commits to search through (default: 100)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_file_line_diff_between_commits",
+          "ReturnType": "Task<FileLineDiffInfo>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_file_line_diff_between_commits\")",
+            "Description(\"Get line-by-line file diff between two commits\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "commit1",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"First commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "commit2",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Second commit hash\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the file to diff\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_list_workspace_files",
+          "ReturnType": "Task<List<WorkspaceFileInfo>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_list_workspace_files\")",
+            "Description(\"List all files in the workspace with optional filtering\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "fileType",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by file type (extension without dot, e.g., 'cs', 'json')\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "relativePath",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by relative path (contains search)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "fullPath",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by full path (contains search)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "lastModifiedAfter",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by last modified date (ISO format: yyyy-MM-dd)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "lastModifiedBefore",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by last modified date (ISO format: yyyy-MM-dd)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_list_workspace_files_with_cached_data",
+          "ReturnType": "Task<List<WorkspaceFileInfo>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_list_workspace_files_with_cached_data\")",
+            "Description(\"List workspace files with optional filtering using pre-fetched file data to improve performance\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "cachedFiles",
+              "Type": "List<WorkspaceFileInfo>",
+              "Attributes": [],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "fileType",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by file type (extension without dot, e.g., 'cs', 'json')\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "relativePath",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by relative path (contains search)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "fullPath",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by full path (contains search)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "lastModifiedAfter",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by last modified date (ISO format: yyyy-MM-dd)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "lastModifiedBefore",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Filter by last modified date (ISO format: yyyy-MM-dd)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_git_find_merge_conflicts",
+          "ReturnType": "Task<List<ConflictResult>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_git_find_merge_conflicts\")",
+            "Description(\"Search for Git merge conflicts in source code\")"
+          ],
+          "Parameters": [],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_search_json_file",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_search_json_file\")",
+            "Description(\"Search for JSON values in a JSON file using JSONPath\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "jsonFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the JSON file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"JSONPath query string (e.g., '$.users[*"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "indented",
+              "Type": "bool?",
+              "Attributes": [
+                "Description(\"Whether to format the output with indentation (default: true)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "showKeyPaths",
+              "Type": "bool?",
+              "Attributes": [
+                "Description(\"Whether to return structured results with path, value, and key information (default: false)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "false"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_search_xml_file",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_search_xml_file\")",
+            "Description(\"Search for XML values in an XML file using XPath\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "xmlFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the XML file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "xPath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"XPath query string (e.g., '//users/user/@email', '/configuration/database/host')\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "indented",
+              "Type": "bool?",
+              "Attributes": [
+                "Description(\"Whether to format the output with indentation (default: true)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "showKeyPaths",
+              "Type": "bool?",
+              "Attributes": [
+                "Description(\"Whether to return structured results with path, value, and key information (default: false)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "false"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_transform_xml_with_xslt",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_transform_xml_with_xslt\")",
+            "Description(\"Transform an XML file using an XSLT stylesheet\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "xmlFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the XML file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "xsltFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the XSLT stylesheet file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "destinationFilePath",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Optional path to save the transformed XML to a file\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_search_csv_file",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_search_csv_file\")",
+            "Description(\"Search for CSV values in a CSV file using JSONPath\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "csvFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the CSV file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"JSONPath query string (e.g., '$.users[*"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "hasHeaderRecord",
+              "Type": "bool?",
+              "Attributes": [
+                "Description(\"Whether the CSV has headers (default: true)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "ignoreBlankLines",
+              "Type": "bool?",
+              "Attributes": [
+                "Description(\"Whether to ignore blank lines (default: false)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_search_excel_file",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_search_excel_file\")",
+            "Description(\"Search for values in an Excel (.xlsx) file using JSONPath. Processes all worksheets and returns results for each.\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "excelFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the Excel file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"JSONPath query string (e.g., '$[*"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_run_sbn_template",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_run_sbn_template\")",
+            "Description(\"Run a Scriban, Jinja or Jinja2 template with provided input data\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "templateFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the Scriban (Jinja or Jinja2) Template file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonData",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"JSON input string data for the template\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "outputFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the output file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_search_yaml_file",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_search_yaml_file\")",
+            "Description(\"Search for YAML values in a YAML file using JSONPath\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "yamlFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the YAML file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"JSONPath query string (e.g., '$.users[*"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "indented",
+              "Type": "bool?",
+              "Attributes": [
+                "Description(\"Whether to format the output with indentation (default: true)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "true"
+            },
+            {
+              "Name": "showKeyPaths",
+              "Type": "bool?",
+              "Attributes": [
+                "Description(\"Whether to return structured results with path, value, and key information (default: false)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "false"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_deconstruct_to_file",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_deconstruct_to_file\")",
+            "Description(\"Deconstruct a C# Service, Repository or Controller file and returns its structure as JSON\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the c# file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_deconstruct_to_json",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_deconstruct_to_json\")",
+            "Description(\"Deconstruct a C# Service, Repository or Controller file and saves the structure to a JSON file in the workspace directory\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "filePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the source file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "outputFileName",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"The name of the output JSON file (optional, defaults to controller name + '_analysis.json')\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_get_app_version",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_app_version\")",
+            "Description(\"Extract application version from a project file (e.g., .csproj)\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "projectFile",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"The path to the project file relative to workspace root\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_generate_autodoc",
+          "ReturnType": "Task<List<string>?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_generate_autodoc\")",
+            "Description(\"Generate JSON documentation files for C# source files defined in autodocument.json\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "configFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the autodocument.json config file (default: .gitvision/autodocument.json)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\".gitvision/autodocument.json\""
+            },
+            {
+              "Name": "jsonPath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"JSONPath to locate file mappings (default: $.Documentation)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"$.Documentation\""
+            },
+            {
+              "Name": "templateFilePath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the template file for generated documentation (default: .gitvision/templates/autodoc.template.sbn)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
+            },
+            {
+              "Name": "templateOutputPath",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"Path to the output file for generated documentation (default: Documentation/autodoc.md)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "\"Documentation/autodoc.md\""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Tools/GitServiceTools.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.9173889Z"
+    },
+    {
+      "ArchitectureModel": "MCP Tool",
+      "Name": "UtilityTools",
+      "ClassName": "UtilityTools",
+      "Namespace": "GitVisionMCP.Tools",
+      "BaseClass": "",
+      "Interfaces": [
+        "I"
+      ],
+      "UsingDirectives": [
+        "Microsoft.Extensions.Logging",
+        "ModelContextProtocol.Server",
+        "GitVisionMCP.Services",
+        "GitVisionMCP.Models",
+        "GitVisionMCP.Repositories",
+        "System.ComponentModel",
+        "Newtonsoft.Json",
+        "Newtonsoft.Json.Linq"
+      ],
+      "ClassAttributes": [
+        "McpServerToolType"
+      ],
+      "Actions": [
+        {
+          "Name": "gv_run_plugin",
+          "ReturnType": "Task<Dictionary<string, object>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_run_plugin\")",
+            "Description(\"Run a plugin and capture its output\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "pluginName",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"Name of plugin\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_run_process",
+          "ReturnType": "Task<Dictionary<string, object>>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_run_process\")",
+            "Description(\"Run an external process and capture its output\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "workingDirectory",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"The working directory for the process\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "fileName",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The name or path of the process to run\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "arguments",
+              "Type": "string?",
+              "Attributes": [
+                "Description(\"The command line arguments to pass to the process\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            },
+            {
+              "Name": "timeoutMs",
+              "Type": "int?",
+              "Attributes": [
+                "Description(\"The timeout in milliseconds (default: 60000)\")"
+              ],
+              "HasDefaultValue": true,
+              "DefaultValue": "60000"
+            },
+            {
+              "Name": "environmentVariables",
+              "Type": "string>?",
+              "Attributes": [],
+              "HasDefaultValue": true,
+              "DefaultValue": "null"
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": true
+        },
+        {
+          "Name": "gv_get_environment_variable",
+          "ReturnType": "Task<string?>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_get_environment_variable\")",
+            "Description(\"Get the value of an environment variable\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "variableName",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The name of the environment variable\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        },
+        {
+          "Name": "gv_set_environment_variable",
+          "ReturnType": "Task<bool>",
+          "Accessibility": "public",
+          "Attributes": [
+            "McpServerToolAttribute(Name = \"gv_set_environment_variable\")",
+            "Description(\"Set an environment variable for the current process\")"
+          ],
+          "Parameters": [
+            {
+              "Name": "name",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The name of the environment variable\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            },
+            {
+              "Name": "value",
+              "Type": "string",
+              "Attributes": [
+                "Description(\"The value to set\")"
+              ],
+              "HasDefaultValue": false,
+              "DefaultValue": ""
+            }
+          ],
+          "HttpMethod": "",
+          "Route": "",
+          "IsAsync": false
+        }
+      ],
+      "Properties": [],
+      "RoutePrefix": "",
+      "IsApiController": false,
+      "FilePath": "Tools/UtilityTools.cs",
+      "AnalyzedAt": "2025-09-02T17:23:10.9659327Z"
+    }
+  ]
+}

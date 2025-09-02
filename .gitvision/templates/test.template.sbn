@@ -1,0 +1,19 @@
+# TEST TEMPLATE
+This is a test - if you see this, the template system is working!
+
+Data count: {{ deconstructed.size }}
+
+{{- for item in deconstructed }}
+{{ item.ClassName }} has {{ item.Actions.size }} actions
+{{- end }}
+
+FILTERS WORKING TEST:
+{{- for item in deconstructed }}
+Class: {{ item.ClassName }}
+Methods with params:
+{{- for method in item.Actions }}
+{{- if method.Parameters.size > 0 }}
+  - {{ method.Name }} ({{ method.Parameters.size }} params)
+{{- end }}
+{{- end }}
+{{- end }}

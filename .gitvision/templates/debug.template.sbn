@@ -1,0 +1,21 @@
+# DEBUG TEMPLATE
+
+## Test Data
+{{- for item in deconstructed }}
+Class: {{ item.ClassName }}
+Total Actions: {{ item.Actions.size }}
+{{- for method in item.Actions }}
+  Method: {{ method.Name }} - Accessibility: {{ method.Accessibility }} - Params: {{ method.Parameters.size }}
+{{- end }}
+{{- end }}
+
+## Filtered Methods Test
+{{- for item in deconstructed }}
+Class: {{ item.ClassName }}
+Methods with params:
+{{- for method in item.Actions }}
+{{- if method.Accessibility == "public" && method.Parameters.size > 0 }}
+  - {{ method.Name }} ({{ method.Parameters.size }} params)
+{{- end }}
+{{- end }}
+{{- end }}

@@ -156,7 +156,7 @@ After configuring the mcp.json file, restart VS Code to load the new MCP configu
 
 ## Available Docker MCP Tools
 
-GitVisionMCP in Docker provides 30+ tools for comprehensive git analysis and file operations:
+GitVisionMCP in Docker provides 35+ tools for comprehensive git analysis and file operations:
 
 ### Documentation Tools
 
@@ -204,6 +204,10 @@ GitVisionMCP in Docker provides 30+ tools for comprehensive git analysis and fil
 ### Utility Tools
 
 - `gv_get_app_version` - Extract application version from project file
+- `gv_run_process` - Run an external process and capture its output
+- `gv_run_plugin` - Run a plugin and capture its output
+- `gv_get_environment_variable` - Get the value of an environment variable
+- `gv_set_environment_variable` - Set an environment variable for the current process
 
 ## Troubleshooting
 

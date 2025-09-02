@@ -1,0 +1,138 @@
+﻿{
+  "ArchitectureModel": "Repository",
+  "Name": "Utility",
+  "ClassName": "UtilityRepository",
+  "Namespace": "GitVisionMCP.Repositories",
+  "BaseClass": "",
+  "Interfaces": [
+    "I"
+  ],
+  "UsingDirectives": [
+    "System",
+    "System.Collections.Generic",
+    "System.Linq",
+    "System.Reflection",
+    "System.Text",
+    "System.Threading.Tasks",
+    "System.Xml.Linq",
+    "System.Xml.XPath",
+    "System.Collections.Generic",
+    "System.IO",
+    "Newtonsoft.Json",
+    "System.Diagnostics",
+    "GitVisionMCP.Models",
+    "GitVisionMCP.Services",
+    "Microsoft.Extensions.Logging",
+    "var proc = new Process { StartInfo = psi }",
+    "var proc = new Process { StartInfo = psi }",
+    "var proc = new Process { StartInfo = psi }"
+  ],
+  "ClassAttributes": [],
+  "Actions": [
+    {
+      "Name": "GetEnvironmentVariableValue",
+      "ReturnType": "object?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "variableName",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "CreateEnvironmentVariables",
+      "ReturnType": "Dictionary<string, string>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "additionalVariables",
+          "Type": "string>?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        },
+        {
+          "Name": "overwriteExisting",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        },
+        {
+          "Name": "includeCurrentEnvironment",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "SetEnvironmentVariable",
+      "ReturnType": "bool",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "name",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "value",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "target",
+          "Type": "EnvironmentVariableTarget",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "EnvironmentVariableTarget.Process"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GetAppVersion",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "projectFile",
+          "Type": "string?",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    }
+  ],
+  "Properties": [],
+  "RoutePrefix": "",
+  "IsApiController": false,
+  "FilePath": "Repositories/UtilityRepository.cs",
+  "AnalyzedAt": "2025-09-02T17:23:10.6805608Z"
+}

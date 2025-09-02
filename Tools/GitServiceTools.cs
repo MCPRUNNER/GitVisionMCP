@@ -1637,6 +1637,42 @@ public class GitServiceTools : IGitServiceTools
         }
     }
 
+    [McpServerToolAttribute(Name = "gv_generate_autodoc")]
+    [Description("Generate JSON documentation files for C# source files defined in autodocument.json")]
+    public Task<List<string>?> GenerateAutoDocumentationJsonAsync(
+        [Description("Path to the autodocument.json config file (default: .gitvision/autodocument.json)")] string configFilePath = ".gitvision/autodocument.json",
+        [Description("JSONPath to locate file mappings (default: $.Documentation)")] string jsonPath = "$.Documentation",
+        [Description("Path to the template file for generated documentation (default: .gitvision/templates/autodoc.template.sbn)")] string templateFilePath = ".gitvision/templates/autodoc.template.sbn",
+        [Description("Path to the output file for generated documentation (default: Documentation/autodoc.md)")] string templateOutputPath = "Documentation/autodoc.md"
+        )
+    {
+        try
+        {
+            _logger.LogInformation("Generating auto-documentation JSON files from config: {ConfigFilePath}", configFilePath);
+
+            var result = _workspaceService.GenerateAutoDocumentationTempJson(
+                configFilePath: configFilePath,
+                jsonPath: jsonPath,
+                templatePath: templateFilePath,
+                templateOutputPath: templateOutputPath,
+                deconstructionService: _deconstructionService);
+
+            if (result == null)
+            {
+                _logger.LogWarning("Failed to generate auto-documentation JSON files");
+                return Task.FromResult<List<string>?>(null);
+            }
+
+            _logger.LogInformation("Successfully generated {Count} auto-documentation JSON files", result.Count);
+            return Task.FromResult<List<string>?>(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating auto-documentation JSON files: {Message}", ex.Message);
+            throw new InvalidOperationException($"Failed to generate auto-documentation: {ex.Message}", ex);
+        }
+    }
+
     private bool IsBinaryFile(string filePath)
     {
         try

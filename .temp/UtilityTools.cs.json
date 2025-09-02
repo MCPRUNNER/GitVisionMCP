@@ -1,0 +1,165 @@
+﻿{
+  "ArchitectureModel": "MCP Tool",
+  "Name": "UtilityTools",
+  "ClassName": "UtilityTools",
+  "Namespace": "GitVisionMCP.Tools",
+  "BaseClass": "",
+  "Interfaces": [
+    "I"
+  ],
+  "UsingDirectives": [
+    "Microsoft.Extensions.Logging",
+    "ModelContextProtocol.Server",
+    "GitVisionMCP.Services",
+    "GitVisionMCP.Models",
+    "GitVisionMCP.Repositories",
+    "System.ComponentModel",
+    "Newtonsoft.Json",
+    "Newtonsoft.Json.Linq"
+  ],
+  "ClassAttributes": [
+    "McpServerToolType"
+  ],
+  "Actions": [
+    {
+      "Name": "gv_run_plugin",
+      "ReturnType": "Task<Dictionary<string, object>>",
+      "Accessibility": "public",
+      "Attributes": [
+        "McpServerToolAttribute(Name = \"gv_run_plugin\")",
+        "Description(\"Run a plugin and capture its output\")"
+      ],
+      "Parameters": [
+        {
+          "Name": "pluginName",
+          "Type": "string?",
+          "Attributes": [
+            "Description(\"Name of plugin\")"
+          ],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "gv_run_process",
+      "ReturnType": "Task<Dictionary<string, object>>",
+      "Accessibility": "public",
+      "Attributes": [
+        "McpServerToolAttribute(Name = \"gv_run_process\")",
+        "Description(\"Run an external process and capture its output\")"
+      ],
+      "Parameters": [
+        {
+          "Name": "workingDirectory",
+          "Type": "string?",
+          "Attributes": [
+            "Description(\"The working directory for the process\")"
+          ],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "fileName",
+          "Type": "string",
+          "Attributes": [
+            "Description(\"The name or path of the process to run\")"
+          ],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "arguments",
+          "Type": "string?",
+          "Attributes": [
+            "Description(\"The command line arguments to pass to the process\")"
+          ],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        },
+        {
+          "Name": "timeoutMs",
+          "Type": "int?",
+          "Attributes": [
+            "Description(\"The timeout in milliseconds (default: 60000)\")"
+          ],
+          "HasDefaultValue": true,
+          "DefaultValue": "60000"
+        },
+        {
+          "Name": "environmentVariables",
+          "Type": "string>?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "gv_get_environment_variable",
+      "ReturnType": "Task<string?>",
+      "Accessibility": "public",
+      "Attributes": [
+        "McpServerToolAttribute(Name = \"gv_get_environment_variable\")",
+        "Description(\"Get the value of an environment variable\")"
+      ],
+      "Parameters": [
+        {
+          "Name": "variableName",
+          "Type": "string",
+          "Attributes": [
+            "Description(\"The name of the environment variable\")"
+          ],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "gv_set_environment_variable",
+      "ReturnType": "Task<bool>",
+      "Accessibility": "public",
+      "Attributes": [
+        "McpServerToolAttribute(Name = \"gv_set_environment_variable\")",
+        "Description(\"Set an environment variable for the current process\")"
+      ],
+      "Parameters": [
+        {
+          "Name": "name",
+          "Type": "string",
+          "Attributes": [
+            "Description(\"The name of the environment variable\")"
+          ],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "value",
+          "Type": "string",
+          "Attributes": [
+            "Description(\"The value to set\")"
+          ],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    }
+  ],
+  "Properties": [],
+  "RoutePrefix": "",
+  "IsApiController": false,
+  "FilePath": "Tools/UtilityTools.cs",
+  "AnalyzedAt": "2025-09-02T17:23:10.9659327Z"
+}

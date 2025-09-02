@@ -1,32 +1,61 @@
 {
-    "Project": {
-        "Name": "GitVisionMCP",
-        "RelativePath": "GitVisionMCP.csproj",
-        "Version": "1.0.9.0"
+  "Project": {
+    "Name": "GitVisionMCP",
+    "RelativePath": "GitVisionMCP.csproj",
+    "Version": "1.0.9.1"
+  },
+  "Settings": {
+    "maxCommits": 200,
+    "maxFiles": 500,
+    "maxFileSize": 1048576
+  },
+  "Git": {
+    "Release": "origin/GitVisionMCP-Release-1.0.9",
+    "Master": "origin/master"
+  },
+  "Plugins": [
+    {
+      "Name": "pluginDemo",
+      "WorkingDirectory": ".gitvision/plugins/pluginDemo",
+      "Executable": ".gitvision/plugins/pluginDemo/pluginDemo.exe",
+      "Arguments": {
+        "/C": "",
+        "/File": "<file_path>",
+        "/args": "first second third"
+      },
+      "Enabled": true,
+      "timeoutMilliseconds": 60000,
+      "Environment": {
+        "Option1": "Value1",
+        "Option2": "Value2"
+      }
     },
-    "Settings": {
-        "maxCommits": 200,
-        "maxFiles": 500,
-        "maxFileSize": 1048576
-    },
-    "Git": {
-        "Release": "origin/GitVisionMCP-Release-1.0.9",
-        "Master": "origin/master"
-    },
-     
-    "Kestrel": {
-        "Endpoints": {
-            "Http": {
-                "Url": "http://localhost:5000/mcp"
-            },
-            "Https": {
-                "Url": "https://localhost:5001/mcp"
-            }
-        },
-        "Limits": {
-            "MaxRequestBodySize": 10485760,
-            "MaxConcurrentConnections": 100,
-            "RequestHeadersTimeout": "00:01:00"
-        }
+    {
+      "Name": "pluginDemo2",
+      "WorkingDirectory": ".gitvision/plugins/pluginDemo",
+      "Executable": ".gitvision/plugins/pluginDemo/pluginDemo.exe",
+      "Enabled": false,
+      "timeoutMilliseconds": 60000,
+      "Environment": {
+        "Option1": "Value1",
+        "Option2": "Value2"
+      }
     }
+  ],
+
+  "Kestrel": {
+    "Endpoints": {
+      "Http": {
+        "Url": "http://localhost:5000/mcp"
+      },
+      "Https": {
+        "Url": "https://localhost:5001/mcp"
+      }
+    },
+    "Limits": {
+      "MaxRequestBodySize": 10485760,
+      "MaxConcurrentConnections": 100,
+      "RequestHeadersTimeout": "00:01:00"
+    }
+  }
 }

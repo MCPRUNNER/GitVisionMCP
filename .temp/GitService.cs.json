@@ -1,0 +1,532 @@
+﻿{
+  "ArchitectureModel": "Service",
+  "Name": "Git",
+  "ClassName": "GitService",
+  "Namespace": "GitVisionMCP.Services",
+  "BaseClass": "",
+  "Interfaces": [
+    "I"
+  ],
+  "UsingDirectives": [
+    "Microsoft.Extensions.Logging",
+    "GitVisionMCP.Models"
+  ],
+  "ClassAttributes": [],
+  "Actions": [
+    {
+      "Name": "ReadGitConflictMarkers",
+      "ReturnType": "Task<ConflictResult>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "file",
+          "Type": "FileContentInfo",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "FindAllGitConflictMarkers",
+      "ReturnType": "Task<List<ConflictResult>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "fileList",
+          "Type": "IEnumerable<FileContentInfo>",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetGitLogsAsync",
+      "ReturnType": "Task<List<GitCommitInfo>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "maxCommits",
+          "Type": "int",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "50"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetGitLogsBetweenBranchesAsync",
+      "ReturnType": "Task<List<GitCommitInfo>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "branch1",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "branch2",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetGitLogsBetweenCommitsAsync",
+      "ReturnType": "Task<List<GitCommitInfo>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit1",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit2",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GenerateCommitDocumentationAsync",
+      "ReturnType": "Task<string>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "commits",
+          "Type": "List<GitCommitInfo>",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "format",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\"markdown\""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "WriteDocumentationToFileAsync",
+      "ReturnType": "Task<bool>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "content",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "filePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetRecentCommitsAsync",
+      "ReturnType": "Task<List<GitCommitInfo>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "count",
+          "Type": "int",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "10"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetChangedFilesBetweenCommitsAsync",
+      "ReturnType": "Task<List<string>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit1",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit2",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetDetailedDiffBetweenCommitsAsync",
+      "ReturnType": "Task<string>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit1",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit2",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "specificFiles",
+          "Type": "List<string>?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetCommitDiffInfoAsync",
+      "ReturnType": "Task<GitCommitDiffInfo>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit1",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit2",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetFileLineDiffBetweenCommitsAsync",
+      "ReturnType": "Task<FileLineDiffInfo>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit1",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "commit2",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "filePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GetLocalBranchesAsync",
+      "ReturnType": "Task<List<string>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetRemoteBranchesAsync",
+      "ReturnType": "Task<List<string>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetAllBranchesAsync",
+      "ReturnType": "Task<List<string>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetCurrentBranchAsync",
+      "ReturnType": "Task<string>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "FetchFromRemoteAsync",
+      "ReturnType": "Task<bool>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "remoteName",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\"origin\""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "GetGitLogsBetweenBranchesWithRemoteAsync",
+      "ReturnType": "Task<List<GitCommitInfo>>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "branch1",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "branch2",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "fetchRemote",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    },
+    {
+      "Name": "SearchCommitsForStringAsync",
+      "ReturnType": "Task<CommitSearchResponse>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "repositoryPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "searchString",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "maxCommits",
+          "Type": "int",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "100"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    }
+  ],
+  "Properties": [],
+  "RoutePrefix": "",
+  "IsApiController": false,
+  "FilePath": "Services/GitService.cs",
+  "AnalyzedAt": "2025-09-02T17:23:10.797016Z"
+}

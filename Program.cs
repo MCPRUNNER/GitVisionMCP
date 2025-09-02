@@ -62,6 +62,7 @@ if (transportType.Equals("Http", StringComparison.OrdinalIgnoreCase))
     Log.Information("Using HTTP transport for GitVision MCP server.");
     builder.Services.AddMcpServer().WithHttpTransport()
         .WithTools<GitServiceTools>()
+        .WithTools<UtilityTools>()
         .WithPrompts<ReleaseDocumentPrompts>();
 }
 else if (transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
@@ -69,6 +70,7 @@ else if (transportType.Equals("Stdio", StringComparison.OrdinalIgnoreCase))
     Log.Information("Using Stdio transport for GitVision MCP server.");
     builder.Services.AddMcpServer().WithStdioServerTransport()
         .WithTools<GitServiceTools>()
+        .WithTools<UtilityTools>()
         .WithPrompts<ReleaseDocumentPrompts>();
 }
 else
@@ -76,6 +78,7 @@ else
     Log.Error($"Invalid GITVISION_MCP_TRANSPORT: {transportType}. Defaulting to Stdio transport.");
     builder.Services.AddMcpServer().WithStdioServerTransport()
         .WithTools<GitServiceTools>()
+        .WithTools<UtilityTools>()
         .WithPrompts<ReleaseDocumentPrompts>();
 }
 
@@ -92,6 +95,7 @@ builder.Services.AddSingleton<IGitService, GitService>();
 builder.Services.AddSingleton<IDeconstructionService, DeconstructionService>();
 
 builder.Services.AddTransient<IGitServiceTools, GitServiceTools>();
+builder.Services.AddTransient<IUtilityTools, UtilityTools>();
 // Provide IGitVisionConfig from the loaded configuration so tools depending on it can be constructed
 // Register a reloadable IGitVisionConfig so we can update it when the file changes
 builder.Services.AddSingleton<GitVisionMCP.Models.ReloadableGitVisionConfig>(sp =>

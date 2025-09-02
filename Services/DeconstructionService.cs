@@ -265,6 +265,14 @@ public class DeconstructionService : IDeconstructionService
                         structure.Name = structure.ClassName[..^"Repository".Length];
                         structure.ArchitectureModel = "Repository";
                         break;
+                    case string s when s.EndsWith("Tools", StringComparison.OrdinalIgnoreCase):
+                        structure.Name = structure.ClassName;
+                        structure.ArchitectureModel = "MCP Tool";
+                        break;
+                    case string s when s.EndsWith("Tool", StringComparison.OrdinalIgnoreCase):
+                        structure.Name = structure.ClassName;
+                        structure.ArchitectureModel = "MCP Tool";
+                        break;
                     default:
                         structure.Name = structure.ClassName;
                         structure.ArchitectureModel = "Unknown";
@@ -323,8 +331,8 @@ public class DeconstructionService : IDeconstructionService
     /// </summary>
     private void ExtractActionsAndProperties(string fileContent, DeconstructorModel structure)
     {
-        // Method pattern for public methods (potential actions)
-        var methodRegex = new Regex(@"^\s*(?:\[.*?\]\s*)*\s*(public|protected|private|internal)\s+(?:(async)\s+)?(?:(virtual|override|new)\s+)?(\w+(?:<[^>]+>)?(?:\[\])?)\s+(\w+)\s*\((.*?)\)\s*{?",
+        // Method pattern with simpler but more reliable approach
+        var methodRegex = new Regex(@"(public|protected|private|internal)\s+(?:(async)\s+)?(?:(virtual|override|new)\s+)?([A-Za-z_][A-Za-z0-9_<>\[\]?,\s]*)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(([^{]*?)\)\s*(?:{|$)",
             RegexOptions.Multiline | RegexOptions.Singleline);
 
         // Property pattern
@@ -346,17 +354,29 @@ public class DeconstructionService : IDeconstructionService
                 continue;
             }
 
-            // Check for methods
-            var methodMatch = methodRegex.Match(line);
-            if (methodMatch.Success)
+            // Check if this line starts a method signature
+            if (Regex.IsMatch(line, @"^\s*(public|protected|private|internal)\s+"))
             {
-                var action = ParseAction(methodMatch, currentAttributes);
-                if (IsControllerAction(action))
+                // Collect multi-line method signature
+                var methodBlock = CollectMultiLineMethodSignature(lines, i);
+                if (!string.IsNullOrEmpty(methodBlock))
                 {
-                    structure.Actions.Add(action);
+                    var methodMatch = methodRegex.Match(methodBlock);
+                    if (methodMatch.Success)
+                    {
+                        var action = ParseAction(methodMatch, currentAttributes);
+                        if (action != null && IsControllerAction(action))
+                        {
+                            structure.Actions.Add(action);
+                        }
+                        currentAttributes.Clear();
+
+                        // Skip lines that were part of this method signature
+                        var methodLines = methodBlock.Split('\n').Length;
+                        i += methodLines - 1;
+                        continue;
+                    }
                 }
-                currentAttributes.Clear();
-                continue;
             }
 
             // Check for properties
@@ -370,7 +390,7 @@ public class DeconstructionService : IDeconstructionService
             }
 
             // If line doesn't match any pattern, clear accumulated attributes
-            if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("//"))
+            if (!string.IsNullOrWhiteSpace(line) && !line.StartsWith("//") && !line.StartsWith("{") && !line.StartsWith("}"))
             {
                 currentAttributes.Clear();
             }
@@ -378,23 +398,76 @@ public class DeconstructionService : IDeconstructionService
     }
 
     /// <summary>
+    /// Collects a multi-line method signature from the current position
+    /// </summary>
+    private string CollectMultiLineMethodSignature(string[] lines, int startIndex)
+    {
+        var methodSignature = new StringBuilder();
+        var foundOpenParen = false;
+        var foundCloseParen = false;
+
+        for (var i = startIndex; i < lines.Length; i++)
+        {
+            var line = lines[i].Trim();
+
+            // Skip empty lines and comments
+            if (string.IsNullOrWhiteSpace(line) || line.StartsWith("//"))
+                continue;
+
+            methodSignature.AppendLine(line);
+
+            // Track parentheses for parameter list
+            if (line.Contains('('))
+                foundOpenParen = true;
+
+            if (foundOpenParen && line.Contains(')'))
+                foundCloseParen = true;
+
+            // If we found the complete parameter list and a opening brace or end of signature
+            if (foundCloseParen && (line.Contains('{') || line.EndsWith(";")))
+            {
+                break;
+            }
+
+            // Safety check - don't go beyond reasonable method signature length
+            if (i - startIndex > 20)
+                break;
+        }
+
+        return methodSignature.ToString();
+    }
+
+    /// <summary>
     /// Parses a method into a DeconstructorActionModel
     /// </summary>
-    private DeconstructorActionModel ParseAction(Match methodMatch, List<string> attributes)
+    private DeconstructorActionModel? ParseAction(Match methodMatch, List<string> attributes)
     {
+        var methodName = methodMatch.Groups[5].Value;
+        var returnType = methodMatch.Groups[4].Value.Trim();
+
+        // Skip if this looks like a constructor or malformed entry
+        if (returnType.Contains("class ") || returnType.Contains("{") || returnType.Contains("private readonly"))
+        {
+            return null;
+        }
+
         var action = new DeconstructorActionModel
         {
             Accessibility = methodMatch.Groups[1].Value,
             IsAsync = !string.IsNullOrEmpty(methodMatch.Groups[2].Value),
-            ReturnType = methodMatch.Groups[4].Value,
-            Name = methodMatch.Groups[5].Value,
+            ReturnType = returnType,
+            Name = methodName,
             Attributes = new List<string>(attributes)
         };
 
         // Extract HTTP method and route from attributes
         foreach (var attr in attributes)
         {
-            if (attr.StartsWith("Http"))
+            if (attr.StartsWith("McpServerTool"))
+            {
+                action.Name = ExtractToolNameFromAttribute(attr);
+            }
+            else if (attr.StartsWith("Http"))
             {
                 action.HttpMethod = ExtractHttpMethod(attr);
                 action.Route = ExtractRouteFromHttpAttribute(attr);
@@ -413,10 +486,19 @@ public class DeconstructionService : IDeconstructionService
     }
 
     /// <summary>
-    /// Determines if a method is likely a controller action
+    /// Determines if a method is likely a controller action or MCP tool
     /// </summary>
     private bool IsControllerAction(DeconstructorActionModel action)
     {
+        // Check if it's an MCP tool method (has McpServerToolAttribute)
+        var isMcpTool = action.Attributes.Any(attr =>
+            attr.StartsWith("McpServerToolAttribute") || attr.StartsWith("McpServerTool"));
+
+        if (isMcpTool)
+        {
+            return true;
+        }
+
         // Public methods in controllers are typically actions
         return action.Accessibility == "public" &&
                !action.Name.StartsWith("get_") &&
@@ -447,7 +529,15 @@ public class DeconstructionService : IDeconstructionService
         var match = Regex.Match(attribute, @"\(""([^""]+)""\)");
         return match.Success ? match.Groups[1].Value : string.Empty;
     }
+    /// <summary>
+    /// Extracts Tool Name from McpServerToolAttribute
+    /// </summary>
+    private string ExtractToolNameFromAttribute(string attribute)
+    {
+        var match = Regex.Match(attribute, @"McpServerToolAttribute\s*\(\s*Name\s*=\s*""([^""]+)""\s*\)");
+        return match.Success ? match.Groups[1].Value : string.Empty;
 
+    }
     /// <summary>
     /// Parses method parameters
     /// </summary>
@@ -460,12 +550,49 @@ public class DeconstructionService : IDeconstructionService
             return parameters;
         }
 
-        // Split parameters by comma (simple approach - could be improved for complex generics)
-        var paramStrings = parametersString.Split(',');
+        parametersString = string.Join(" ", parametersString.Split((char[])null, StringSplitOptions.RemoveEmptyEntries));
 
-        foreach (var paramString in paramStrings)
+        // Handle complex parameter parsing with attributes
+        var currentParam = new StringBuilder();
+        var bracketCount = 0;
+        var parenCount = 0;
+
+        for (var i = 0; i < parametersString.Length; i++)
         {
-            var param = ParseSingleParameter(paramString.Trim());
+            var c = parametersString[i];
+
+            if (c == '[')
+                bracketCount++;
+            else if (c == ']')
+                bracketCount--;
+            else if (c == '(')
+                parenCount++;
+            else if (c == ')')
+                parenCount--;
+            else if (c == ',' && bracketCount == 0 && parenCount == 0)
+            {
+                // Found parameter separator
+                var paramString = currentParam.ToString().Trim();
+                if (!string.IsNullOrEmpty(paramString))
+                {
+                    var param = ParseSingleParameter(paramString);
+                    if (param != null)
+                    {
+                        parameters.Add(param);
+                    }
+                }
+                currentParam.Clear();
+                continue;
+            }
+
+            currentParam.Append(c);
+        }
+
+        // Handle the last parameter
+        var lastParamString = currentParam.ToString().Trim();
+        if (!string.IsNullOrEmpty(lastParamString))
+        {
+            var param = ParseSingleParameter(lastParamString);
             if (param != null)
             {
                 parameters.Add(param);
@@ -485,29 +612,46 @@ public class DeconstructionService : IDeconstructionService
             return null;
         }
 
-        // Basic parameter parsing: [attributes] type name [= defaultValue]
-        var paramRegex = new Regex(@"(?:\[.*?\]\s*)?(\w+(?:<[^>]+>)?(?:\[\])?)\s+(\w+)(?:\s*=\s*(.+))?");
-        var match = paramRegex.Match(paramString);
+        // Remove extra whitespace and normalize the parameter string
+        paramString = Regex.Replace(paramString, @"\s+", " ").Trim();
+
+        // Extract attributes first
+        var attributes = new List<string>();
+        var attributePattern = @"\[([^\]]+)\]";
+        var attributeMatches = Regex.Matches(paramString, attributePattern);
+
+        foreach (Match attrMatch in attributeMatches)
+        {
+            attributes.Add(attrMatch.Groups[1].Value);
+        }
+
+        // Remove attributes from the parameter string
+        var paramWithoutAttributes = Regex.Replace(paramString, attributePattern, "").Trim();
+
+        // Parse the parameter: type name [= defaultValue]
+        var paramRegex = new Regex(@"(\w+(?:<[^>]+>)?(?:\[\])?(?:\?)?)\s+(\w+)(?:\s*=\s*(.+))?");
+        var match = paramRegex.Match(paramWithoutAttributes);
 
         if (!match.Success)
         {
-            return null;
+            // Try alternative pattern for more complex types
+            var altRegex = new Regex(@"([^=\s]+(?:\s+[^=\s]+)*?)\s+(\w+)(?:\s*=\s*(.+))?");
+            match = altRegex.Match(paramWithoutAttributes);
+
+            if (!match.Success)
+            {
+                return null;
+            }
         }
 
         var parameter = new DeconstructionActionParameterModel
         {
-            Type = match.Groups[1].Value,
-            Name = match.Groups[2].Value,
+            Type = match.Groups[1].Value.Trim(),
+            Name = match.Groups[2].Value.Trim(),
             HasDefaultValue = match.Groups.Count > 3 && !string.IsNullOrEmpty(match.Groups[3].Value),
-            DefaultValue = match.Groups.Count > 3 ? match.Groups[3].Value : null
+            DefaultValue = match.Groups.Count > 3 ? match.Groups[3].Value.Trim() : null,
+            Attributes = attributes
         };
-
-        // Extract attributes (simplified)
-        var attributeMatches = Regex.Matches(paramString, @"\[([^\]]+)\]");
-        foreach (Match attrMatch in attributeMatches)
-        {
-            parameter.Attributes.Add(attrMatch.Groups[1].Value);
-        }
 
         return parameter;
     }

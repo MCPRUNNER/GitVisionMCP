@@ -1,0 +1,399 @@
+﻿{
+  "ArchitectureModel": "Service",
+  "Name": "Workspace",
+  "ClassName": "WorkspaceService",
+  "Namespace": "GitVisionMCP.Services",
+  "BaseClass": "",
+  "Interfaces": [
+    "I"
+  ],
+  "UsingDirectives": [
+    "Microsoft.Extensions.Logging",
+    "Newtonsoft.Json",
+    "Newtonsoft.Json.Linq",
+    "System.Xml",
+    "System.Xml.Linq",
+    "System.Xml.XPath",
+    "System.Xml.Xsl",
+    "System.Text.RegularExpressions",
+    "GitVisionMCP.Models",
+    "YamlDotNet.Serialization",
+    "ClosedXML.Excel",
+    "Scriban",
+    "CsvHelper",
+    "CsvHelper.Configuration",
+    "System.Globalization",
+    "Microsoft.AspNetCore.Http",
+    "System.Reflection",
+    "GitVisionMCP.Repositories",
+    "GitVisionMCP.Services",
+    "var reader = new StreamReader(fullCsvPath)",
+    "var csv = new CsvReader(reader, config)",
+    "var stringWriter = new StringWriter()",
+    "var xmlWriter = XmlWriter.Create(stringWriter, xslt.OutputSettings)",
+    "var workbook = new XLWorkbook(fullExcelPath)"
+  ],
+  "ClassAttributes": [],
+  "Actions": [
+    {
+      "Name": "GetGitHubPromptFileContent",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "filename",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "SearchJsonFile",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "jsonFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "jsonPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "indented",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        },
+        {
+          "Name": "showKeyPaths",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "false"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "SearchCsvFile",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "csvFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "jsonPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "hasHeaderRecord",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        },
+        {
+          "Name": "ignoreBlankLines",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "SearchXmlFile",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "xmlFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "xPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "indented",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        },
+        {
+          "Name": "showKeyPaths",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "false"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "TransformXmlWithXslt",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "xmlFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "xsltFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "destinationFilePath",
+          "Type": "string?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "SearchYamlFile",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "yamlFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "jsonPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "indented",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "true"
+        },
+        {
+          "Name": "showKeyPaths",
+          "Type": "bool",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "false"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GenerateAutoDocumentationTempJson",
+      "ReturnType": "List<string>?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "configFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\".gitvision/autodocument.json\""
+        },
+        {
+          "Name": "jsonPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\"$.Documentation\""
+        },
+        {
+          "Name": "templatePath",
+          "Type": "string?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
+        },
+        {
+          "Name": "templateOutputPath",
+          "Type": "string?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\"Documentation/autodoc.md\""
+        },
+        {
+          "Name": "deconstructionService",
+          "Type": "IDeconstructionService?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "GenerateAutoDocumentationTempJsonWithTemplate",
+      "ReturnType": "List<string>?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "configFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\".gitvision/autodocument.json\""
+        },
+        {
+          "Name": "jsonPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\"$.Documentation\""
+        },
+        {
+          "Name": "templatePath",
+          "Type": "string?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\".gitvision/templates/autodoc.template.sbn\""
+        },
+        {
+          "Name": "templateOutputPath",
+          "Type": "string?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "\"Documentation/autodoc.md\""
+        },
+        {
+          "Name": "deconstructionService",
+          "Type": "IDeconstructionService?",
+          "Attributes": [],
+          "HasDefaultValue": true,
+          "DefaultValue": "null"
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "SearchExcelFile",
+      "ReturnType": "string?",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "excelFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "jsonPath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": false
+    },
+    {
+      "Name": "ProcessScribanFromJsonStringAsync",
+      "ReturnType": "Task<string?>",
+      "Accessibility": "public",
+      "Attributes": [],
+      "Parameters": [
+        {
+          "Name": "jsonString",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "templateFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        },
+        {
+          "Name": "outputFilePath",
+          "Type": "string",
+          "Attributes": [],
+          "HasDefaultValue": false,
+          "DefaultValue": ""
+        }
+      ],
+      "HttpMethod": "",
+      "Route": "",
+      "IsAsync": true
+    }
+  ],
+  "Properties": [],
+  "RoutePrefix": "",
+  "IsApiController": false,
+  "FilePath": "Services/WorkspaceService.cs",
+  "AnalyzedAt": "2025-09-02T17:23:10.86697Z"
+}

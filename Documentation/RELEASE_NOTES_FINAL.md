@@ -1,10 +1,10 @@
-# GitVisionMCP v1.0.5 Release Notes
+# GitVisionMCP v1.0.9.2 Release Notes
 
-**Release Date:** July 6, 2025
+**Release Date:** September 13, 2025
 
 ## Summary of Changes
 
-GitVisionMCP v1.0.5 is the fifth official release of our Model Context Protocol (MCP) server for git repository documentation. This release introduces a comprehensive set of tools for generating documentation from git history, comparing branches and commits, and providing insights into repository changes. The server is designed to work seamlessly with VS Code as a Copilot Agent.
+GitVisionMCP v1.0.9.2 is the second official release of our Model Context Protocol (MCP) server for git repository documentation. This release introduces a comprehensive set of tools for generating documentation from git history, comparing branches and commits, and providing insights into repository changes. The server is designed to work seamlessly with VS Code as a Copilot Agent.
 
 Key highlights of this release:
 
@@ -60,6 +60,36 @@ Key highlights of this release:
 - **Clean Architecture**: Well-organized project structure with proper separation of concerns
 - **Dependency Injection**: Modern DI pattern for all services
 - **Testability**: Unit tests for key components
+
+### Scriban Template Support
+
+- **Template Engine**: Use Scriban templates for flexible documentation generation
+- **Customizable Outputs**: Easily modify templates to fit project needs
+
+### Example Github Prompts
+
+- **Predefined Prompts**: Example prompts for common documentation tasks
+- **Custom Prompts**: Define your own prompts for specific use cases
+
+### Plugin Support
+
+- **Extensibility**: Easily add new features and tools through a plugin system
+- **Dynamic Loading**: Load plugins at runtime without restarting the server
+- **Configuration**: Customize plugin behavior using configuration files
+
+### Process Support
+
+- **Process Management**: Tools for managing system processes and resources
+- **Environment Variables**: Access and modify environment variables for the server process
+- **Cross-Platform**: Compatible with Windows, Linux, and macOS environments
+
+### Auto Documentation Support
+
+- **Automatic Documentation**: Generate documentation automatically based on git activity
+
+## Documentation Exclude Functionality
+
+The exclude functionality allows users to define patterns for files and directories that should be ignored during documentation generation and analysis. This is particularly useful for large repositories with many irrelevant files.
 
 ## Bug Fixes
 

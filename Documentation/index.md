@@ -19,7 +19,7 @@ This index lists all markdown documentation files available in the `Documentatio
 - [RELEASE_NOTES_FINAL.md](RELEASE_NOTES_FINAL.md): Final release notes and version history.
 - [SETUP.md](SETUP.md): Setup instructions for development and production environments.
 - [SEARCH_OVERVIEW.md](SEARCH_OVERVIEW_JSON_XML_YAML.md): Overview of search functionality across JSON, XML, and YAML formats Includes CSV/Excel examples.
-
+- [CREATE_MCP_SERVER.md](CREATE_MCP_SERVER.md): Overview of how to create an MCP server.
 ## Included Github Prompts
 
 - [ReleaseNotesPrompt.md](../.github/prompts/ReleaseNotesPrompt.md): Prompt for generating release notes documentation.
@@ -33,5 +33,4 @@ This index lists all markdown documentation files available in the `Documentatio
 
 ## Example Output
 
-- [Example_mssqlMCP_Dataflows.md](Example_mssqlMCP_Dataflows.md): Example dataflows for MSSQL MCP integration.
-- [ControllerDocumentation.md](ControllerDocumentation.md): API controller structure and documentation.
+- [autodoc.md](autodoc.md): Example output for auto-documentation.

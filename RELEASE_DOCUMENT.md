@@ -1,8 +1,8 @@
 # GitVisionMCP Release Document
 
-Version: 1.0.9.1
+Version: 1.0.9.2
 
-Release Date: 2025-08-24
+Release Date: 2025-09-13
 
 ## Summary
 

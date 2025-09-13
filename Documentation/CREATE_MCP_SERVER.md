@@ -192,30 +192,47 @@ sequenceDiagram
 
 #### 2.2.1. Defining Complex Tools
 
-For more complex tools, you can use dependency injection and provide detailed descriptions for parameters.
+To expose a method as a tool, you decorate it with the `[McpServerTool]` attribute. This attribute takes the tool's name as a parameter. It's crucial to also add a `[Description]` attribute to explain the tool's purpose and describe each parameter for the AI to understand.
+
+For more complex tools, you can use dependency injection to access other services.
+
+**Example using `McpServerToolAttribute`:**
 
 ```csharp
 [McpServerToolType]
-public class GitServiceTools
+public class UtilityTools
 {
-    private readonly IGitService _gitService; // Injected via DI
+    private readonly IUtilityRepository _utilityRepository; // Injected via DI
 
-    public GitServiceTools(IGitService gitService)
+    public UtilityTools(IUtilityRepository utilityRepository)
     {
-        _gitService = gitService;
+        _utilityRepository = utilityRepository;
     }
 
-    [McpServerTool("gv_compare_branches")]
-    [Description("Generate documentation comparing differences between two branches.")]
-    public async Task<string> CompareBranchesAsync(
-        [Description("The primary branch to compare from")] string branch1,
-        [Description("The secondary branch to compare to")] string branch2)
+    [McpServerTool(Name = "gv_run_process")]
+    [Description("Run an external process and capture its output.")]
+    public async Task<Dictionary<string, object>> RunProcessAsync(
+        [Description("The working directory for the process")] string workingDirectory,
+        [Description("The name or path of the process to run")] string fileName,
+        [Description("The command line arguments to pass")] string? arguments = null)
     {
-        // ... implementation using _gitService ...
-        return "Documentation generated successfully.";
+        // ... implementation using _utilityRepository ...
+        var result = await _utilityRepository.RunProcessAsync(workingDirectory, fileName, arguments);
+        return new Dictionary<string, object>
+        {
+            { "success", result.Success },
+            { "output", result.StdOut },
+            { "error", result.StdErr }
+        };
     }
 }
 ```
+
+In this example:
+
+- The `McpServerTool` attribute explicitly sets the tool's name to `gv_run_process` using the `Name` property.
+- The `Description` attributes for the method and its parameters provide essential context for the AI model.
+- The `UtilityTools` class can use services like `IUtilityRepository` that are provided through dependency injection.
 
 #### 2.2.2. Customizing the `initialize` Response and Tool List
 

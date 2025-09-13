@@ -209,7 +209,7 @@ public class UtilityTools
         _utilityRepository = utilityRepository;
     }
 
-    [McpServerTool(Name = "gv_run_process")]
+    [McpServerToolAttribute(Name = "gv_run_process")]
     [Description("Run an external process and capture its output.")]
     public async Task<Dictionary<string, object>> RunProcessAsync(
         [Description("The working directory for the process")] string workingDirectory,

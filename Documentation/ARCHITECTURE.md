@@ -29,9 +29,8 @@ graph TB
     end
 
     subgraph "MCP Framework"
-        D[ModelContextProtocol Server]
+        D[MCP Server]
         E[Tool Registration]
-        F[JSON-RPC 2.0]
     end
 
     subgraph "Tools Layer"
@@ -65,7 +64,6 @@ graph TB
     B --> D
     C --> D
     D --> E
-    D --> F
     E --> G
     E --> H
     E --> I

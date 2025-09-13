@@ -17,9 +17,9 @@ The exclude functionality automatically filters out common build artifacts, IDE 
 
 The exclude functionality is automatically applied to:
 
-- `list_workspace_files` - File discovery operations
-- `list_workspace_files_with_cached_data` - Cached file operations
-- `read_filtered_workspace_files` - Bulk file content reading
+- `gv_list_workspace_files` - File discovery operations
+- `gv_list_workspace_files_with_cached_data` - Cached file operations
+- `gv_read_filtered_workspace_files` - Bulk file content reading
 
 ### Pattern Matching
 

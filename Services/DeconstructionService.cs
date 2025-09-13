@@ -550,7 +550,8 @@ public class DeconstructionService : IDeconstructionService
             return parameters;
         }
 
-        parametersString = string.Join(" ", parametersString.Split((char[])null, StringSplitOptions.RemoveEmptyEntries));
+        // Normalize whitespace in the parameters string
+        parametersString = Regex.Replace(parametersString, @"\s+", " ").Trim();
 
         // Handle complex parameter parsing with attributes
         var currentParam = new StringBuilder();
